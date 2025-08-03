@@ -1,0 +1,518 @@
+.productListContainer {
+    padding: 2rem;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    z-index: 2;
+}
+
+/* Controls Section */
+.controlsSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid #e1e5e9;
+    gap: 16px;
+}
+
+.sortContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e1e5e9;
+}
+
+.sortLabel {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.sortSelect {
+    padding: 10px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 160px;
+    font-weight: 500;
+    color: #333;
+}
+
+.sortSelect:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.sortSelect:hover {
+    border-color: #b8c5f0;
+    transform: translateY(-1px);
+}
+
+.sortSelect option {
+    padding: 8px;
+    font-weight: 500;
+}
+
+/* Add Product Button */
+.addButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.addButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.addButton:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.addButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3), 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.addButton svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+/* Results Info */
+.resultsInfo {
+    margin-bottom: 2rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 2;
+}
+
+.resultsCount {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 1rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Products Grid */
+.productsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Empty State */
+.emptyState {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    margin: 2rem 0;
+    position: relative;
+    z-index: 2;
+}
+
+.emptyIcon {
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+.emptyState h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.emptyState p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Animation for grid items */
+.productsGrid > * {
+    animation: fadeInUp 0.6s ease-out;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger animation for grid items */
+.productsGrid > *:nth-child(1) { animation-delay: 0.1s; }
+.productsGrid > *:nth-child(2) { animation-delay: 0.2s; }
+.productsGrid > *:nth-child(3) { animation-delay: 0.3s; }
+.productsGrid > *:nth-child(4) { animation-delay: 0.4s; }
+.productsGrid > *:nth-child(5) { animation-delay: 0.5s; }
+.productsGrid > *:nth-child(6) { animation-delay: 0.6s; }
+.productsGrid > *:nth-child(7) { animation-delay: 0.7s; }
+.productsGrid > *:nth-child(8) { animation-delay: 0.8s; }
+
+/* Hover effects for grid items */
+.productsGrid > *:hover {
+    transform: translateY(-4px);
+    transition: transform 0.3s ease;
+}
+
+/* Focus management for accessibility */
+.productsGrid > *:focus-visible {
+    outline: 2px solid #00d4ff;
+    outline-offset: 2px;
+}
+
+/* Loading state (if needed) */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading .productsGrid > * {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Success state */
+.success {
+    border-color: #27ae60;
+}
+
+/* Error state */
+.error {
+    border-color: #e74c3c;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .productsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .productListContainer {
+        padding: 1rem;
+    }
+    
+    .controlsSection {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 12px 0;
+    }
+    
+    .sortContainer {
+        justify-content: center;
+        padding: 6px 12px;
+        gap: 8px;
+    }
+    
+    .sortSelect {
+        min-width: 140px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .sortLabel {
+        font-size: 0.85rem;
+    }
+    
+    .addButton {
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .productsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+    }
+    
+    .resultsInfo {
+        margin-bottom: 1.5rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .emptyState {
+        padding: 3rem 1rem;
+        margin: 1.5rem 0;
+    }
+    
+    .emptyState h3 {
+        font-size: 1.5rem;
+    }
+    
+    .emptyState p {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .productListContainer {
+        padding: 0.5rem;
+    }
+    
+    .controlsSection {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .sortContainer {
+        justify-content: center;
+        padding: 8px 12px;
+    }
+    
+    .productsGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .sortSelect {
+        min-width: 120px;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .sortLabel {
+        font-size: 0.8rem;
+    }
+    
+    .addButton {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .addButton svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .emptyState {
+        padding: 2rem 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .emptyState h3 {
+        font-size: 1.3rem;
+    }
+    
+    .emptyState p {
+        font-size: 0.85rem;
+    }
+    
+    .emptyIcon {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+    .productListContainer {
+        padding: 0.5rem;
+    }
+    
+    .controlsSection {
+        margin-bottom: 16px;
+        padding: 8px 0;
+    }
+    
+    .emptyState {
+        padding: 2rem 1rem;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .sortSelect {
+        border-width: 2px;
+    }
+    
+    .addButton {
+        border: 2px solid #fff;
+    }
+    
+    .emptyIcon {
+        color: #ffffff;
+    }
+    
+    .resultsInfo {
+        border-width: 2px;
+    }
+    
+    .emptyState {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .productsGrid > *,
+    .sortSelect,
+    .addButton {
+        animation: none;
+        transition: none;
+    }
+    
+    .productsGrid > *:hover,
+    .addButton:hover {
+        transform: none;
+    }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .productListContainer {
+        background: #1a1a1a;
+        color: #fff;
+    }
+    
+    .sortContainer {
+        background: #2d2d2d;
+        border-color: #444;
+    }
+    
+    .sortSelect {
+        background: #2d2d2d;
+        color: #fff;
+        border-color: #444;
+    }
+    
+    .addButton {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    }
+    
+    .resultsInfo {
+        background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+        color: #fff;
+    }
+    
+    .emptyState {
+        background: #2d2d2d;
+        color: #fff;
+    }
+    
+    .emptyState h3 {
+        color: #fff;
+    }
+    
+    .emptyState p {
+        color: #ccc;
+    }
+}
+
+/* Print styles */
+@media print {
+    .controlsSection {
+        display: none;
+    }
+    
+    .productsGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .productListContainer {
+        padding: 0;
+    }
+}
+
+/* Custom scrollbar for the container */
+.productListContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+.productListContainer::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.productListContainer::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.productListContainer::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Focus visible for better accessibility */
+.sortSelect:focus-visible,
+.addButton:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Selection styles */
+.productsGrid > *::selection {
+    background: rgba(0, 212, 255, 0.2);
+}
+
+/* Smooth scrolling */
+.productListContainer {
+    scroll-behavior: smooth;
+}

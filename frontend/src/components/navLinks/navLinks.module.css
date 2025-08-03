@@ -1,0 +1,401 @@
+/* frontend/src/components/NavLink/NavLink.module.css */
+
+.navContainer {
+    background: rgba(26, 26, 46, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 64px;
+    z-index: 99;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.navLinks {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navLink:hover {
+    color: #00d4ff;
+    background: rgba(0, 212, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.2);
+    border-color: rgba(0, 212, 255, 0.3);
+}
+
+.navLink:focus {
+    outline: 2px solid #00d4ff;
+    outline-offset: 2px;
+}
+
+.navLink.active {
+    color: #00d4ff;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(78, 205, 196, 0.15) 100%);
+    font-weight: 600;
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.navLink.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: linear-gradient(90deg, #00d4ff, #4ecdc4);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.navIcon {
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+}
+
+.navLink:hover .navIcon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+}
+
+.navLink.active .navIcon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6));
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navLinks {
+        padding: 0 16px;
+        gap: 4px;
+    }
+    
+    .navLink {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        gap: 6px;
+    }
+    
+    .navIcon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navLinks {
+        padding: 0 12px;
+        gap: 2px;
+    }
+    
+    .navLink {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        gap: 4px;
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .navIcon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* Animation for page load */
+.navContainer {
+    animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover effects for better UX */
+.navLink::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.navLink:hover::before {
+    opacity: 1;
+}
+
+/* Focus visible for better accessibility */
+.navLink:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .navContainer {
+        border-bottom-width: 2px;
+    }
+    
+    .navLink.active::after {
+        height: 4px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .navLink,
+    .navIcon,
+    .navContainer {
+        animation: none;
+        transition: none;
+    }
+    
+    .navLink:hover {
+        transform: none;
+    }
+    
+    .navLink:hover .navIcon,
+    .navLink.active .navIcon {
+        transform: none;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .navContainer {
+        background: rgba(45, 45, 45, 0.95);
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .navLink {
+        color: #ccc;
+    }
+    
+    .navLink:hover {
+        color: #667eea;
+        background: rgba(102, 126, 234, 0.2);
+    }
+    
+    .navLink.active {
+        color: #667eea;
+        background: rgba(102, 126, 234, 0.3);
+    }
+}
+
+/* Print styles */
+@media print {
+    .navContainer {
+        display: none;
+    }
+}
+
+/* Custom scrollbar for the nav container */
+.navContainer::-webkit-scrollbar {
+    height: 4px;
+}
+
+.navContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.navContainer::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 2px;
+}
+
+.navContainer::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.5);
+}
+
+/* Selection styles */
+.navLink::selection {
+    background: rgba(102, 126, 234, 0.2);
+}
+
+/* Cart Container and Badge */
+.cartContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cartBadge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+    animation: badgePop 0.3s ease-out;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes badgePop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Slide overlay styles */
+.slideOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+    backdrop-filter: blur(10px);
+}
+
+.slide {
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+}
+
+.closeButton {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.closeButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #00d4ff;
+}
+
+.slide h2 {
+    margin: 0 0 20px 0;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.sidebarList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebarList li {
+    margin-bottom: 10px;
+}
+
+.sidebarList a {
+    display: block;
+    padding: 12px 16px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebarList a:hover {
+    background: rgba(0, 212, 255, 0.1);
+    color: #00d4ff;
+    transform: translateX(5px);
+    border-color: rgba(0, 212, 255, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,107 @@
+/* Cart Items Container */
+.cartItemsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cartItemsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+    position: relative;
+}
+
+.cartItemsHeader::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #00d4ff, #4ecdc4);
+    border-radius: 1px;
+}
+
+.cartItemsHeader h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.itemsCount {
+    background: linear-gradient(135deg, #00d4ff, #4ecdc4);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.cartItemsList {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cartItemsHeader {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .cartItemsHeader h2 {
+        font-size: 1.5rem;
+    }
+    
+    .itemsCount {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cartItemsHeader h2 {
+        font-size: 1.3rem;
+    }
+    
+    .itemsCount {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+    
+    .cartItemsList {
+        gap: 20px;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .cartItemsHeader {
+        border-bottom-width: 3px;
+    }
+    
+    .cartItemsHeader::after {
+        height: 3px;
+    }
+    
+    .itemsCount {
+        border-width: 2px;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .cartItemsHeader::after {
+        animation: none;
+    }
+} 

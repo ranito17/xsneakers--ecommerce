@@ -1,0 +1,224 @@
+/* Cart Actions */
+.cartActions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 0 20px 20px 20px;
+}
+
+.checkoutButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #00d4ff 0%, #4ecdc4 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.checkoutButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.checkoutButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+    background: linear-gradient(135deg, #00b8e6 0%, #3db8a8 100%);
+}
+
+.checkoutButton:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.checkoutButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.checkoutButton:focus {
+    outline: 2px solid #00d4ff;
+    outline-offset: 2px;
+}
+
+.continueShoppingButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #00d4ff;
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+}
+
+.continueShoppingButton:hover {
+    background: rgba(0, 212, 255, 0.1);
+    color: #00d4ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+    border-color: rgba(0, 212, 255, 0.5);
+}
+
+.continueShoppingButton:focus {
+    outline: 2px solid #00d4ff;
+    outline-offset: 2px;
+}
+
+.clearCartButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ff6b6b;
+    border: 2px solid rgba(255, 107, 107, 0.3);
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+}
+
+.clearCartButton:hover:not(:disabled) {
+    background: rgba(255, 107, 107, 0.1);
+    color: #ff6b6b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    border-color: rgba(255, 107, 107, 0.5);
+}
+
+.clearCartButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.clearCartButton:focus {
+    outline: 2px solid #ff6b6b;
+    outline-offset: 2px;
+}
+
+/* Button Icons */
+.checkoutButton svg,
+.continueShoppingButton svg,
+.clearCartButton svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.checkoutButton:hover svg,
+.continueShoppingButton:hover svg,
+.clearCartButton:hover svg {
+    transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .checkoutButton,
+    .continueShoppingButton,
+    .clearCartButton {
+        padding: 14px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .checkoutButton svg,
+    .continueShoppingButton svg,
+    .clearCartButton svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cartActions {
+        padding: 0 16px 16px 16px;
+        gap: 10px;
+    }
+    
+    .checkoutButton,
+    .continueShoppingButton,
+    .clearCartButton {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .checkoutButton svg,
+    .continueShoppingButton svg,
+    .clearCartButton svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .checkoutButton {
+        border-width: 3px;
+    }
+    
+    .continueShoppingButton,
+    .clearCartButton {
+        border-width: 3px;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .checkoutButton,
+    .continueShoppingButton,
+    .clearCartButton,
+    .checkoutButton::before {
+        transition: none;
+    }
+    
+    .checkoutButton:hover,
+    .continueShoppingButton:hover,
+    .clearCartButton:hover {
+        transform: none;
+    }
+    
+    .checkoutButton:hover svg,
+    .continueShoppingButton:hover svg,
+    .clearCartButton:hover svg {
+        transform: none;
+    }
+} 
