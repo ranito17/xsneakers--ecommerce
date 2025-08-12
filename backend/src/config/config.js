@@ -54,6 +54,7 @@ const config = {
             apiKey: process.env.SENDGRID_API_KEY,
             fromEmail: process.env.FROM_EMAIL,
             fromName: process.env.FROM_NAME,
+            adminEmail: process.env.ADMIN_EMAIL,
             frontendUrl: process.env.FRONTEND_URL
         }
     },
@@ -110,6 +111,7 @@ const config = {
             apiKey: process.env.SENDGRID_API_KEY,
             fromEmail: process.env.FROM_EMAIL,
             fromName: process.env.FROM_NAME,
+            adminEmail: process.env.ADMIN_EMAIL,
             frontendUrl: process.env.FRONTEND_URL
         }
     }

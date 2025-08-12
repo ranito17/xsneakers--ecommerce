@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
-import { useCart } from '../context/useCart';
-import { useAuth } from '../context/useAuth';
+import { useCart } from '../hooks/useCart';
+import { useAuth } from '../hooks/useAuthentication';
 
 import CartItems from '../components/cart/CartItems';
 import CartSummary from '../components/cart/CartSummary';
 import CartActions from '../components/cart/CartActions';
+import LoadingContainer from '../components/loading/LoadingContainer';
+import ErrorContainer from '../components/error/ErrorContainer';
 import styles from './pages.module.css';
 
 import { orderApi } from '../services/orderApi';
     
 const CartPage = () => {
-  
-
     // Get cart data and functions from context
     const { 
         cartItems, 
@@ -28,13 +28,13 @@ const CartPage = () => {
     // Auth state
     const { isAuthenticated, isLoading: authLoading, user } = useAuth();
     
-    // Load cart when user is authenticated
+    // Load cart when user is available
     useEffect(() => {
-        if (isAuthenticated) {
-            console.log('🛒 CartPage: User authenticated, loading cart...');
+        if (user?.id) {
+            console.log('🛒 CartPage: User available, loading cart...');
             loadCartFromBackend();
         }
-    }, [isAuthenticated]);
+    }, [user?.id]);
     
     console.log('CartPage rendered with:', { 
         cartItems, 
@@ -48,9 +48,15 @@ const CartPage = () => {
     });
     
     // Show loading state while checking authentication or loading cart
-    const isPageLoading = authLoading || (isAuthenticated && cartLoading);
+    const isPageLoading = authLoading || cartLoading;
 
     const handlePlaceOrder = async () => {
+        if (!isAuthenticated) {
+            // Redirect to login with return URL
+            window.location.href = '/login?redirect=/cart';
+            return;
+        }
+
         try {
             const orderData = {
                 user_id: user.id,
@@ -59,7 +65,6 @@ const CartPage = () => {
                 items: cartItems.map(item => ({
                     product_id: item.id,
                     quantity: item.quantity,
-                    selected_color: item.selected_color,
                     selected_size: item.selected_size
                 }))
             };
@@ -78,6 +83,17 @@ const CartPage = () => {
         }
     };
 
+    const handleCheckout = () => {
+        if (!isAuthenticated) {
+            // Redirect to login with return URL
+            window.location.href = '/login?redirect=/cart';
+            return;
+        }
+        
+        // Proceed with checkout for authenticated users
+        handlePlaceOrder();
+    };
+
     return (
         <div className={styles.cartPage}>
             {/* Page Header */}
@@ -89,40 +105,15 @@ const CartPage = () => {
             {/* Main Content */}
             <div className={styles.cartContent}>
                 {isPageLoading ? (
-                    <div className={styles.loading}>
-                        <div className={styles.spinner}></div>
-                        <p>{authLoading ? 'Checking authentication...' : 'Loading your cart...'}</p>
-                    </div>
-                ) : !isAuthenticated ? (
-                    <div className={styles.authRequired}>
-                        <svg className={styles.lockIcon} width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <circle cx="12" cy="16" r="1"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
-                        <h2>Authentication Required</h2>
-                        <p>Please login to access your cart and checkout</p>
-                        <a href="/login" className={styles.loginButton}>
-                            Login to Continue
-                        </a>
-                    </div>
+                    <LoadingContainer 
+                        message={authLoading ? 'Checking authentication...' : 'Loading your cart...'} 
+                        size="medium" 
+                    />
                 ) : cartError ? (
-                    <div className={styles.errorState}>
-                        <svg className={styles.errorIcon} width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="15" y1="9" x2="9" y2="15"/>
-                            <line x1="9" y1="9" x2="15" y2="15"/>
-                        </svg>
-                        <h2>Error Loading Cart</h2>
-                        <p>{cartError}</p>
-                        <button 
-                            onClick={loadCartFromBackend} 
-                            className={styles.retryButton}
-                            disabled={cartLoading}
-                        >
-                            {cartLoading ? 'Retrying...' : 'Try Again'}
-                        </button>
-                    </div>
+                    <ErrorContainer 
+                        message={cartError}
+                        onRetry={loadCartFromBackend}
+                    />
                 ) : cartCount > 0 ? (
                     <>
                         {/* Cart Items Section */}
@@ -141,11 +132,30 @@ const CartPage = () => {
                                 cartItems={cartItems}
                                 cartTotal={cartTotal}
                             />
+                            
+                            {/* Guest User Notice */}
+                            {!isAuthenticated && (
+                                <div className={styles.guestNotice}>
+                                    <div className={styles.guestNoticeContent}>
+                                        <svg className={styles.guestIcon} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                                            <polyline points="10,17 15,12 10,7"/>
+                                            <line x1="15" y1="12" x2="3" y2="12"/>
+                                        </svg>
+                                        <div className={styles.guestText}>
+                                            <h3>Ready to Checkout?</h3>
+                                            <p>Please log in to complete your purchase and save your cart for future visits.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
                             <CartActions 
                                 cartTotal={cartTotal}
                                 clearCart={clearCart}
                                 isLoading={cartLoading}
-                                handlePlaceOrder={handlePlaceOrder}
+                                handlePlaceOrder={handleCheckout}
+                                isAuthenticated={isAuthenticated}
                             />
                         </div>
                     </>
@@ -163,7 +173,7 @@ const CartPage = () => {
                         </a>
                     </div>
                 )}
-                        </div>
+            </div>
         </div>
     );
 };

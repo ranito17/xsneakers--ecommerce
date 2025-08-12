@@ -3,13 +3,20 @@
 const dbSingleton = require('../config/database');
 
 // קבלת כל המוצרים ממסד הנתונים
-// פונקציה שמבצעת שאילתת SELECT ומחזירה את כל המוצרים
+// פונקציה שמבצעת שאילתת SELECT ומחזירה את כל המוצרים עם מידע על הקטגוריה
 async function getAllProducts() {
     try {
         const db = await dbSingleton.getConnection();
-        const [rows] = await db.query('SELECT * FROM products');
+        const [rows] = await db.query(`
+            SELECT 
+                p.*,
+                c.category_name 
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            ORDER BY p.id DESC
+        `);
         
-        // Process image URLs
+        // Process image URLs and add category info
         const processedRows = rows.map(product => {
             let images = [];
             
@@ -32,7 +39,11 @@ async function getAllProducts() {
             return {
                 ...product,
                 image_urls: fullImageUrls.join(','),
-                images: fullImageUrls // Add images array for frontend convenience
+                images: fullImageUrls, // Add images array for frontend convenience
+                category: {
+                    id: product.category_id,
+                    name: product.category_name
+                }
             };
         });
      
@@ -82,6 +93,57 @@ async function deleteProduct(id) {
     }
 }
 
+// קבלת מוצר לפי מזהה עם מידע על הקטגוריה
+async function getProductById(id) {
+    try {
+        const db = await dbSingleton.getConnection();
+        const [rows] = await db.query(`
+            SELECT 
+                p.*,
+                c.category_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            WHERE p.id = ?
+        `, [id]);
+        
+        if (rows.length === 0) {
+            return null;
+        }
+        
+        const product = rows[0];
+        
+        // Process image URLs
+        let images = [];
+        if (product.image_urls && product.image_urls.trim()) {
+            images = product.image_urls.split(',').map(url => url.trim()).filter(Boolean);
+        }
+        
+        // Convert to full URLs
+        const fullImageUrls = images.map(url => {
+            if (url.startsWith('http')) {
+                return url;
+            } else if (url.startsWith('/uploads/')) {
+                return `http://localhost:3001${url}`;
+            } else {
+                return `http://localhost:3001/uploads/products/${url}`;
+            }
+        });
+        
+        return {
+            ...product,
+            image_urls: fullImageUrls.join(','),
+            images: fullImageUrls,
+            category: {
+                id: product.category_id,
+                name: product.category_name
+            }
+        };
+    } catch (err) {
+        console.error('Error fetching product by ID:', err);
+        throw new Error('Failed to fetch product from database');
+    }
+}
+
 // עדכון מוצר במסד הנתונים
 // פונקציה שמבצעת שאילתת UPDATE ועדכנת מוצר קיים
 async function updateProduct(id, productData) {
@@ -110,6 +172,7 @@ async function updateProduct(id, productData) {
 
 module.exports = {
     getAllProducts,
+    getProductById,
     createProduct,
     updateProduct,
     deleteProduct

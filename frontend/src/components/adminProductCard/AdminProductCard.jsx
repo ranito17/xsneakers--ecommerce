@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { uploadApi } from '../../services/uploadApi';
 import styles from './adminProductCard.module.css';
 
-const AdminProductCard = ({ product, onEdit, onDelete, onImageUpload }) => {
+const AdminProductCard = ({ product, onEdit, onDelete, onImageUpload, onImageDelete }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadError, setUploadError] = useState(null);
+    const [deletingImage, setDeletingImage] = useState(null);
 
     const handleDelete = async () => {
         if (!window.confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
@@ -21,6 +22,29 @@ const AdminProductCard = ({ product, onEdit, onDelete, onImageUpload }) => {
             console.error('Error deleting product:', error);
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    const handleDeleteImage = async (imageUrl) => {
+        if (!window.confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+            return;
+        }
+
+        setDeletingImage(imageUrl);
+        try {
+            await uploadApi.deleteProductImage(product.id, imageUrl);
+            
+            // Call the parent callback to refresh the product data
+            if (onImageDelete) {
+                await onImageDelete(product.id, imageUrl);
+            }
+            
+            console.log('Image deleted successfully');
+        } catch (error) {
+            console.error('Error deleting image:', error);
+            alert('Failed to delete image. Please try again.');
+        } finally {
+            setDeletingImage(null);
         }
     };
 
@@ -38,6 +62,11 @@ const AdminProductCard = ({ product, onEdit, onDelete, onImageUpload }) => {
     };
 
     const stockInfo = getStockStatus(product.stock_quantity);
+
+    // Parse product images
+    const productImages = product.image_urls ? 
+        product.image_urls.split(',').map(url => url.trim()).filter(Boolean) : 
+        [];
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
@@ -104,9 +133,9 @@ const AdminProductCard = ({ product, onEdit, onDelete, onImageUpload }) => {
         <div className={`${styles.productCard} ${styles[stockInfo.status]}`}>
             <div className={styles.cardHeader}>
                 <div className={styles.productImage}>
-                    {product.image_urls ? (
+                    {productImages.length > 0 ? (
                         <img 
-                            src={product.image_urls.split(',')[0]} 
+                            src={productImages[0]} 
                             alt={product.name}
                             onError={(e) => {
                                 e.target.style.display = 'none';
@@ -150,6 +179,70 @@ const AdminProductCard = ({ product, onEdit, onDelete, onImageUpload }) => {
                             {product.category_name || 'Uncategorized'}
                         </span>
                     </div>
+
+                    {/* Additional Product Details */}
+                    <div className={styles.additionalDetails}>
+                        {/* Color Information */}
+                        {product.color && (
+                            <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Color:</span>
+                                <span className={styles.detailValue}>
+                                    <span 
+                                        className={styles.colorSwatch}
+                                        style={{ backgroundColor: product.color.toLowerCase() }}
+                                        title={product.color}
+                                    ></span>
+                                    {product.color}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Sizes Information */}
+                        {product.sizes && (
+                            <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Sizes:</span>
+                                <div className={styles.sizesContainer}>
+                                    {(() => {
+                                        let sizes = product.sizes;
+                                        if (typeof sizes === 'string') {
+                                            try {
+                                                sizes = JSON.parse(sizes);
+                                            } catch (e) {
+                                                sizes = sizes.split(',').map(s => s.trim());
+                                            }
+                                        }
+                                        
+                                        if (Array.isArray(sizes)) {
+                                            return sizes.map((size, index) => (
+                                                <span key={index} className={styles.sizeTag}>
+                                                    {size}
+                                                </span>
+                                            ));
+                                        }
+                                        return <span className={styles.detailValue}>{sizes}</span>;
+                                    })()}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Stock Status with Visual Indicator */}
+                        <div className={styles.detailItem}>
+                            <span className={styles.detailLabel}>Status:</span>
+                            <span className={styles.detailValue}>
+                                <span 
+                                    className={styles.statusIndicator}
+                                    style={{ backgroundColor: stockInfo.color }}
+                                ></span>
+                                {stockInfo.label} ({product.stock_quantity} units)
+                            </span>
+                        </div>
+
+                        {/* Product ID */}
+                        <div className={styles.detailItem}>
+                            <span className={styles.detailLabel}>ID:</span>
+                            <span className={styles.detailValue}>#{product.id}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -189,10 +282,75 @@ const AdminProductCard = ({ product, onEdit, onDelete, onImageUpload }) => {
                 </button>
             </div>
 
+            {/* Product Images Section */}
+            <div className={styles.productImagesSection}>
+                <div className={styles.imagesHeader}>
+                    <h4>Product Images ({productImages.length})</h4>
+                </div>
+                
+                {/* Existing Images */}
+                {productImages.length > 0 && (
+                    <div className={styles.existingImages}>
+                        {productImages.map((imageUrl, index) => (
+                            <div key={index} className={styles.imageItem}>
+                                <img 
+                                    src={imageUrl} 
+                                    alt={`Product ${index + 1}`}
+                                    className={styles.productImage}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                />
+                                <div className={styles.imagePlaceholder}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <path d="M21 15l-5-5L5 21"/>
+                                    </svg>
+                                </div>
+                                <button 
+                                    className={styles.deleteImageButton}
+                                    onClick={() => handleDeleteImage(imageUrl)}
+                                    disabled={deletingImage === imageUrl}
+                                    title="Delete this image"
+                                >
+                                    {deletingImage === imageUrl ? (
+                                        <svg className={styles.spinner} width="12" height="12" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" strokeDasharray="31.416" strokeDashoffset="31.416">
+                                                <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
+                                                <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
+                                            </circle>
+                                        </svg>
+                                    ) : (
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* No Images Message */}
+                {productImages.length === 0 && (
+                    <div className={styles.noImages}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <path d="M21 15l-5-5L5 21"/>
+                        </svg>
+                        <p>No images uploaded yet</p>
+                    </div>
+                )}
+            </div>
+
             {/* Image Upload Section */}
             <div className={styles.imageUploadSection}>
                 <div className={styles.uploadHeader}>
-                    <h4>Product Images</h4>
+                    <h4>Upload New Images</h4>
                     <span className={styles.uploadCount}>
                         {selectedFiles.length}/10 selected
                     </span>

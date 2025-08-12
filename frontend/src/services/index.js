@@ -7,3 +7,4 @@ export { categoryApi  } from './categoryApi';
 export { uploadApi } from './uploadApi';
 export { orderApi } from './orderApi';
 export { settingsApi } from './settingsApi';
+export { emailApi } from './emailApi';

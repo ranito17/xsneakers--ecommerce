@@ -2,7 +2,21 @@ import React from 'react';
 import AdminProductCard from '../adminProductCard/AdminProductCard';
 import styles from './adminProductList.module.css';
 
-const AdminProductList = ({ products, onEdit, onDelete, onImageUpload, isLoading }) => {
+const AdminProductList = ({ 
+    products, 
+    onEdit, 
+    onDelete, 
+    onImageUpload, 
+    onImageDelete, 
+    isLoading,
+    appliedFilters = ''
+}) => {
+    const getFilteredProducts = () => {
+        return products; // We'll handle filtering in the parent component
+    };
+
+    const filteredProducts = getFilteredProducts();
+
     if (isLoading) {
         return (
             <div className={styles.loadingState}>
@@ -29,7 +43,6 @@ const AdminProductList = ({ products, onEdit, onDelete, onImageUpload, isLoading
     return (
         <div className={styles.productList}>
             <div className={styles.listHeader}>
-                <h2>Products ({products.length})</h2>
                 <div className={styles.listStats}>
                     <span className={styles.statItem}>
                         <strong>Total:</strong> {products.length}
@@ -41,16 +54,23 @@ const AdminProductList = ({ products, onEdit, onDelete, onImageUpload, isLoading
                         <strong>Out of Stock:</strong> {products.filter(p => p.stock_quantity === 0).length}
                     </span>
                 </div>
+                
+                {appliedFilters && (
+                    <div className={styles.appliedFilters}>
+                        <strong>Applied Filters:</strong> {appliedFilters}
+                    </div>
+                )}
             </div>
 
             <div className={styles.productsGrid}>
-                {products.map(product => (
+                {filteredProducts.map(product => (
                     <AdminProductCard
                         key={product.id}
                         product={product}
                         onEdit={() => onEdit(product)}
                         onDelete={() => onDelete(product.id)}
                         onImageUpload={onImageUpload}
+                        onImageDelete={onImageDelete}
                     />
                 ))}
             </div>

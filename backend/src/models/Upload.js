@@ -35,7 +35,7 @@ class Upload {
     try {
       // First get current image_urls
       const [rows] = await db.query(
-        'SELECT image_url FROM products WHERE id = ?',
+        'SELECT image_urls FROM products WHERE id = ?',
         [productId]
       );
 
@@ -44,13 +44,35 @@ class Upload {
       }
 
       const currentUrls = rows[0].image_urls ? rows[0].image_urls.split(',') : [];
-      const updatedUrls = currentUrls.filter(url => url.trim() !== imageUrl.trim());
+      
+      // Helper function to normalize URLs for comparison
+      const normalizeUrl = (url) => {
+        let normalized = url.trim();
+        // Remove base URL if present
+        if (normalized.includes('http://localhost:3001/uploads/products/')) {
+          normalized = normalized.replace('http://localhost:3001/uploads/products/', '');
+        } else if (normalized.startsWith('/uploads/products/')) {
+          normalized = normalized.replace('/uploads/products/', '');
+        }
+        return normalized;
+      };
+
+      const targetUrl = normalizeUrl(imageUrl);
+      const updatedUrls = currentUrls.filter(url => normalizeUrl(url) !== targetUrl);
+
+      console.log('🗑️ Database update:', { 
+        originalUrls: currentUrls, 
+        targetUrl: imageUrl, 
+        normalizedTarget: targetUrl,
+        remainingUrls: updatedUrls 
+      });
 
       // Update with remaining URLs
       const query = 'UPDATE products SET image_urls = ? WHERE id = ?';
       const updatedUrlsString = updatedUrls.join(',');
     
       await db.query(query, [updatedUrlsString, productId]);
+      console.log('✅ Database updated successfully');
     } catch (error) {
       console.error('Error in removeProductImage:', error);
       throw error;

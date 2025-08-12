@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { productApi } from '../services/index';
 import ProductList from '../components/productList/ProductList';
 import CategoryNav from '../components/categoryNav/CategoryNav';
+import LoadingContainer from '../components/loading/LoadingContainer';
+import ErrorContainer from '../components/error/ErrorContainer';
 import styles from './pages.module.css';
 import ImageModal from '../components/imageModal/ImageModal';
 
@@ -10,6 +12,7 @@ import ImageModal from '../components/imageModal/ImageModal';
 const ProductsPage = () => {
     // מצב המוצרים - מערך של כל המוצרים מהשרת
     const [products, setProducts] = useState([]);
+    console.log('🏪 Initial products state:', products);
     // מצב טעינה - מציג ספינר בזמן טעינת נתונים
     const [loading, setLoading] = useState(true);
     // מצב שגיאה - מציג הודעת שגיאה אם יש בעיה
@@ -18,6 +21,10 @@ const ProductsPage = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     // מצב קטגוריות - רשימת כל הקטגוריות
     const [categories, setCategories] = useState([]);
+    // מצב טעינת קטגוריות - מציג ספינר בזמן טעינת קטגוריות
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    // מצב שגיאה בקטגוריות - מציג הודעת שגיאה אם יש בעיה
+    const [categoriesError, setCategoriesError] = useState(null);
     // מצב מיון - למיין מוצרים
     const [sortBy, setSortBy] = useState('name');
     // מצב חיפוש - חיפוש מוצרים
@@ -39,16 +46,20 @@ const ProductsPage = () => {
         try {
             setLoading(true);
             setError(null);
+            console.log('🔍 Fetching products...');
             
             const response = await productApi.getProducts();
+            console.log('✅ Products response:', response);
 
             if (response.success) {
                 setProducts(response.data || []);
+                console.log('📦 Products set:', response.data || []);
             } else {
+                console.warn('⚠️ Products response not successful:', response);
                 setError('Failed to fetch products');
             }
         } catch (error) {
-            console.error('Error fetching products:', error);
+            console.error('❌ Error fetching products:', error);
             setError(error.response?.data?.message || 'Failed to load products');
         } finally {
             setLoading(false);
@@ -67,13 +78,26 @@ const ProductsPage = () => {
     // פונקציה לקבלת כל הקטגוריות מהשרת
     const fetchCategories = async () => {
         try {
+            setCategoriesLoading(true);
+            setCategoriesError(null);
             console.log('🔍 Fetching categories...');
             const response = await productApi.getCategories();
             console.log('✅ Categories response:', response);
-            setCategories(response.data || []);
-            console.log('📋 Categories set:', response.data || []);
+            
+            // Check if response has the expected structure
+            if (response && response.success && Array.isArray(response.data)) {
+                setCategories(response.data);
+                console.log('📋 Categories set:', response.data);
+            } else {
+                console.warn('⚠️ Unexpected categories response structure:', response);
+                setCategories([]);
+            }
         } catch (error) {
             console.error('❌ Error fetching categories:', error);
+            setCategoriesError(error.response?.data?.message || 'Failed to load categories');
+            setCategories([]); // Set empty array on error
+        } finally {
+            setCategoriesLoading(false);
         }
     };
 
@@ -164,38 +188,28 @@ const ProductsPage = () => {
 
     // קבלת מוצרים מסוננים וממוינים
     const getProcessedProducts = () => {
+        console.log('🔄 Getting processed products. Current products state:', products);
         const filtered = getFilteredProducts();
-        return sortProducts(filtered, sortBy);
+        const sorted = sortProducts(filtered, sortBy);
+        console.log('📊 Processed products result:', sorted.length, 'products');
+        return sorted;
     };
 
     // מצג טעינה - מציג ספינר בזמן טעינת נתונים
     if (loading) {
-        return (
-            <div className={styles.loadingContainer}>
-                <div className={styles.spinner}></div>
-                <p>Loading products...</p>
-            </div>
-        );
+        return <LoadingContainer message="Loading products..." size="medium" />;
     }
 
     // מצג שגיאה - מציג הודעת שגיאה עם כפתור ניסיון חוזר
     if (error) {
         return (
-            <div className={styles.errorContainer}>
-                <svg className={styles.errorIcon} width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="15" y1="9" x2="9" y2="15"/>
-                    <line x1="9" y1="9" x2="15" y2="15"/>
-                </svg>
-                <h3>Error Loading Products</h3>
-                <p>{error}</p>
-                <button 
-                    onClick={fetchProducts}
-                    className={styles.retryButton}
-                >
-                    Try Again
-                </button>
-            </div>
+            <ErrorContainer 
+                message={error}
+                onRetry={() => {
+                    fetchProducts();
+                    fetchCategories();
+                }}
+            />
         );
     }
 
@@ -211,8 +225,8 @@ const ProductsPage = () => {
                     categories={categories}
                     onCategoryChange={handleCategoryChange}
                     activeCategory={selectedCategory}
-                    loading={loading}
-                    error={error}
+                    loading={categoriesLoading}
+                    error={categoriesError}
                 />
             </div>
 

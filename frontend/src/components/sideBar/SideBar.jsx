@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
+import { useAuth } from '../../hooks/useAuthentication';
 import styles from './sideBar.module.css';
 
 const SideBar = ({ isOpen, onClose }) => {
     const { user, isAuthenticated, isLoading, logout } = useAuth();
     const navigate = useNavigate();
     const [isClosing, setIsClosing] = useState(false);
-
     // Handle sidebar close with animation
     const handleClose = () => {
         setIsClosing(true);
@@ -24,6 +23,16 @@ const SideBar = ({ isOpen, onClose }) => {
             setIsClosing(false);
         }
     }, [isOpen, isAuthenticated]);
+
+    // Debug authentication state changes
+    useEffect(() => {
+        console.log('🔍 SideBar: Auth state changed:', { 
+            isAuthenticated, 
+            isLoading, 
+            userRole: user?.role,
+            userName: user?.name 
+        });
+    }, [isAuthenticated, isLoading, user]);
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -62,7 +71,7 @@ const SideBar = ({ isOpen, onClose }) => {
 
     // Admin navigation options (Simplified)
     const adminOptions = [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊', action: () => handleNavigation('/dashboard') },
+        { id: 'dashboard', label: 'Dashboard', icon: '📊', action: () => handleNavigation('/admin/dashboard') },
         { id: 'products', label: 'Products', icon: '📦', action: () => handleNavigation('/admin/products') },
         { id: 'orders', label: 'Orders', icon: '📋', action: () => handleNavigation('/admin/orders') },
         { id: 'settings', label: 'Settings', icon: '⚙️', action: () => handleNavigation('/admin/settings') },
@@ -87,13 +96,12 @@ const SideBar = ({ isOpen, onClose }) => {
 
     // Get current user options
     const getCurrentOptions = () => {
-        if (isLoading) return guestOptions; // Show guest options while loading
-        if (!isAuthenticated) return guestOptions;
+        // Show guest options while loading or if not authenticated
+        if (isLoading || !isAuthenticated) return guestOptions;
         if (user?.role === 'admin') return adminOptions;
         return customerOptions;
     };
 
-    const currentOptions = getCurrentOptions();
 
     return (
         <>
@@ -150,7 +158,7 @@ const SideBar = ({ isOpen, onClose }) => {
                 {/* Navigation Menu */}
                 <nav className={styles.navigation}>
                     <ul className={styles.navList}>
-                        {currentOptions.map((option) => (
+                        {getCurrentOptions().map((option) => (
                             <li key={option.id} className={styles.navItem}>
                                 <button
                                     className={styles.navButton}

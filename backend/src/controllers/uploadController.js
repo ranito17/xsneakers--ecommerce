@@ -38,12 +38,29 @@ const deleteProductImage = async (req, res) => {
         const { productId } = req.params;
         const { imageUrl } = req.body;
 
+        // Extract filename from the full URL
+        let filename;
+        if (imageUrl.includes('http://localhost:3001/uploads/products/')) {
+            // Full URL format: http://localhost:3001/uploads/products/filename.png
+            filename = imageUrl.replace('http://localhost:3001/uploads/products/', '');
+        } else if (imageUrl.startsWith('/uploads/products/')) {
+            // Relative URL format: /uploads/products/filename.png
+            filename = imageUrl.replace('/uploads/products/', '');
+        } else {
+            // Assume it's already just the filename
+            filename = imageUrl;
+        }
+
+        console.log('🗑️ Deleting image:', { originalUrl: imageUrl, extractedFilename: filename });
+
         // Delete the file from disk
-        const filePath = path.join('uploads', 'products', imageUrl);
+        const filePath = path.join('uploads', 'products', filename);
         try {
             await fs.unlink(filePath);
+            console.log('✅ File deleted from disk:', filePath);
         } catch (fileError) {
-            console.warn('File not found for deletion:', filePath);
+            console.warn('⚠️ File not found for deletion:', filePath);
+            // Continue with database update even if file doesn't exist
         }
 
         // Remove from database
@@ -55,11 +72,11 @@ const deleteProductImage = async (req, res) => {
         });
     } catch (error) {
         console.error('Error deleting image:', error);
-    res.status(500).json({
-      success: false,
+        res.status(500).json({
+            success: false,
             message: 'Failed to delete image'
-    });
-  }
+        });
+    }
 };
 
 module.exports = {

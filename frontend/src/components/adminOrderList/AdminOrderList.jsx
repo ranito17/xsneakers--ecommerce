@@ -35,12 +35,7 @@ const AdminOrderList = ({
                 bValue = new Date(bValue);
             }
 
-            // Handle string sorting
-            if (typeof aValue === 'string') {
-                aValue = aValue.toLowerCase();
-                bValue = bValue.toLowerCase();
-            }
-
+           
             if (sortOrder === 'asc') {
                 return aValue > bValue ? 1 : -1;
             } else {

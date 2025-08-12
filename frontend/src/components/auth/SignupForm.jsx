@@ -64,6 +64,10 @@ const SignupForm = () => {
 
             if (response.success) {
                 console.log('Signup successful:', response);
+                
+                // Show success message with welcome email info
+                alert(`Account created successfully! Welcome to Xsneakers, ${formData.full_name}! 🎉\n\nWe've sent a welcome email to ${formData.email} with more information about your new account.`);
+                
                 navigate('/login');
             } else {
                 setError({ general: response.message || 'Signup failed' });

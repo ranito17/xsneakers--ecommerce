@@ -20,6 +20,32 @@ const getProducts = async (req, res) => {
     }
 };
 
+// קבלת מוצר לפי מזהה מהמסד נתונים
+const getProductById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.getProductById(id);
+        
+        if (product) {
+            res.status(200).json({
+                success: true,
+                data: product
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching product by ID:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch product'
+        });
+    }
+};
+
 // עדכון מוצר במסד הנתונים
 // השליטה מקבלת מזהה מוצר ונתונים חדשים ושולחת אותם למודל לעדכון
 const updateProduct = async (req, res) => {
@@ -98,6 +124,7 @@ const createProduct = async (req, res) => {
 
 module.exports = {
     getProducts,
+    getProductById,
     createProduct,
     updateProduct,
     deleteProduct

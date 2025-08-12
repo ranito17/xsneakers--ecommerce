@@ -20,7 +20,7 @@ export const uploadApi = {
             // Append product ID
             formData.append('productId', productId);
 
-            const response = await api.post('/upload/product-images', formData, {
+            const response = await api.post('/api/upload/product-images', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -54,7 +54,7 @@ export const uploadApi = {
      */
     deleteProductImage: async (productId, imageUrl) => {
         try {
-            const response = await api.delete(`/upload/product-images/${productId}`, {
+            const response = await api.delete(`/api/upload/product-images/${productId}`, {
                 data: { imageUrl }
             });
 
@@ -67,21 +67,6 @@ export const uploadApi = {
             }
             console.error('Error deleting product image:', error);
             throw new Error(error.response?.data?.message || 'Failed to delete image');
-        }
-    },
-
-    /**
-     * Get upload progress for a specific upload session
-     * @param {string} uploadId - The upload session ID
-     * @returns {Promise} - Response with upload progress
-     */
-    getUploadProgress: async (uploadId) => {
-        try {
-            const response = await api.get(`/upload/progress/${uploadId}`);
-            return response.data;
-        } catch (error) {
-            console.error('Error getting upload progress:', error);
-            throw new Error(error.response?.data?.message || 'Failed to get upload progress');
         }
     },
 

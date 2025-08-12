@@ -1,0 +1,144 @@
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.loadingContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(78, 205, 196, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.loadingContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    z-index: 2;
+    padding: 3rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.spinner {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+
+.spinnerRing {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #00d4ff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+
+/* Size variants */
+.small .spinner {
+    width: 40px;
+    height: 40px;
+}
+
+.medium .spinner {
+    width: 60px;
+    height: 60px;
+}
+
+.large .spinner {
+    width: 100px;
+    height: 100px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loadingMessage {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    margin: 0;
+    font-weight: 500;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .loadingContent {
+        padding: 2rem;
+        gap: 1.5rem;
+    }
+    
+    .loadingMessage {
+        font-size: 1rem;
+    }
+    
+    .medium .spinner {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .large .spinner {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .loadingContent {
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+    
+    .loadingMessage {
+        font-size: 0.9rem;
+    }
+    
+    .medium .spinner {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .large .spinner {
+        width: 70px;
+        height: 70px;
+    }
+} 

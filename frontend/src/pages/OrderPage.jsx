@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from '../hooks/useAuthentication';
 import { orderApi } from '../services/orderApi';
 import Header from '../components/header/Header';
 import Footer from '../components/footer/Footer';
 import OrderList from '../components/orderList/OrderList';
 import OrderDetails from '../components/orderDetails/OrderDetails';
 import ImageModal from '../components/imageModal/ImageModal';
+import LoadingContainer from '../components/loading/LoadingContainer';
+import ErrorContainer from '../components/error/ErrorContainer';
 import styles from './pages.module.css';
 
 function OrderPage() {
@@ -52,8 +54,19 @@ function OrderPage() {
             const orderDetails = await orderApi.getOrderById(orderId);
             const orderItemsData = await orderApi.getOrderItems(orderId);
             
-            setSelectedOrder(orderDetails);
-            setOrderItems(orderItemsData);
+            // Extract the actual order data from the response
+            if (orderDetails.success && orderDetails.data) {
+                setSelectedOrder(orderDetails.data);
+            } else {
+                setSelectedOrder(null);
+            }
+            
+            // Extract the actual order items data from the response
+            if (orderItemsData.success && orderItemsData.data) {
+                setOrderItems(orderItemsData.data);
+            } else {
+                setOrderItems([]);
+            }
         } catch (err) {
             setError('Failed to fetch order details');
             console.error('Error fetching order details:', err);
@@ -82,31 +95,43 @@ function OrderPage() {
         setImageModalOpen(false);
     };
 
-    if (loading) {
+        if (loading) {
         return (
             <>
-                <Header />
-                <div className={styles.orderPage}>
-                    <div className={styles.orderPageLoading}>
-                        <div className={styles.spinner}></div>
-                        <p>Loading your orders...</p>
-                    </div>
-                </div>
-                <Footer />
+             
+                <LoadingContainer message="Loading your orders..." size="medium" />
+                
             </>
         );
     }
 
-    if (error) {
+        if (error) {
         return (
             <>
                 <Header />
-                <div className={styles.orderPage}>
-                    <div className={styles.orderPageError}>
-                        <h3>Error</h3>
-                        <p>{error}</p>
-                    </div>
-                </div>
+                <ErrorContainer 
+                    message={error} 
+                    onRetry={() => {
+                        setError(null);
+                        setLoading(true);
+                        // Re-fetch orders
+                        if (user?.id) {
+                            orderApi.getUserOrders(user.id)
+                                .then(response => {
+                                    if (response.success && response.data) {
+                                        setOrders(response.data);
+                                    } else {
+                                        setOrders([]);
+                                    }
+                                })
+                                .catch(err => {
+                                    setError('Failed to fetch orders');
+                                    console.error('Error fetching orders:', err);
+                                })
+                                .finally(() => setLoading(false));
+                        }
+                    }}
+                />
                 <Footer />
             </>
         );
@@ -114,7 +139,7 @@ function OrderPage() {
 
     return (
         <>
-            <Header />
+       
             <div className={styles.orderPage}>
                 <div className={styles.orderPageContent}>
                     <h1 className={styles.orderPageTitle}>Your Orders</h1>
@@ -142,7 +167,7 @@ function OrderPage() {
                     )}
                 </div>
             </div>
-            <Footer />
+         
             
             {/* Image Modal - at page level to avoid nesting issues */}
             <ImageModal

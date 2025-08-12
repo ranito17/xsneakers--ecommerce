@@ -11,15 +11,11 @@ export const AuthProvider = ({ children }) => {
     const [error, setError] = useState(null);
 
     // Check if user is authenticated on app load
-    const checkAuth = useCallback(async () => {
+    const checkAuth = async () => {
         try {
             setIsLoading(true);
-            console.log('🔍 Frontend: Checking authentication...');
             
             const response = await authApi.checkAuth();
-            
-            console.log('✅ Frontend: Auth response received');
-            console.log('✅ Frontend: Response data:', response);
             
             if (response.success && response.user) {
                 console.log('✅ Frontend: User authenticated:', response.user);
@@ -48,34 +44,40 @@ export const AuthProvider = ({ children }) => {
             setIsLoading(false);
             console.log('🔍 Frontend: Loading state set to false');
         }
-    }, []);
+    };
 
-    // Login function
+    // Login function - immediately set user state
     const login = async (email, password) => {
         try {
+            console.log('🔐 AuthProvider: Starting login process...');
             setIsLoading(true);
             setError(null);
             
             const response = await authApi.login(email, password);
 
-            console.log('Login response:', response);
+            console.log('🔐 AuthProvider: Login API response:', response);
 
             if (response.success && response.user) {
-                // Set user data directly from login response
+                // Immediately set user data and authentication state
+                console.log('🔐 AuthProvider: Setting user state to:', response.user);
                 setUser(response.user);
                 setIsAuthenticated(true);
-                console.log('User logged in successfully:', response.user);
-                return { success: true };
+                console.log('✅ AuthProvider: User logged in successfully:', response.user);
+                console.log('✅ AuthProvider: State updated - isAuthenticated: true, user.id:', response.user.id);
+                return { success: true,user:response.user };
             } else {
-                console.log('Login response missing user data');
+                console.log('❌ AuthProvider: Login response missing user data');
+                console.log('❌ AuthProvider: response.success:', response.success);
+                console.log('❌ AuthProvider: response.user:', response.user);
                 return { success: false, error: 'Login response missing user data' };
             }
         } catch (err) {
-            console.error('Login error:', err);
+            console.error('❌ AuthProvider: Login error:', err);
             setError(err.response?.data?.message || 'Login failed');
             return { success: false, error: err.response?.data?.message || 'Login failed' };
         } finally {
             setIsLoading(false);
+            console.log('🔐 AuthProvider: Login process completed');
         }
     };
 
@@ -86,15 +88,16 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
             console.error('Logout error:', err);
         } finally {
+            // Immediately clear user state
             setUser(null);
             setIsAuthenticated(false);
         }
     };
 
-    // Check auth on component mount
+    // Check auth on mount
     useEffect(() => {
         checkAuth();
-    }, [checkAuth]);
+    }, []);
 
     const value = {
         user,

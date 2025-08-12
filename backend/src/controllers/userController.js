@@ -150,8 +150,26 @@ const createUser = async (req, res) => {
     try {
         const { full_name, email, address, phone_number, password, role } = req.body;
 
+        console.log('👤 Creating new user:', { email, full_name, role });
+
         // יצירת משתמש דרך המודל
         const userId = await User.createUser({ full_name, email, address, phone_number, password, role });
+
+        console.log('✅ User created successfully with ID:', userId);
+
+        // Send welcome email
+        try {
+            console.log('📧 Sending welcome email to:', email);
+            await emailService.sendWelcomeEmail(email, full_name);
+            console.log('✅ Welcome email sent successfully to:', email);
+        } catch (emailError) {
+            console.error('❌ Error sending welcome email:', emailError);
+            console.error('❌ Email error details:', {
+                message: emailError.message,
+                stack: emailError.stack
+            });
+            // Don't fail the signup if email fails - user is still created
+        }
 
         // החזרת תגובת הצלחה
         res.status(201).json({
@@ -160,7 +178,7 @@ const createUser = async (req, res) => {
             userId: userId,
         });
     } catch (error) {
-        console.error('Error creating user:', error.message);
+        console.error('❌ Error creating user:', error.message);
         
         // Handle specific error types
         if (error.message.includes('already exists')) {

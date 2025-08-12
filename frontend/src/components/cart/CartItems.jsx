@@ -11,15 +11,20 @@ const CartItems = ({ cartItems, updateQuantity, removeFromCart, isLoading }) => 
             </div>
             
             <div className={styles.cartItemsList}>
-                {cartItems.map((item) => (
-                    <CartItem 
-                        key={item.id} 
-                        item={item} 
-                        updateQuantity={updateQuantity}
-                        removeFromCart={removeFromCart}
-                        isLoading={isLoading}
-                    />
-                ))}
+                {cartItems.map((item) => {
+                    // Create unique key based on product ID and size only
+                    const uniqueKey = `${item.id}-${item.selected_size || 'no-size'}`;
+                    
+                    return (
+                        <CartItem 
+                            key={uniqueKey} 
+                            item={item} 
+                            updateQuantity={updateQuantity}
+                            removeFromCart={removeFromCart}
+                            isLoading={isLoading}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

@@ -5,8 +5,10 @@
 
 .listHeader {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     margin-bottom: 2.5rem;
     padding: 2rem;
     background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
@@ -14,18 +16,6 @@
     backdrop-filter: blur(20px);
     border: 2px solid rgba(59, 130, 246, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(59, 130, 246, 0.1);
-}
-
-.listHeader h2 {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin: 0;
-    background: var(--gradient-sport);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .listStats {
@@ -51,6 +41,156 @@
 .statItem strong {
     color: var(--text-primary);
     font-weight: 700;
+}
+
+.appliedFilters {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem 1.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    backdrop-filter: blur(10px);
+    font-weight: 500;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    align-self: flex-end;
+}
+
+.appliedFilters strong {
+    color: #10b981;
+    font-weight: 700;
+}
+
+.optionsContainer {
+    position: relative;
+}
+
+.optionsButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.optionsButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.filterOptions {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: rgba(26, 31, 46, 0.98);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    min-width: 350px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+}
+
+.filterSection h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--gradient-sport);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.filterField {
+    margin-bottom: 1rem;
+}
+
+.filterField label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.filterField input,
+.filterField select {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(15, 20, 25, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filterField input:focus,
+.filterField select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filterField input::placeholder {
+    color: var(--text-muted);
+}
+
+.filterActions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.applyFilterButton,
+.clearFilterButton {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.applyFilterButton {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.applyFilterButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.clearFilterButton {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.clearFilterButton:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
 }
 
 .productsGrid {
@@ -149,7 +289,17 @@
     .listHeader {
         flex-direction: column;
         gap: 1rem;
-        align-items: flex-start;
+        align-items: stretch;
+    }
+
+    .headerLeft {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .headerRight {
+        width: 100%;
+        align-items: stretch;
     }
 
     .listStats {
@@ -165,6 +315,17 @@
         padding: 0.4rem 0.8rem;
     }
 
+    .optionsContainer {
+        width: 100%;
+    }
+
+    .filterOptions {
+        position: static;
+        margin-top: 1rem;
+        min-width: auto;
+        width: 100%;
+    }
+
     .productsGrid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 0.8rem;
@@ -172,7 +333,7 @@
 }
 
 @media (max-width: 480px) {
-    .listHeader h2 {
+    .headerLeft h2 {
         font-size: 1.5rem;
     }
 
@@ -198,11 +359,15 @@
     .emptyState h3 {
         font-size: 1.3rem;
     }
+
+    .filterOptions {
+        padding: 1rem;
+    }
 }
 
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
-    .listHeader h2 {
+    .headerLeft h2 {
         color: #e2e8f0;
     }
 

@@ -9,15 +9,7 @@ const User = require('../models/User');
  */
 const adminAuth = async (req, res, next) => {
     try {
-        // Check if user exists in request (set by previous auth middleware)
-        if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-        }
-
-        // Check if user has admin role
+        // Check if user has admin role (authentication already verified by previous middleware)
         if (req.user.role !== 'admin') {
             return res.status(403).json({
                 success: false,

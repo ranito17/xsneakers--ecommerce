@@ -44,7 +44,54 @@ async function addCategory(categoryData) {
 async function deleteCategory(categoryId) {
     try {
         const db = await dbSingleton.getConnection();
-        await db.query('DELETE FROM categories WHERE category_id = ?', [categoryId]);
+        
+        // Start a transaction to ensure data consistency
+        await db.beginTransaction();
+        
+        try {
+            // First, get the count of products in this category for logging
+            const [productCount] = await db.query(
+                'SELECT COUNT(*) as count FROM products WHERE category_id = ?',
+                [categoryId]
+            );
+            
+            console.log(`🗑️ Deleting category ${categoryId} with ${productCount[0].count} products`);
+            
+            // Delete all products in this category first (cascade delete)
+            const [deleteProductsResult] = await db.query(
+                'DELETE FROM products WHERE category_id = ?',
+                [categoryId]
+            );
+            
+            console.log(`🗑️ Deleted ${deleteProductsResult.affectedRows} products from category ${categoryId}`);
+            
+            // Then delete the category itself
+            const [deleteCategoryResult] = await db.query(
+                'DELETE FROM categories WHERE category_id = ?',
+                [categoryId]
+            );
+            
+            if (deleteCategoryResult.affectedRows === 0) {
+                throw new Error('Category not found');
+            }
+            
+            console.log(`🗑️ Successfully deleted category ${categoryId}`);
+            
+            // Commit the transaction
+            await db.commit();
+            
+            return {
+                success: true,
+                deletedProducts: deleteProductsResult.affectedRows,
+                message: `Category and ${deleteProductsResult.affectedRows} products deleted successfully`
+            };
+            
+        } catch (err) {
+            // Rollback the transaction if any error occurs
+            await db.rollback();
+            throw err;
+        }
+        
     } catch (err) {
         console.error('Database error in deleteCategory:', err);
         throw new Error('Failed to delete category from database');

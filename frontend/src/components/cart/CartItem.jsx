@@ -6,11 +6,11 @@ const CartItem = ({ item, updateQuantity, removeFromCart, isLoading }) => {
     const defaultImageUrl = 'https://images.laced.com/slider_images/59f5a3a6-df0d-4c84-b774-8f641b34ea6f?auto=format&fit=max&w=600&q=100';
 
     const handleQuantityChange = (newQuantity) => {
-        updateQuantity(item.id, newQuantity);
+        updateQuantity(item.id, newQuantity, item.selected_size);
     };
 
     const handleRemove = () => {
-        removeFromCart(item.id);
+        removeFromCart(item.id, item.selected_size);
     };
 
     const itemTotal = item.price * item.quantity;
@@ -34,9 +34,6 @@ const CartItem = ({ item, updateQuantity, removeFromCart, isLoading }) => {
                 <h3 className={styles.itemName}>{item.name}</h3>
                 {item.description && (
                     <p className={styles.itemDescription}>{item.description}</p>
-                )}
-                {item.selected_color && (
-                    <p className={styles.itemColor}>Color: {item.selected_color}</p>
                 )}
                 {item.selected_size && (
                     <p className={styles.itemSize}>Size: {item.selected_size}</p>

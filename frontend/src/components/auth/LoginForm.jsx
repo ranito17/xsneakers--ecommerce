@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authApi } from '../../services';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuthentication';
 import styles from './auth.module.css';
 
 const LoginForm = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { user, login } = useAuth();
+    
+    // Get redirect URL from query parameters
+    const searchParams = new URLSearchParams(location.search);
+    const redirectTo = searchParams.get('redirect') || '/';
     
     // Form state - only login fields
     const [formData, setFormData] = useState({
@@ -47,14 +53,21 @@ const LoginForm = () => {
         setIsLoading(true);
         
         try {
-            // Attempt login
-            const response = await authApi.login(formData.email, formData.password);
+            // Use AuthProvider's login function instead of authApi directly
+            const result = await login(formData.email, formData.password);
 
-            if (response.success) {
-                console.log('Login successful:', response);
-                navigate('/');
+            if (result.success) {   
+                console.log('Login successful:', result);
+                // Redirect based on user role and redirect parameter
+                if (result.user.role === 'admin') {
+                    console.log('Redirecting to admin dashboard');
+                    navigate('/admin/dashboard');
+                } else {
+                    console.log('Redirecting to:', redirectTo);
+                    navigate(redirectTo);
+                }
             } else {
-                setError({ general: response.message || 'Login failed' });
+                setError({ general: result.error || 'Login failed' });
             }
         } catch (error) {
             console.error('Login error:', error);

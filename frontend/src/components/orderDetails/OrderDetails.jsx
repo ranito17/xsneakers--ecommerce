@@ -3,6 +3,7 @@ import styles from './orderDetails.module.css';
 
 const OrderDetails = ({ order, orderItems, user, onImageClick }) => {
     // Helper functions
+    console.log('OrderDetails component rendered with:', { order, orderItems, user });
     const formatPrice = (price) => {
         return `$${parseFloat(price).toFixed(2)}`;
     };

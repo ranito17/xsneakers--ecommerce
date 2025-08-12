@@ -1,5 +1,424 @@
 /* ===== ADMIN PAGES STYLES - SNEAKER STORE ADMIN ===== */
 
+/* ===== DASHBOARD PAGE STYLES ===== */
+
+.dashboardPage {
+    min-height: 100vh;
+    background: var(--gradient-admin);
+    padding: 2rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.dashboardHeader {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.dashboardHeader h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    background: var(--gradient-sport);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dashboardHeader p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.metricCard {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(20px);
+}
+
+.metricCard:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.metricIcon {
+    font-size: 2.5rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.metricContent h3 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.metricContent p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Dashboard Grid */
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.dashboardCard {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin);
+    backdrop-filter: blur(20px);
+}
+
+.dashboardCard h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 1.5rem 0;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+/* Recent Orders */
+.recentOrders {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.orderItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.orderInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.orderId {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.orderAmount {
+    font-size: 0.9rem;
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+.orderStatus {
+    display: flex;
+    align-items: center;
+}
+
+.statusBadge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.statusBadge.pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--accent-orange);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.statusBadge.processing {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.statusBadge.shipped {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--accent-purple);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.statusBadge.delivered {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--accent-green);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.statusBadge.cancelled {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--accent-red);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Order Status Grid */
+.statusGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.statusItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.statusLabel {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.statusCount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Top Products */
+.topProducts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.productItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.productInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.productName {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.productOrders {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.productPrice {
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+/* Low Stock Alert */
+.lowStockList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stockItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.stockItem .productName {
+    color: var(--text-primary);
+}
+
+.stockCount {
+    font-weight: 600;
+    color: var(--accent-red);
+}
+
+/* Quick Actions */
+.quickActions {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin);
+    backdrop-filter: blur(20px);
+}
+
+.quickActions h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 1.5rem 0;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+.actionButtons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.actionButton:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.actionIcon {
+    font-size: 1.2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .dashboardPage {
+        padding: 1.5rem;
+    }
+    
+    .metricsGrid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .dashboardGrid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboardPage {
+        padding: 1rem;
+    }
+    
+    .dashboardHeader h1 {
+        font-size: 2rem;
+    }
+    
+    .dashboardHeader p {
+        font-size: 1rem;
+    }
+    
+    .metricsGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .metricCard {
+        padding: 1.5rem;
+    }
+    
+    .metricContent h3 {
+        font-size: 2rem;
+    }
+    
+    .dashboardCard {
+        padding: 1.5rem;
+    }
+    
+    .actionButtons {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboardPage {
+        padding: 0.5rem;
+    }
+    
+    .dashboardHeader h1 {
+        font-size: 1.5rem;
+    }
+    
+    .metricCard {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .metricIcon {
+        font-size: 2rem;
+    }
+    
+    .metricContent h3 {
+        font-size: 1.5rem;
+    }
+    
+    .dashboardCard {
+        padding: 1rem;
+    }
+    
+    .orderItem,
+    .productItem,
+    .stockItem {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .statusGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* Global Variables */
 :root {
     --primary-dark: #0a0e17;
@@ -44,7 +463,7 @@
 .productMainContent {
     flex: 1;
     padding: 2rem;
-    max-width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
     width: 100%;
 }
@@ -167,6 +586,27 @@
     background: linear-gradient(135deg, var(--accent-green), #059669);
 }
 
+.addProductButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.addProductButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
 /* Category Management Section */
 .categoryManagementSection {
     display: flex;
@@ -248,6 +688,133 @@
     align-items: flex-start;
     gap: 1.5rem;
     flex-wrap: wrap;
+}
+
+/* Filter Options Styles */
+.optionsContainer {
+    position: relative;
+}
+
+.optionsButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.optionsButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.filterOptions {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: rgba(26, 31, 46, 0.98);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    min-width: 350px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+}
+
+.filterSection h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--gradient-sport);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.filterField {
+    margin-bottom: 1rem;
+}
+
+.filterField label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.filterField input,
+.filterField select {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(15, 20, 25, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filterField input:focus,
+.filterField select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filterField input::placeholder {
+    color: var(--text-muted);
+}
+
+.filterActions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.applyFilterButton,
+.clearFilterButton {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.applyFilterButton {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.applyFilterButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.clearFilterButton {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.clearFilterButton:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
 }
 
 .productCategorySection {
@@ -1666,4 +2233,63 @@ select:focus-visible {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+}
+
+/* Filter Button Styles */
+.filterButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.2rem 1.5rem;
+    background: rgba(15, 20, 25, 0.9);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 16px;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    min-width: 150px;
+}
+
+.filterButton:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), var(--shadow-glow);
+}
+
+/* Filter Options Responsive Styles */
+@media (max-width: 768px) {
+    .filterOptions {
+        position: static;
+        margin-top: 1rem;
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .productFilterControls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .optionsContainer {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .filterOptions {
+        padding: 1rem;
+    }
+    
+    .filterField input,
+    .filterField select {
+        font-size: 0.85rem;
+    }
+    
+    .applyFilterButton,
+    .clearFilterButton {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.8rem;
+    }
 }

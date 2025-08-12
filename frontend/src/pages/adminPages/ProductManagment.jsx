@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../context/useAuth';
-import Header from '../../components/header/Header';
-import NavLinks from '../../components/navLinks/NavLinks';
-import Footer from '../../components/footer/Footer';
+import { useAuth } from '../../hooks/useAuthentication';
+
 import ProductModal from '../../components/productModal/ProductModal';
 import CategoryModal from '../../components/categoryModal/CategoryModal';
 import AdminProductList from '../../components/adminProductList/AdminProductList';
+import FilterModal from '../../components/filterModal/FilterModal';
 import ProtectedRoute from '../../components/ProtectedRoute';
+import LoadingContainer from '../../components/loading/LoadingContainer';
+import ErrorContainer from '../../components/error/ErrorContainer';
 import { productApi } from '../../services/productApi';
 import { categoryApi } from '../../services/categoryApi';
 
 import styles from './adminPages.module.css';
 
 const ProductManagement = () => {
-    const { isAuthenticated, isLoading: authLoading, user, checkAuth } = useAuth();
+    const { isAuthenticated, isLoading: authLoading, } = useAuth();
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +28,8 @@ const ProductManagement = () => {
     const [selectedCategoryToDelete, setSelectedCategoryToDelete] = useState('');
     const [categories, setCategories] = useState([]);
     const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+    const [filterCriteria, setFilterCriteria] = useState(null);
+    const [showFilterModal, setShowFilterModal] = useState(false);
 
     // Check authentication on component mount
     
@@ -35,11 +38,11 @@ const ProductManagement = () => {
     useEffect(() => {
         
       loadProducts();
-            loadCategories();
+    loadCategories();
        
     }, []);
 
-    // Filter products based on search and category
+    // Filter products based on search, category, and advanced filters
     useEffect(() => {
         let filtered = products;
 
@@ -58,8 +61,79 @@ const ProductManagement = () => {
             );
         }
 
+        // Apply advanced filters
+        if (filterCriteria) {
+            // Filter by color
+            if (filterCriteria.color) {
+                filtered = filtered.filter(product =>
+                    product.color && product.color.toLowerCase().includes(filterCriteria.color.toLowerCase())
+                );
+            }
+
+            // Apply multiple filters
+            if (filterCriteria.filters && filterCriteria.filters.length > 0) {
+                filtered = filtered.filter(product => {
+                    return filterCriteria.filters.every(filter => {
+                        let productValue = product[filter.field];
+                        const filterValue = parseFloat(filter.value);
+                        const filterValue2 = filter.value2 ? parseFloat(filter.value2) : null;
+
+                        // Handle sizes array specially
+                        if (filter.field === 'sizes') {
+                            // Parse sizes if it's a string, or use as is if it's already an array
+                            let sizes = productValue;
+                            if (typeof sizes === 'string') {
+                                try {
+                                    sizes = JSON.parse(sizes);
+                                } catch (e) {
+                                    sizes = [];
+                                }
+                            }
+                            
+                            if (!Array.isArray(sizes)) {
+                                sizes = [];
+                            }
+
+                            // Check if any size in the array matches the filter criteria
+                            switch (filter.operator) {
+                                case 'gte':
+                                    return sizes.some(size => parseFloat(size) >= filterValue);
+                                case 'lte':
+                                    return sizes.some(size => parseFloat(size) <= filterValue);
+                                case 'eq':
+                                    return sizes.some(size => parseFloat(size) === filterValue);
+                                case 'range':
+                                    return sizes.some(size => {
+                                        const sizeNum = parseFloat(size);
+                                        return sizeNum >= filterValue && sizeNum <= filterValue2;
+                                    });
+                                default:
+                                    return true;
+                            }
+                        } else {
+                            // Handle other numeric fields (price, stock_quantity)
+                            productValue = parseFloat(productValue);
+                            
+                            switch (filter.operator) {
+                                case 'gte':
+                                    return productValue >= filterValue;
+                                case 'lte':
+                                    return productValue <= filterValue;
+                                case 'eq':
+                                    return productValue === filterValue;
+                                case 'range':
+                                    return productValue >= filterValue && productValue <= filterValue2;
+                                default:
+                                    return true;
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
         setFilteredProducts(filtered);
-    }, [products, searchTerm, selectedCategory]);
+    }, [products, searchTerm, selectedCategory, filterCriteria]);
 
     const loadProducts = useCallback(async () => {
         setIsLoading(true);
@@ -144,6 +218,46 @@ const ProductManagement = () => {
         setSelectedCategory(e.target.value);
     };
 
+    const handleFilter = (criteria) => {
+        setFilterCriteria(criteria);
+    };
+
+    const getAppliedFiltersText = () => {
+        if (!filterCriteria) return '';
+        
+        const filters = [];
+        
+        if (filterCriteria.color) {
+            filters.push(`Color: ${filterCriteria.color}`);
+        }
+        
+        if (filterCriteria.filters && filterCriteria.filters.length > 0) {
+            filterCriteria.filters.forEach(filter => {
+                const operatorText = {
+                    'gte': '≥',
+                    'lte': '≤',
+                    'eq': '=',
+                    'range': 'between'
+                }[filter.operator] || filter.operator;
+                
+                // Format field name for display
+                const fieldDisplayName = {
+                    'price': 'Price',
+                    'stock_quantity': 'Stock Quantity',
+                    'sizes': 'Sizes'
+                }[filter.field] || filter.field;
+                
+                if (filter.operator === 'range' && filter.value2) {
+                    filters.push(`${fieldDisplayName} ${operatorText} ${filter.value}-${filter.value2}`);
+                } else {
+                    filters.push(`${fieldDisplayName} ${operatorText} ${filter.value}`);
+                }
+            });
+        }
+        
+        return filters.join(', ');
+    };
+
     const handleAddCategory = () => {
         setShowCategoryModal(true);
     };
@@ -153,12 +267,38 @@ const ProductManagement = () => {
         const category = categories.find(c => c.category_id === parseInt(categoryId));
         if (!category) return;
         
-        const confirmed = window.confirm(`Are you sure you want to delete the category "${category.category_name}"? This action cannot be undone.`);
+        // Get products count for this category
+        const productsInCategory = products.filter(p => p.category_id === parseInt(categoryId));
+        const productCount = productsInCategory.length;
+        
+        let confirmMessage = `Are you sure you want to delete the category "${category.category_name}"?`;
+        if (productCount > 0) {
+            confirmMessage += `\n\n⚠️ WARNING: This will also delete ${productCount} product${productCount === 1 ? '' : 's'} in this category. This action cannot be undone.`;
+        } else {
+            confirmMessage += '\n\nThis action cannot be undone.';
+        }
+        
+        const confirmed = window.confirm(confirmMessage);
         if (!confirmed) return;
         
         try {
-            await categoryApi.deleteCategory(categoryId);
+            const response = await categoryApi.deleteCategory(categoryId);
+            
+            // Show success message with product count
+            if (response.success) {
+                const deletedProducts = response.data?.deletedProducts || 0;
+                let successMessage = `Category "${category.category_name}" deleted successfully.`;
+                if (deletedProducts > 0) {
+                    successMessage += `\n${deletedProducts} product${deletedProducts === 1 ? '' : 's'} also deleted.`;
+                }
+                alert(successMessage);
+            }
+            
+            // Update categories list
             setCategories(prev => prev.filter(c => c.category_id !== parseInt(categoryId)));
+            
+            // Update products list - remove products from deleted category
+            setProducts(prev => prev.filter(p => p.category_id !== parseInt(categoryId)));
             
             // Reset the delete selection
             setSelectedCategoryToDelete('');
@@ -201,22 +341,25 @@ const ProductManagement = () => {
 
     const handleImageUpload = async (productId, files) => {
         try {
-            // The actual upload is now handled by the AdminProductCard component
-            // This function is called after successful upload to refresh the product data
+            // Refresh the products list to get updated image URLs
             await loadProducts();
-        } catch (error) {
-            console.error('Error refreshing products after upload:', error);
+        } catch (err) {
+            console.error('Error refreshing products after image upload:', err);
+        }
+    };
+
+    const handleImageDelete = async (productId, imageUrl) => {
+        try {
+            // Refresh the products list to get updated image URLs
+            await loadProducts();
+        } catch (err) {
+            console.error('Error refreshing products after image deletion:', err);
         }
     };
 
     // Show loading state while checking authentication
     if (authLoading) {
-        return (
-            <div className={styles.productLoadingContainer}>
-                <div className={styles.productSpinner}></div>
-                <p>Loading...</p>
-            </div>
-        );
+        return <LoadingContainer message="Loading..." size="medium" />;
     }
 
     // Redirect if not authenticated
@@ -234,14 +377,7 @@ const ProductManagement = () => {
             <div className={styles.productManagement}>
                 
                 <main className={styles.productMainContent}>
-                <div className={styles.productPageHeader}>
-                    <div className={styles.productHeaderContent}>
-                        <div className={styles.productTitleSection}>
-                            <h1>Product Management</h1>
-                        </div>
-                        <p>Manage your store's products, inventory, and pricing</p>
-                    </div>
-                </div>
+              
 
                 <div className={styles.categoryManagementSection}>
                     <div className={styles.productHeaderContent}>
@@ -260,6 +396,17 @@ const ProductManagement = () => {
                                 <path d="M12 5v14M5 12h14"/>
                             </svg>
                             Add Category
+                        </button>
+                        
+                        <button 
+                            className={styles.addProductButton}
+                            onClick={handleAddProduct}
+                            title="Add new product"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            Add Product
                         </button>
                         
                         <div className={styles.deleteCategorySection}>
@@ -322,14 +469,14 @@ const ProductManagement = () => {
                         </div>
                         
                         <button 
-                            className={styles.addProductButton}
-                            onClick={handleAddProduct}
-                            disabled={isLoading}
+                            className={styles.filterButton}
+                            onClick={() => setShowFilterModal(true)}
+                            title="Open filter options"
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 5v14M5 12h14"/>
+                                <path d="M3 4h18M7 8h10M9 12h6M11 16h2"/>
                             </svg>
-                            Add Product
+                            Filter
                         </button>
                     </div>
                 </div>
@@ -349,17 +496,16 @@ const ProductManagement = () => {
                     )}
 
                     {isLoading ? (
-                        <div className={styles.productLoadingState}>
-                            <div className={styles.productSpinner}></div>
-                            <p>Loading products...</p>
-                        </div>
+                        <LoadingContainer message="Loading products..." size="medium" />
                     ) : (
                         <AdminProductList
                             products={filteredProducts}
                             onEdit={handleEditProduct}
                             onDelete={handleDeleteProduct}
                             onImageUpload={handleImageUpload}
+                            onImageDelete={handleImageDelete}
                             isLoading={isLoading}
+                            appliedFilters={getAppliedFiltersText()}
                         />
                     )}
                 </div>
@@ -383,6 +529,15 @@ const ProductManagement = () => {
                     onSave={handleSaveCategory}
                     onClose={handleCloseCategoryModal}
                     isLoading={isCategoryLoading}
+                />
+            )}
+
+            {showFilterModal && (
+                <FilterModal
+                    isOpen={showFilterModal}
+                    onClose={() => setShowFilterModal(false)}
+                    onApplyFilter={handleFilter}
+                    initialFilters={filterCriteria}
                 />
             )}
                 </div>

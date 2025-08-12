@@ -3,6 +3,8 @@ import { orderApi } from '../../services/orderApi';
 import AdminOrderList from '../../components/adminOrderList/AdminOrderList';
 import AdminOrderModal from '../../components/adminOrderModal/AdminOrderModal';
 import ProtectedRoute from '../../components/ProtectedRoute';
+import LoadingContainer from '../../components/loading/LoadingContainer';
+import ErrorContainer from '../../components/error/ErrorContainer';
 import styles from './adminPages.module.css';
 
 const OrderManagmentPage = () => {
@@ -186,15 +188,7 @@ const OrderManagmentPage = () => {
     const transformedOrders = transformOrdersForComponents(filteredOrders);
 
     if (loading) {
-        return (
-            <div className={styles.orderManagement}>
-                <div className={styles.orderMainContent}>
-                    <div className={styles.orderLoadingState}>
-                        <p>Loading orders...</p>
-                    </div>
-                </div>
-            </div>
-        );
+        return <LoadingContainer message="Loading orders..." size="medium" />;
     }
 
     return (
@@ -256,10 +250,10 @@ const OrderManagmentPage = () => {
                 </div>
 
                 {error && (
-                    <div className={styles.orderErrorMessage}>
-                        {error}
-                        <button onClick={() => setError(null)} className={styles.orderErrorClose}>×</button>
-                    </div>
+                    <ErrorContainer 
+                        message={error}
+                        onRetry={fetchOrders}
+                    />
                 )}
 
                 <div className={styles.orderContentArea}>

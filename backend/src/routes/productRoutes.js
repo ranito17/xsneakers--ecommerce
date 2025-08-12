@@ -9,6 +9,9 @@ const { adminAuth } = require('../middleware/adminAuth');
 // קבלת כל המוצרים - GET /productRoutes/ (public)
 router.get('/', productController.getProducts);
 
+// קבלת מוצר לפי מזהה - GET /productRoutes/:id (public)
+router.get('/:id', productController.getProductById);
+
 // יצירת מוצר חדש - POST /productRoutes/ (admin only)
 router.post('/', isAuthenticated, adminAuth, productController.createProduct);
 

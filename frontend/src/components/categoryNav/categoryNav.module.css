@@ -1,175 +1,203 @@
-/* Category Navigation Styles */
-
+/* Modern Category Navigation Styles */
 .categoryNavContainer {
-    margin: 2rem 0;
+    margin: 1.5rem 0 2rem 0;
     position: relative;
-    z-index: 2;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 1rem;
 }
 
 .categoryNav {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.75rem;
     justify-content: center;
     align-items: center;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    background: var(--neutral-white);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .categoryButton {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 1rem 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    color: rgba(255, 255, 255, 0.8);
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--neutral-light);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: var(--neutral-medium);
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
-    min-width: 100px;
-    backdrop-filter: blur(10px);
-}
-
-.categoryButton::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    min-width: 120px;
+    font-family: var(--app-font);
 }
 
 .categoryButton:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.2);
-    border-color: rgba(0, 212, 255, 0.3);
-    color: #ffffff;
-}
-
-.categoryButton:hover::before {
-    opacity: 1;
+    background: var(--neutral-white);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.1);
 }
 
 .categoryButton.active {
-    background: rgba(0, 212, 255, 0.15);
-    border-color: rgba(0, 212, 255, 0.4);
-    color: #00d4ff;
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-.categoryButton.active::before {
-    opacity: 1;
-}
-
-.categoryIcon {
-    font-size: 1.5rem;
-    transition: transform 0.3s ease;
-}
-
-.categoryButton:hover .categoryIcon {
-    transform: scale(1.1);
-}
-
-.categoryButton.active .categoryIcon {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
+.categoryButton.active:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
 }
 
 .categoryName {
     font-weight: 600;
     text-align: center;
-    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
-.categoryButton.active .categoryName {
-    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+/* Category Description */
+.categoryDescription {
+    margin-top: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--neutral-light);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-align: center;
 }
 
-.activeIndicator {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 3px;
-    background: linear-gradient(90deg, #00d4ff, #4ecdc4);
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+.descriptionText {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--neutral-medium);
+    line-height: 1.5;
+    font-weight: 400;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
+/* Loading and Error States */
 .loadingMessage,
 .errorMessage {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--neutral-medium);
     font-size: 1rem;
     font-weight: 500;
     text-align: center;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    background: var(--neutral-light);
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
 }
 
 .errorMessage {
-    color: #ff6b6b;
-    border-color: rgba(255, 107, 107, 0.3);
+    color: var(--error-color);
+    border-color: rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.retryButton {
+    margin-left: 10px;
+    padding: 0.5rem 1rem;
+    background: var(--error-color);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .categoryNavContainer {
+        margin: 1rem 0;
+        padding: 0 0.5rem;
+    }
+    
     .categoryNav {
-        padding: 1rem;
-        gap: 0.75rem;
+        padding: 0.75rem;
+        gap: 0.5rem;
+        justify-content: flex-start;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .categoryNav::-webkit-scrollbar {
+        display: none;
     }
     
     .categoryButton {
-        padding: 0.75rem 1rem;
-        min-width: 80px;
+        padding: 0.6rem 1rem;
+        min-width: 100px;
         font-size: 0.85rem;
+        flex-shrink: 0;
     }
     
-    .categoryIcon {
-        font-size: 1.3rem;
+    .categoryDescription {
+        margin-top: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .descriptionText {
+        font-size: 0.9rem;
     }
 }
 
 @media (max-width: 480px) {
     .categoryNav {
-        padding: 0.75rem;
-        gap: 0.5rem;
+        padding: 0.5rem;
+        gap: 0.4rem;
     }
     
     .categoryButton {
         padding: 0.5rem 0.75rem;
-        min-width: 70px;
+        min-width: 80px;
         font-size: 0.8rem;
     }
     
-    .categoryIcon {
-        font-size: 1.2rem;
+    .categoryDescription {
+        margin-top: 0.5rem;
+        padding: 0.75rem;
     }
     
-    .categoryName {
-        font-size: 0.75rem;
+    .descriptionText {
+        font-size: 0.85rem;
     }
 }
 
 /* Focus States for Accessibility */
 .categoryButton:focus-visible {
-    outline: 2px solid #00d4ff;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
+}
+
+/* Color Variables */
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #3b82f6;
+    --neutral-white: #ffffff;
+    --neutral-light: #f8fafc;
+    --neutral-medium: #64748b;
+    --neutral-dark: #1e293b;
+    --neutral-black: #0f172a;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --app-font: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* High Contrast Mode Support */
@@ -179,23 +207,17 @@
     }
     
     .categoryButton.active {
-        border-width: 3px;
+        border-width: 2px;
     }
 }
 
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
-    .categoryButton,
-    .categoryIcon {
+    .categoryButton {
         transition: none;
     }
     
     .categoryButton:hover {
         transform: none;
     }
-    
-    .categoryButton:hover .categoryIcon,
-    .categoryButton.active .categoryIcon {
-        transform: none;
-    }
-} 
+}

@@ -6,6 +6,7 @@ export const authApi = {
     checkAuth: async () => {
         try {
             const response = await api.get('/api/userRoutes/me');
+            console.log('🔍 Auth API: Response from /me:', response);
             return response.data;
         } catch (error) {
             throw error;

@@ -20,6 +20,7 @@ const cookieParser = require('cookie-parser');
 const uploadRoutes = require('./routes/uploadRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 // תוכנות ביניים - מתחברות לכל הבקשות
 // הגדרת CORS - מאפשר גישה מהדפדפן
 app.use(cors({
@@ -52,6 +53,8 @@ app.use('/api/cartRoutes', cartRoutes);
 app.use('/api/orderRoutes', orderRoutes);
 // נתיבי הגדרות - ניהול הגדרות המערכת
 app.use('/api/settingsRoutes', settingsRoutes);
+// נתיבי קשר - שליחת הודעות קשר
+app.use('/api/contact', contactRoutes);
 // נתיבי העלאה - ניהול העלאת קבצים
 app.use('/api/upload', uploadRoutes);
 // Serve uploadenpmnd files statically

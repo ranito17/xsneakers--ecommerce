@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from './useAuthentication';
 
 const useAuthorization = (requiredRole = null) => {
     const { user, isAuthenticated } = useAuth();

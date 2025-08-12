@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { settingsApi } from '../../services/settingsApi';
 import ProtectedRoute from '../../components/ProtectedRoute';
+import LoadingContainer from '../../components/loading/LoadingContainer';
+import ErrorContainer from '../../components/error/ErrorContainer';
 import styles from './adminPages.module.css';
 
 const SettingsPage = () => {
@@ -91,11 +93,7 @@ const SettingsPage = () => {
     };
 
     if (loading) {
-        return (
-            <div className={styles.settingsManagement}>
-                <div className={styles.settingsLoading}>Loading settings...</div>
-            </div>
-        );
+        return <LoadingContainer message="Loading settings..." size="medium" />;
     }
 
     return (
@@ -110,10 +108,10 @@ const SettingsPage = () => {
                 </div>
 
                 {error && (
-                    <div className={styles.settingsErrorMessage}>
-                        {error}
-                        <button onClick={() => setError('')} className={styles.settingsCloseButton}>×</button>
-                    </div>
+                    <ErrorContainer 
+                        message={error}
+                        onRetry={fetchSettings}
+                    />
                 )}
 
                 {success && (

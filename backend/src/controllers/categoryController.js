@@ -56,13 +56,25 @@ const addCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     try {
         const { id } = req.params;
-        await Category.deleteCategory(id);
+        const result = await Category.deleteCategory(id);
+        
         res.status(200).json({
             success: true,
-            message: 'Category deleted successfully'
+            message: result.message,
+            data: {
+                deletedProducts: result.deletedProducts
+            }
         });
     } catch (err) {
         console.error('Controller error in deleteCategory:', err);
+        
+        if (err.message === 'Category not found') {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: err.message
