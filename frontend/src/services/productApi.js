@@ -125,6 +125,27 @@ export const productApi = {
             }
             throw error;
         }
+    },
+
+    // Dashboard Analytics
+    getLowStockProducts: async (threshold = 10) => {
+        try {
+            const response = await api.get(`/api/productRoutes/dashboard/low-stock?threshold=${threshold}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching low stock products:', error);
+            throw error;
+        }
+    },
+
+    getProductStats: async () => {
+        try {
+            const response = await api.get('/api/productRoutes/dashboard/stats');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching product stats:', error);
+            throw error;
+        }
     }
 };
 

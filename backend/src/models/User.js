@@ -155,11 +155,29 @@ async function resetPassword(resetToken, newPassword) {
     }
 }
 
+// קבלת כל המשתמשים
+// פונקציה שמחזירה את כל המשתמשים במערכת (ללא סיסמאות)
+async function getAllUsers() {
+    const db = await dbSingleton.getConnection();
+
+    try {
+        const query = 'SELECT id, full_name, email, address, phone_number, role, created_at FROM users ORDER BY created_at DESC';
+        const [users] = await db.query(query);
+        return users;
+    } catch (error) {
+        console.error('Error in getAllUsers:', error);
+        throw error;
+    }
+}
+
+
+
 module.exports = {
     findUser,
     findUserByEmail,
     createUser,
     createPasswordResetToken,
     findUserByResetToken,
-    resetPassword
+    resetPassword,
+    getAllUsers
 }

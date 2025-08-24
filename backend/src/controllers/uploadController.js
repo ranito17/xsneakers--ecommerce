@@ -11,8 +11,12 @@ const uploadProductImages = async (req, res) => {
     const { productId } = req.body;
     const files = req.files; // multer provides this
 
-        // Save file paths to database with full URL
-        const imageUrls = files.map(file => `/uploads/products/${file.filename}`);
+    console.log('📸 Uploading images:', files.length, 'files');
+
+    // Save file paths to database with full URL
+    const imageUrls = files.map(file => `/uploads/products/${file.filename}`);
+    
+    console.log('✅ Images uploaded successfully:', imageUrls);
     
     // Update product with new image URLs
     await Upload.updateProductImages(productId, imageUrls);

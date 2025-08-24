@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuthentication';
+import { useLocation } from 'react-router-dom';
 import { orderApi } from '../../services/orderApi';
 import AdminOrderList from '../../components/adminOrderList/AdminOrderList';
 import AdminOrderModal from '../../components/adminOrderModal/AdminOrderModal';
+import OrderDetails from '../../components/orderDetails/OrderDetails';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import LoadingContainer from '../../components/loading/LoadingContainer';
 import ErrorContainer from '../../components/error/ErrorContainer';
 import styles from './adminPages.module.css';
 
 const OrderManagmentPage = () => {
+    const { isAuthenticated, user } = useAuth();
+    const location = useLocation();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -59,8 +64,24 @@ const OrderManagmentPage = () => {
     };
 
     useEffect(() => {
-        fetchOrders();
-    }, []);
+        // Only fetch orders if user is authenticated
+        if (isAuthenticated && user) {
+            fetchOrders();
+        }
+    }, [isAuthenticated, user]);
+
+    // Handle navigation state from dashboard status cards and user management
+    useEffect(() => {
+        if (location.state?.statusFilter) {
+            setFilterStatus(location.state.statusFilter);
+        }
+        
+        // Handle user filter from user management page
+        if (location.state?.userFilter) {
+            const { userFilter } = location.state;
+            setSearchTerm(userFilter.userEmail);
+        }
+    }, [location.state]);
 
     const handleStatusUpdate = async (orderId, newStatus) => {
         try {
@@ -82,23 +103,8 @@ const OrderManagmentPage = () => {
         }
     };
 
-    const handleDeleteOrder = async (orderId) => {
-        if (window.confirm('Are you sure you want to delete this order?')) {
-            try {
-                const response = await orderApi.deleteOrder(orderId);
-                
-                if (response.message) {
-                    // Update local state
-                    setOrders(prevOrders => prevOrders.filter(order => order.order_id !== orderId));
-                } else {
-                    setError('Failed to delete order');
-                }
-            } catch (error) {
-                console.error('Error deleting order:', error);
-                setError('Failed to delete order');
-            }
-        }
-    };
+    // Order deletion removed - financial data must be preserved
+    // handleDeleteOrder function removed for compliance with financial data protection
 
     const handleViewOrderDetails = async (order) => {
         // Find the original API order data
@@ -187,18 +193,33 @@ const OrderManagmentPage = () => {
 
     const transformedOrders = transformOrdersForComponents(filteredOrders);
 
-    if (loading) {
-        return <LoadingContainer message="Loading orders..." size="medium" />;
-    }
-
     return (
         <ProtectedRoute requiredRole="admin">
+            {loading ? (
+                <LoadingContainer message="Loading orders..." size="medium" />
+            ) : (
             <div className={styles.orderManagement}>
                 <div className={styles.orderMainContent}>
                 <div className={styles.orderPageHeader}>
                     <div className={styles.orderHeaderContent}>
                         <h1>Order Management</h1>
-                        <p>Manage and track all customer orders</p>
+                        <p>
+                            {location.state?.userFilter 
+                                ? `Orders for ${location.state.userFilter.userEmail}`
+                                : 'Manage and track all customer orders'
+                            }
+                        </p>
+                        {location.state?.userFilter && (
+                            <button 
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    window.history.replaceState({}, document.title);
+                                }}
+                                className={styles.clearUserFilterBtn}
+                            >
+                                Clear User Filter
+                            </button>
+                        )}
                     </div>
                     <div className={styles.orderStats}>
                         <div className={styles.orderStatItem}>
@@ -264,7 +285,6 @@ const OrderManagmentPage = () => {
                         error={error}
                         onViewDetails={handleViewOrderDetails}
                         onUpdateStatus={handleStatusUpdate}
-                        onDeleteOrder={handleDeleteOrder}
                         onEditOrder={handleEditOrder}
                     />
                 </div>
@@ -283,85 +303,30 @@ const OrderManagmentPage = () => {
                                 </button>
                             </div>
                             <div className={styles.orderModalContent}>
-                                <div className={styles.orderModalSection}>
-                                    <h3>Customer Information</h3>
-                                    <p><strong>Name:</strong> {selectedOrder.customer_name}</p>
-                                    <p><strong>Email:</strong> {selectedOrder.customer_email}</p>
-                                    <p><strong>Address:</strong> {selectedOrder.shipping_address}</p>
-                                </div>
-                                
-                                <div className={styles.orderModalSection}>
-                                    <h3>Order Information</h3>
-                                    <p><strong>Order Number:</strong> {selectedOrder.order_number}</p>
-                                    <p><strong>Order Date:</strong> {new Date(selectedOrder.created_at).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}</p>
-                                    <p><strong>Status:</strong> {selectedOrder.status}</p>
-                                    <p><strong>Payment Status:</strong> {selectedOrder.payment_status}</p>
-                                    <p><strong>Total Amount:</strong> ${parseFloat(selectedOrder.total_amount).toFixed(2)}</p>
-                                    {selectedOrder.tracking_number && (
-                                        <p><strong>Tracking Number:</strong> {selectedOrder.tracking_number}</p>
-                                    )}
-                                    {selectedOrder.arrival_date_estimated && (
-                                        <p><strong>Estimated Delivery:</strong> {new Date(selectedOrder.arrival_date_estimated).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}</p>
-                                    )}
-                                </div>
-                                
-                                <div className={styles.orderModalSection}>
-                                    <h3>Order Items</h3>
-                                    {orderItems[selectedOrder.order_id] ? (
-                                        <div className={styles.orderModalItems}>
-                                            {orderItems[selectedOrder.order_id].map((item, index) => (
-                                                <div key={index} className={styles.orderModalItem}>
-                                                    <span className={styles.orderItemName}>{item.product_name}</span>
-                                                    <span className={styles.orderItemQuantity}>x{item.quantity}</span>
-                                                    <span className={styles.orderItemPrice}>${parseFloat(item.product_price).toFixed(2)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p>Loading items...</p>
-                                    )}
-                                    <div className={styles.orderModalTotal}>
-                                        <strong>Total: ${parseFloat(selectedOrder.total_amount).toFixed(2)}</strong>
-                                    </div>
-                                </div>
-                                
-                                <div className={styles.orderModalSection}>
-                                    <h3>Order Status</h3>
-                                    <select
-                                        value={selectedOrder.status || 'pending'}
-                                        onChange={(e) => handleStatusUpdate(selectedOrder.order_id, e.target.value)}
-                                        className={styles.orderModalStatusSelect}
-                                    >
-                                        <option value="pending">Pending</option>
-                                        <option value="processing">Processing</option>
-                                        <option value="shipped">Shipped</option>
-                                        <option value="delivered">Delivered</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-                                </div>
+                                <OrderDetails 
+                                    order={selectedOrder} 
+                                    orderItems={orderItems[selectedOrder.order_id] || []}
+                                    user={null} // Admin view doesn't need user context
+                                    onImageClick={() => {}} // Disable image modal for admin view
+                                />
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* Edit Order Modal */}
-                <AdminOrderModal
-                    isOpen={showEditModal}
-                    onClose={handleCloseEditModal}
-                    order={editingOrder}
-                    onSave={handleSaveOrder}
-                    loading={editLoading}
-                />
-                </div>
+                {showEditModal && editingOrder && (
+                    <AdminOrderModal
+                        isOpen={showEditModal}
+                        onClose={handleCloseEditModal}
+                        order={editingOrder}
+                        onSave={handleSaveOrder}
+                        loading={editLoading}
+                    />
+                )}
             </div>
+            </div>
+            )}
         </ProtectedRoute>
     );
 };

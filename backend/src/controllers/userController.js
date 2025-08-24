@@ -2,51 +2,48 @@
 // בקר המשתמשים - מנהל את כל הפעולות הקשורות למשתמשים
 // מתחבר למודל User לביצוע פעולות בסיס הנתונים
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const emailService = require('../services/emailService');
+const jwt = require('jsonwebtoken');
+const cartService = require('../services/cartService');
 
 // התחברות משתמש למערכת
-// Check if user is authenticated (has valid token)
-// Returns user data from JWT token
+// Check if user is authenticated (has valid JWT)
+// Returns user data from JWT payload
 const me = async (req, res) => {
     try {
         console.log('👤 /me endpoint called');
-        console.log('👤 req.user:', req.user);
         
-        // If we reach here, the middleware has already verified the token
-        // and set req.user, so we can trust it
-        const userData = {
-            id: req.user.userId,
-            email: req.user.email,
-            role: req.user.role,
-            name: req.user.name
-        };
-        
-        console.log('✅ Returning user data:', userData);
+        // User data is already set by auth middleware
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authenticated'
+            });
+        }
+
+        console.log('✅ Returning user data:', req.user);
         
         res.status(200).json({
             success: true,
-            user: userData
+            user: req.user
         });
     } catch (error) {
         console.error('❌ Error in me endpoint:', error);
-        console.error('❌ Error stack:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Error checking authentication'
         });
     }
 };  
+
 const logout = async (req, res) => {
     try {
-        // Clear the token cookie with the same options used when setting it
+        // Clear JWT cookie
         res.clearCookie('token', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // Use secure in production
-            sameSite: 'strict',
-            path: '/',
-            maxAge: 0 // Immediately expire the cookie
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
         });
         
         res.status(200).json({
@@ -61,6 +58,7 @@ const logout = async (req, res) => {
         });
     }
 };
+
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -75,31 +73,39 @@ const login = async (req, res) => {
             });
         }
 
-        // בדיקה שהמפתח הסודי זמין
-        if (!config.jwtSecret) {
-            throw new Error('JWT secret is not configured');
-        }
+        // Create JWT payload
+        const payload = {
+            userId: user.id,
+            email: user.email,
+            role: user.role,
+            name: user.full_name
+        };
+
+        // Generate JWT token
+        const token = jwt.sign(payload, config.jwtSecret, {
+            expiresIn: '24h' // Token expires in 24 hours
+        });
+
+        console.log('✅ JWT token created for user:', user.email);
         
-        // יצירת טוקן JWT עם כל המידע הנדרש
-        const token = jwt.sign(
-            { 
-                userId: user.id, 
-                email: user.email,
-                role: user.role,
-                name: user.full_name
-            },
-            config.jwtSecret,
-            { expiresIn: '24h' }
-        );
-        console.log('Token:', token);
-        // הגדרת הטוקן בעוגיה
+        // Set JWT token as HTTP-only cookie
         res.cookie('token', token, {
-            httpOnly: true, // עוזר למנוע התקפות XSS
-           // Use secure cookies in production
-            maxAge: 24 * 60 * 60 * 1000 // 24 שעות
+            httpOnly: true, // Prevents XSS attacks
+            secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+            sameSite: 'strict', // CSRF protection
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
         });
         
-        // Return user data along with success
+        // Merge guest cart into user cart if user had items in guest cart
+        try {
+            await cartService.mergeGuestCart(req);
+            console.log('✅ Guest cart merged successfully');
+        } catch (mergeError) {
+            console.error('⚠️ Error merging guest cart:', mergeError);
+            // Don't fail login if cart merge fails
+        }
+        
+        // Return user data (token is in HTTP-only cookie)
         res.json({
             success: true,
             message: 'Login successful',
@@ -125,7 +131,15 @@ const login = async (req, res) => {
 // השליטה מקבלת אימייל ושולחת אותו למודל לחיפוש
 const findUser = async (req, res) => {
     try {
-        const user = await User.findUser(req.user.email);
+        // User data is already set by auth middleware
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authenticated'
+            });
+        }
+
+        const user = await User.findUserByEmail(req.user.email);
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -321,6 +335,26 @@ const verifyResetToken = async (req, res) => {
     }
 };
 
+// Get all users (admin only)
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.getAllUsers();
+        
+        res.status(200).json({
+            success: true,
+            data: users
+        });
+    } catch (error) {
+        console.error('Get all users error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while fetching users'
+        });
+    }
+};
+
+
+
 // ייצוא כל הפונקציות
 module.exports = {
     login,
@@ -330,5 +364,6 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
-    verifyResetToken
+    verifyResetToken,
+    getAllUsers
 };

@@ -23,7 +23,9 @@ async function updateSettings(settingsData) {
             currency,
             default_shipping_cost,
             free_shipping_threshold,
-            email_notification
+            email_notification,
+            store_instagram,
+            store_whatsapp
         } = settingsData;
 
         // Check if settings exist
@@ -42,6 +44,8 @@ async function updateSettings(settingsData) {
                     default_shipping_cost = ?,
                     free_shipping_threshold = ?,
                     email_notification = ?,
+                    store_instagram = ?,
+                    store_whatsapp = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `, [
@@ -54,6 +58,8 @@ async function updateSettings(settingsData) {
                 default_shipping_cost,
                 free_shipping_threshold,
                 email_notification,
+                store_instagram,
+                store_whatsapp,
                 existingSettings[0].id
             ]);
             return result;
@@ -69,8 +75,10 @@ async function updateSettings(settingsData) {
                     currency,
                     default_shipping_cost,
                     free_shipping_threshold,
-                    email_notification
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    email_notification,
+                    store_instagram,
+                    store_whatsapp
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 store_name,
                 supplier_name,
@@ -80,7 +88,9 @@ async function updateSettings(settingsData) {
                 currency,
                 default_shipping_cost,
                 free_shipping_threshold,
-                email_notification
+                email_notification,
+                store_instagram,
+                store_whatsapp
             ]);
             return result;
         }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuthentication';
 
@@ -8,7 +8,7 @@ import CartActions from '../components/cart/CartActions';
 import LoadingContainer from '../components/loading/LoadingContainer';
 import ErrorContainer from '../components/error/ErrorContainer';
 import styles from './pages.module.css';
-
+import EmptyCart from '../components/emptyCart/EmptyCart';
 import { orderApi } from '../services/orderApi';
     
 const CartPage = () => {
@@ -21,20 +21,11 @@ const CartPage = () => {
         error: cartError,
         updateQuantity,
         removeFromCart,
-        clearCart,
-        loadCartFromBackend
+        clearCart
     } = useCart();
     
     // Auth state
     const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-    
-    // Load cart when user is available
-    useEffect(() => {
-        if (user?.id) {
-            console.log('🛒 CartPage: User available, loading cart...');
-            loadCartFromBackend();
-        }
-    }, [user?.id]);
     
     console.log('CartPage rendered with:', { 
         cartItems, 
@@ -65,7 +56,8 @@ const CartPage = () => {
                 items: cartItems.map(item => ({
                     product_id: item.id,
                     quantity: item.quantity,
-                    selected_size: item.selected_size
+                    selected_size: item.selected_size,
+                    selected_color: item.selected_color
                 }))
             };
             console.log('Order data:', orderData);
@@ -112,7 +104,7 @@ const CartPage = () => {
                 ) : cartError ? (
                     <ErrorContainer 
                         message={cartError}
-                        onRetry={loadCartFromBackend}
+                        onRetry={() => window.location.reload()}
                     />
                 ) : cartCount > 0 ? (
                     <>
@@ -160,18 +152,7 @@ const CartPage = () => {
                         </div>
                     </>
                 ) : (
-                    <div className={styles.emptyCart}>
-                        <svg className={styles.emptyCartIcon} width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                            <circle cx="9" cy="21" r="1"/>
-                            <circle cx="20" cy="21" r="1"/>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                        </svg>
-                        <h2>Your cart is empty</h2>
-                        <p>Looks like you haven't added any items to your cart yet.</p>
-                        <a href="/products" className={styles.continueShopping}>
-                            Continue Shopping
-                        </a>
-                    </div>
+                    <EmptyCart />
                 )}
             </div>
         </div>

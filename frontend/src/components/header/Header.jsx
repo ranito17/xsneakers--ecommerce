@@ -36,6 +36,7 @@ const Header = () => {
         { path: '/', label: 'Home', icon: '🏠' },
         { path: '/products', label: 'Products', icon: '📦' },
         { path: '/cart', label: 'Cart', icon: '🛒', badge: cartCount },
+        { path: '/about', label: 'About', icon: 'ℹ️' },
         { path: '/contact', label: 'Contact', icon: '📧' }
     ];
 

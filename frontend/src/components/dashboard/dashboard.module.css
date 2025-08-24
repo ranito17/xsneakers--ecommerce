@@ -1,0 +1,1306 @@
+/* Dashboard Components Styles */
+
+/* Status Cards */
+.statusCard {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    min-height: 70px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.statusCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.statusCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.statusIcon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.statusContent {
+    position: relative;
+    z-index: 1;
+}
+
+.statusContent h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #f8fafc;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.statusContent p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Status Colors */
+.statusPending {
+    border-left: 4px solid #ffc107;
+}
+
+.statusProcessing {
+    border-left: 4px solid #17a2b8;
+}
+
+.statusShipped {
+    border-left: 4px solid #007bff;
+}
+
+.statusDelivered {
+    border-left: 4px solid #28a745;
+}
+
+.statusCancelled {
+    border-left: 4px solid #dc3545;
+}
+
+.statusDefault {
+    border-left: 4px solid #6c757d;
+}
+
+/* Recent Orders Card */
+.recentOrdersCard {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(59, 130, 246, 0.3);
+    height: 100%;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.recentOrdersCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.cardHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #f8fafc;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.viewAllButton {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.viewAllButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.orderItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.orderItem:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Top Row - Order ID, Date, Amount */
+.orderTopRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.orderIdSection {
+    flex: 1;
+}
+
+.orderNumber {
+    font-weight: 600;
+    color: #f8fafc;
+    font-size: 0.875rem;
+}
+
+.orderDateSection {
+    flex: 1;
+    text-align: center;
+}
+
+.orderDate {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+}
+
+.orderAmountSection {
+    flex: 1;
+    text-align: right;
+}
+
+.amount {
+    font-weight: 600;
+    color: #10b981;
+    font-size: 0.875rem;
+}
+
+/* Bottom Row - Customer Info and Status */
+.orderBottomRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.customerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    flex: 1;
+}
+
+.customerName {
+    font-weight: 500;
+    color: #f8fafc;
+    font-size: 0.875rem;
+}
+
+.customerEmail {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+}
+
+.orderStatus {
+    flex-shrink: 0;
+}
+
+.statusBadge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    border: 1px solid;
+}
+
+.statusBadge.statusPending {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.statusBadge.statusProcessing {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.statusBadge.statusShipped {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: white;
+    border-color: rgba(6, 182, 212, 0.3);
+}
+
+.statusBadge.statusDelivered {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.statusBadge.statusCancelled {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.statusBadge.statusDefault {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    border-color: rgba(107, 114, 128, 0.3);
+}
+
+/* Add the correct status badge classes */
+.statusBadge.pending {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.statusBadge.processing {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.statusBadge.shipped {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: white;
+    border-color: rgba(6, 182, 212, 0.3);
+}
+
+.statusBadge.delivered {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.statusBadge.cancelled {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.statusBadge.default {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    border-color: rgba(107, 114, 128, 0.3);
+}
+
+/* Low Stock Card */
+.lowStockCard {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    border: 2px solid rgba(239, 68, 68, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(239, 68, 68, 0.3);
+    height: 100%;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.lowStockCard .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(239, 68, 68, 0.3);
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.lowStockCard .cardHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #f8fafc;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.lowStockCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(239, 68, 68, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.headerControls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+}
+
+.thresholdControl {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.thresholdControl label {
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.thresholdInput {
+    width: 60px;
+    padding: 0.5rem;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    text-align: center;
+    background: rgba(15, 20, 25, 0.6);
+    color: #f8fafc;
+    backdrop-filter: blur(10px);
+}
+
+.thresholdInput:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.stockList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.stockItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.stockItem:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.productInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.productName {
+    font-weight: 500;
+    color: #f8fafc;
+    font-size: 0.875rem;
+}
+
+.productCategory {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+}
+
+.stockInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.stockCount {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #f8fafc;
+}
+
+.stockCount.critical {
+    color: #ef4444;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.productPrice {
+    font-size: 0.75rem;
+    color: #10b981;
+    font-weight: 500;
+}
+
+/* Top Products Card */
+.topProductsCard {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    border: 2px solid rgba(16, 185, 129, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 185, 129, 0.3);
+    height: 100%;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.topProductsCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(16, 185, 129, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.productsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.productItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.productItem:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.productRank {
+    width: 30px;
+    text-align: center;
+}
+
+.rankNumber {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.productInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.productName {
+    font-weight: 500;
+    color: #f8fafc;
+    font-size: 0.875rem;
+}
+
+.productStats {
+    display: flex;
+    gap: 1rem;
+}
+
+.orderCount, .quantitySold {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+}
+
+.productPrice {
+    text-align: right;
+}
+
+.price {
+    font-weight: 600;
+    color: #10b981;
+    font-size: 0.875rem;
+}
+
+/* Empty State */
+.emptyState {
+    text-align: center;
+    padding: 2rem;
+    color: #cbd5e1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emptyState p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .orderItem {
+        padding: 0.75rem;
+    }
+    
+    .orderTopRow,
+    .orderBottomRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .orderIdSection,
+    .orderDateSection,
+    .orderAmountSection {
+        width: 100%;
+        text-align: left;
+    }
+    
+    .customerInfo {
+        width: 100%;
+    }
+    
+    .orderStatus {
+        align-self: flex-end;
+    }
+    
+    .statusBadge {
+        padding: 0.2rem 0.6rem;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recentOrdersCard {
+        padding: 1.5rem;
+    }
+    
+    .cardHeader {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .cardHeader h2 {
+        font-size: 1.3rem;
+    }
+    
+    .viewAllButton {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.8rem;
+    }
+    
+    .orderItem {
+        padding: 0.6rem;
+    }
+    
+    .orderNumber {
+        font-size: 0.8rem;
+    }
+    
+    .orderDate {
+        font-size: 0.7rem;
+    }
+    
+    .amount {
+        font-size: 0.8rem;
+    }
+    
+    .customerName {
+        font-size: 0.8rem;
+    }
+    
+    .customerEmail {
+        font-size: 0.7rem;
+    }
+}
+
+/* Product Modal Styles */
+.productModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.productModal {
+    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    position: relative;
+}
+
+.productModal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(0, 150, 255, 0.05) 100%);
+    border-radius: 24px;
+    pointer-events: none;
+}
+
+.productModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 2rem 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.productModalHeader h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.productModalClose {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.productModalClose:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+.productModalContent {
+    padding: 1rem 2rem 2rem 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.productModalImage {
+    text-align: center;
+    margin-bottom: 2rem;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.productModalImage img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    width: 100%;
+    height: auto;
+}
+
+.productModalSection {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.productModalSection h3 {
+    margin: 0 0 1rem 0;
+    color: #00d4ff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+}
+
+.productInfoGrid {
+    display: grid;
+    gap: 1rem;
+}
+
+.productInfoItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.productInfoItem:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(0, 212, 255, 0.2);
+}
+
+.productInfoLabel {
+    font-weight: 600;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+}
+
+.productInfoValue {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+.productDescription {
+    color: #e2e8f0;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.productStatusInfo {
+    display: grid;
+    gap: 1rem;
+}
+
+.lowStock {
+    color: #f59e0b !important;
+    font-weight: 600;
+}
+
+.inStock {
+    color: #10b981 !important;
+    font-weight: 600;
+}
+
+.outOfStock {
+    color: #ef4444 !important;
+    font-weight: 600;
+}
+
+/* Responsive Design for Product Modal */
+@media (max-width: 768px) {
+    .productModal {
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .productModalHeader {
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+    }
+    
+    .productModalHeader h2 {
+        font-size: 1.3rem;
+    }
+    
+    .productModalContent {
+        padding: 1rem 1.5rem 1.5rem 1.5rem;
+    }
+    
+    .productModalSection {
+        padding: 1rem;
+    }
+    
+    .productInfoItem {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .productInfoValue {
+        text-align: left;
+    }
+}
+
+/* Order Modal Styles */
+.orderModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.orderModal {
+    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    position: relative;
+}
+
+.orderModal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(0, 150, 255, 0.05) 100%);
+    border-radius: 24px;
+    pointer-events: none;
+}
+
+.orderModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 2rem 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.orderModalHeader h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.orderModalClose {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.orderModalClose:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+.orderModalContent {
+    padding: 1rem 2rem 2rem 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* Responsive Design for Order Modal */
+@media (max-width: 768px) {
+    .orderModal {
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .orderModalHeader {
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+    }
+    
+    .orderModalHeader h2 {
+        font-size: 1.3rem;
+    }
+    
+    .orderModalContent {
+        padding: 1rem 1.5rem 1.5rem 1.5rem;
+    }
+}
+
+/* Stock Refuel Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.modal {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+    border-radius: 24px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(59, 130, 246, 0.1);
+    backdrop-filter: blur(20px);
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 2rem 1rem 2rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.modalHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #cbd5e1;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.closeButton:hover {
+    color: #f8fafc;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.modalContent {
+    padding: 2rem;
+}
+
+.formSection {
+    margin-bottom: 2rem;
+}
+
+.formSection h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.productList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.productItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(59, 130, 246, 0.1);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.productItem:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.productItem.selected {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.productInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.productName {
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.productCategory {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.stockCount {
+    font-size: 0.9rem;
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.quantityInput {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quantityInput label {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    white-space: nowrap;
+}
+
+.quantityField {
+    width: 80px;
+    padding: 0.5rem;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 6px;
+    background: rgba(26, 31, 46, 0.8);
+    color: #f8fafc;
+    text-align: center;
+}
+
+.quantityField:focus {
+    outline: none;
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.selectedProducts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.selectedProduct {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    color: #f8fafc;
+}
+
+.selectedProduct .quantity {
+    font-weight: 600;
+    color: #10b981;
+}
+
+.noSelection {
+    color: #cbd5e1;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+}
+
+.textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    background: rgba(26, 31, 46, 0.8);
+    color: #f8fafc;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.primaryButton {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    transform: translateY(-1px);
+}
+
+.primaryButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.secondaryButton {
+    background: rgba(107, 114, 128, 0.1);
+    color: #f8fafc;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.secondaryButton:hover:not(:disabled) {
+    background: rgba(107, 114, 128, 0.2);
+}
+
+.secondaryButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.successMessage {
+    text-align: center;
+    padding: 2rem;
+}
+
+.successIcon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.successMessage h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.successMessage p {
+    color: #cbd5e1;
+    margin-bottom: 2rem;
+}
+
+.errorMessage {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    color: #ef4444;
+    margin-bottom: 1rem;
+}

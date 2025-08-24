@@ -1,10 +1,9 @@
-const Cart = require('../models/Cart');
+const cartService = require('../services/cartService');
 
-// Get user's cart with all items
+// Get user's cart with all items (works for both guests and logged-in users)
 const getUserCart = async (req, res) => {
     try {
-        const userId = req.params.userId || req.user.user_id;
-        const cart = await Cart.getUserCart(userId);
+        const cart = await cartService.getCart(req);
         res.status(200).json({
             success: true,
             data: cart
@@ -18,10 +17,9 @@ const getUserCart = async (req, res) => {
     }
 };
 
-// Add item to cart (from product page)
+// Add item to cart (from product page) - works for both guests and logged-in users
 const addToCart = async (req, res) => {
     try {
-        const userId = req.body.userId || req.user.user_id;
         const { productId, quantity = 1, selected_size, selected_color } = req.body;
         
         if (!productId) {
@@ -31,7 +29,7 @@ const addToCart = async (req, res) => {
             });
         }
 
-        const result = await Cart.addToCart(userId, productId, quantity, selected_size, selected_color);
+        const result = await cartService.addToCart(req, productId, quantity, selected_size, selected_color);
         res.status(200).json({
             success: true,
             data: result
@@ -45,10 +43,9 @@ const addToCart = async (req, res) => {
     }
 };
 
-// Update item quantity (from cart page)
+// Update item quantity (from cart page) - works for both guests and logged-in users
 const updateQuantity = async (req, res) => {
     try {
-        const userId = req.body.userId || req.user.user_id;
         const { cartItemId } = req.params;
         const { quantity } = req.body;
 
@@ -59,7 +56,7 @@ const updateQuantity = async (req, res) => {
             });
         }
 
-        const result = await Cart.updateQuantity(userId, cartItemId, quantity);
+        const result = await cartService.updateQuantity(req, cartItemId, quantity);
         res.status(200).json({
             success: true,
             data: result
@@ -73,13 +70,12 @@ const updateQuantity = async (req, res) => {
     }
 };
 
-// Remove item from cart
+// Remove item from cart - works for both guests and logged-in users
 const removeFromCart = async (req, res) => {
     try {
-        const userId = req.body.userId || req.user.user_id;
         const { cartItemId } = req.params;
 
-        const result = await Cart.removeFromCart(userId, cartItemId);
+        const result = await cartService.removeFromCart(req, cartItemId);
         res.status(200).json({
             success: true,
             data: result
@@ -93,12 +89,10 @@ const removeFromCart = async (req, res) => {
     }
 };
 
-// Clear entire cart
+// Clear entire cart - works for both guests and logged-in users
 const clearCart = async (req, res) => {
     try {
-        const userId = req.body.userId || req.user.user_id;
-
-        const result = await Cart.clearCart(userId);
+        const result = await cartService.clearCart(req);
         res.status(200).json({
             success: true,
             data: result

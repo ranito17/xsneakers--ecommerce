@@ -1,45 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuthentication';
 
 const useAuthorization = (requiredRole = null) => {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
-    const [isAuthorized, setIsAuthorized] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const checkAuthorization = () => {
-            setIsLoading(true);
-
-            // If no authentication required, allow access
-            if (!requiredRole) {
-                setIsAuthorized(true);
-                setIsLoading(false);
-                return;
-            }
-
-            // Check if user is authenticated
-            if (!isAuthenticated || !user) {
-                setIsAuthorized(false);
-                setIsLoading(false);
-                return;
-            }
-
-            // Check if user has required role
-            if (requiredRole === 'admin' && user.role !== 'admin') {
-                setIsAuthorized(false);
-                setIsLoading(false);
-                return;
-            }
-
-            // User is authorized
-            setIsAuthorized(true);
-            setIsLoading(false);
-        };
-
-        checkAuthorization();
-    }, [user, isAuthenticated, requiredRole]);
+    
+    // Use useMemo to compute authorization status
+    const authorizationStatus = useMemo(() => {
+        // If auth is still loading, return loading state
+        if (authLoading) {
+            return { isAuthorized: false, isLoading: true };
+        }
+        
+        // If no authentication required, allow access
+        if (!requiredRole) {
+            return { isAuthorized: true, isLoading: false };
+        }
+        
+        // Check if user is authenticated
+        if (!isAuthenticated || !user) {
+            return { isAuthorized: false, isLoading: false };
+        }
+        
+        // Check if user has required role
+        if (requiredRole === 'admin' && user.role !== 'admin') {
+            return { isAuthorized: false, isLoading: false };
+        }
+        
+        // User is authorized
+        return { isAuthorized: true, isLoading: false };
+    }, [user, isAuthenticated, requiredRole, authLoading]);
 
     const redirectToUnauthorized = () => {
         navigate('/unauthorized');
@@ -50,8 +41,8 @@ const useAuthorization = (requiredRole = null) => {
     };
 
     return {
-        isAuthorized,
-        isLoading,
+        isAuthorized: authorizationStatus.isAuthorized,
+        isLoading: authorizationStatus.isLoading,
         user,           
         redirectToUnauthorized,
         redirectToLogin

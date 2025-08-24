@@ -5,7 +5,6 @@ const AdminOrderCard = ({
     order, 
     onViewDetails, 
     onUpdateStatus, 
-    onDeleteOrder,
     onEditOrder 
 }) => {
     const {
@@ -142,12 +141,7 @@ const AdminOrderCard = ({
                     Edit
                 </button>
 
-                <button
-                    onClick={() => onDeleteOrder(id)}
-                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                >
-                    Delete
-                </button>
+                {/* Delete button removed - financial data must be preserved */}
             </div>
         </div>
     );

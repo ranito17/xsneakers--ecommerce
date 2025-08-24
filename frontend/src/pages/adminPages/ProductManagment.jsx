@@ -14,7 +14,7 @@ import { categoryApi } from '../../services/categoryApi';
 import styles from './adminPages.module.css';
 
 const ProductManagement = () => {
-    const { isAuthenticated, isLoading: authLoading, } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -36,11 +36,12 @@ const ProductManagement = () => {
 
     // Load products and categories when authenticated
     useEffect(() => {
-        
-      loadProducts();
-    loadCategories();
-       
-    }, []);
+        // Only load data if user is authenticated
+        if (isAuthenticated && user) {
+            loadProducts();
+            loadCategories();
+        }
+    }, [isAuthenticated, user]);
 
     // Filter products based on search, category, and advanced filters
     useEffect(() => {
@@ -357,20 +358,7 @@ const ProductManagement = () => {
         }
     };
 
-    // Show loading state while checking authentication
-    if (authLoading) {
-        return <LoadingContainer message="Loading..." size="medium" />;
-    }
-
-    // Redirect if not authenticated
-    if (!isAuthenticated) {
-        return (
-            <div className={styles.productAccessDenied}>
-                <h2>Access Denied</h2>
-                <p>You need to be logged in to access this page.</p>
-            </div>
-        );
-    }
+    // Note: Authentication is now handled by ProtectedRoute component
 
     return (
         <ProtectedRoute requiredRole="admin">

@@ -1,0 +1,459 @@
+.container {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    background: var(--gradient-sport);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.searchContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.searchInput {
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 16px;
+    font-size: 1rem;
+    color: var(--text-primary);
+    background: rgba(15, 20, 25, 0.9);
+    width: 300px;
+    backdrop-filter: blur(10px);
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    background: rgba(15, 20, 25, 0.95);
+}
+
+.searchInput::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    color: var(--accent-blue);
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.tableContainer {
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    background: rgba(15, 20, 25, 0.5);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    min-width: 800px;
+}
+
+.table th {
+    background: rgba(59, 130, 246, 0.1);
+    padding: 1.25rem 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sortableHeader {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+/* Removed hover effect for better performance */
+
+.table td {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Removed hover effect for better performance */
+
+.productCell {
+    min-width: 200px;
+}
+
+.productInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.productName {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.productPrice {
+    font-size: 0.8rem;
+    color: var(--accent-green);
+    font-weight: 500;
+}
+
+.revenueCell {
+    min-width: 120px;
+}
+
+.revenueInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.revenueAmount {
+    font-weight: 700;
+    color: var(--accent-green);
+    font-size: 1rem;
+}
+
+.revenuePercentage {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.ordersCell {
+    min-width: 100px;
+}
+
+.ordersInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.ordersCount {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.ordersPercentage {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.quantityCell {
+    min-width: 100px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.avgQuantityCell {
+    min-width: 100px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stockCell {
+    min-width: 120px;
+}
+
+.stockStatus {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stockIndicator {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.inStock {
+    color: var(--accent-green);
+}
+
+.lowStock {
+    color: var(--accent-orange);
+}
+
+.outOfStock {
+    color: var(--accent-red);
+}
+
+.stockText {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stockCount {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.footer {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid rgba(59, 130, 246, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.summaryText {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Empty State */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+    color: var(--text-muted);
+}
+
+.emptyText {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Loading States */
+.skeletonControls {
+    display: flex;
+    gap: 1rem;
+}
+
+.skeletonSearch {
+    width: 300px;
+    height: 48px;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 25%, rgba(59, 130, 246, 0.2) 50%, rgba(59, 130, 246, 0.1) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 16px;
+}
+
+.tableSkeleton {
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(15, 20, 25, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.skeletonRow {
+    display: flex;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.skeletonCell {
+    flex: 1;
+    height: 24px;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 25%, rgba(59, 130, 246, 0.2) 50%, rgba(59, 130, 246, 0.1) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    margin: 0 0.5rem;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        padding: 2rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .searchInput {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .title {
+        font-size: 1.25rem;
+    }
+
+    .tableContainer {
+        margin: 0 -1.5rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .table th,
+    .table td {
+        padding: 1rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .productName {
+        font-size: 0.9rem;
+    }
+
+    .productPrice {
+        font-size: 0.75rem;
+    }
+
+    .revenueAmount,
+    .ordersCount {
+        font-size: 0.9rem;
+    }
+
+    .revenuePercentage,
+    .ordersPercentage {
+        font-size: 0.7rem;
+    }
+
+    .stockText {
+        font-size: 0.75rem;
+    }
+
+    .stockCount {
+        font-size: 0.7rem;
+    }
+
+    .searchInput {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .searchInput {
+        max-width: 100%;
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+        font-size: 0.9rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .productInfo,
+    .revenueInfo,
+    .ordersInfo {
+        gap: 0.2rem;
+    }
+
+    .emptyState {
+        padding: 3rem 1rem;
+    }
+
+    .emptyIcon {
+        font-size: 3rem;
+    }
+
+    .emptyText {
+        font-size: 1rem;
+    }
+}

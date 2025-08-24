@@ -9,7 +9,6 @@ const ProtectedRoute = ({
     redirectToLogin = false 
 }) => {
     const { isAuthorized, isLoading, redirectToUnauthorized, redirectToLogin: goToLogin } = useAuthorization(requiredRole);
-
     // Show loading state
     if (isLoading) {
         return (

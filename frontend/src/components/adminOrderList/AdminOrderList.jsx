@@ -8,7 +8,6 @@ const AdminOrderList = ({
     error,
     onViewDetails,
     onUpdateStatus,
-    onDeleteOrder,
     onEditOrder 
 }) => {
     const [filteredOrders, setFilteredOrders] = useState([]);
@@ -148,7 +147,6 @@ const AdminOrderList = ({
                         order={order}
                         onViewDetails={onViewDetails}
                         onUpdateStatus={onUpdateStatus}
-                        onDeleteOrder={onDeleteOrder}
                         onEditOrder={onEditOrder}
                     />
                 ))}

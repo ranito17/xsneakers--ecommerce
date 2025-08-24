@@ -17,6 +17,30 @@ const getSettings = async (req, res) => {
     }
 };
 
+const getPublicSettings = async (req, res) => {
+    try {
+        const settings = await Settings.getSettings();
+        // Only return public settings needed for footer
+        const publicSettings = {
+            store_name: settings?.store_name || '',
+            supplier_email: settings?.supplier_email || '',
+            store_instagram: settings?.store_instagram || '',
+            store_whatsapp: settings?.store_whatsapp || ''
+        };
+        res.status(200).json({
+            success: true,
+            message: 'Public settings retrieved successfully',
+            data: publicSettings
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
 const updateSettings = async (req, res) => {
     try {
         const settingsData = req.body;
@@ -37,5 +61,6 @@ const updateSettings = async (req, res) => {
 
 module.exports = {
     getSettings,
+    getPublicSettings,
     updateSettings
 }; 

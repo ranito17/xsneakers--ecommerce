@@ -21,4 +21,8 @@ router.put('/:id', isAuthenticated, adminAuth, productController.updateProduct);
 // מחיקת מוצר - DELETE /productRoutes/:id (admin only)
 router.delete('/:id', isAuthenticated, adminAuth, productController.deleteProduct);
 
+// Dashboard Analytics Routes (admin only)
+router.get('/dashboard/low-stock', isAuthenticated, adminAuth, productController.getLowStockProducts);
+router.get('/dashboard/stats', isAuthenticated, adminAuth, productController.getProductStats);
+
 module.exports = router;

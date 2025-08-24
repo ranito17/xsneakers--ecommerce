@@ -170,10 +170,72 @@ async function updateProduct(id, productData) {
     }
 }
 
+// Dashboard Analytics Functions
+async function getLowStockProducts(threshold = 10) {
+    try {
+        const db = await dbSingleton.getConnection();
+        const [rows] = await db.query(`
+            SELECT 
+                p.id,
+                p.name,
+                p.stock_quantity,
+                p.price,
+                c.category_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            WHERE p.stock_quantity <= ?
+            ORDER BY p.stock_quantity ASC
+            LIMIT 10
+        `, [threshold]);
+        return rows;
+    } catch (err) {
+        console.error('Error fetching low stock products:', err);
+        throw new Error('Failed to fetch low stock products');
+    }
+}
+
+async function getProductStats() {
+    try {
+        const db = await dbSingleton.getConnection();
+        
+        // Total products and categories
+        const [productStats] = await db.query(`
+            SELECT 
+                COUNT(*) as total_products,
+                COUNT(DISTINCT category_id) as total_categories,
+                SUM(stock_quantity) as total_stock,
+                AVG(price) as avg_price
+            FROM products
+        `);
+
+        // Products by category
+        const [productsByCategory] = await db.query(`
+            SELECT 
+                c.category_name,
+                COUNT(p.id) as product_count,
+                SUM(p.stock_quantity) as total_stock
+            FROM categories c
+            LEFT JOIN products p ON c.category_id = p.category_id
+            GROUP BY c.category_id
+            ORDER BY product_count DESC
+        `);
+
+        return {
+            productStats: productStats[0],
+            productsByCategory
+        };
+    } catch (err) {
+        console.error('Error fetching product stats:', err);
+        throw new Error('Failed to fetch product statistics');
+    }
+}
+
 module.exports = {
     getAllProducts,
     getProductById,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getLowStockProducts,
+    getProductStats
 };

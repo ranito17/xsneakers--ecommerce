@@ -1,20 +1,50 @@
 /* ===== ADMIN PAGES STYLES - SNEAKER STORE ADMIN ===== */
 
-/* ===== DASHBOARD PAGE STYLES ===== */
+/* ===== COMMON PAGE STYLES ===== */
 
-.dashboardPage {
+.pageContainer {
     min-height: 100vh;
     background: var(--gradient-admin);
-    padding: 2rem;
+    display: flex;
+    flex-direction: column;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 2rem;
 }
 
-.dashboardHeader {
-    text-align: center;
-    margin-bottom: 3rem;
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    padding: 2.5rem;
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    position: relative;
+    overflow: hidden;
+    gap: 2rem;
 }
 
-.dashboardHeader h1 {
+.pageHeader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.headerContent {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.pageTitle {
     font-size: 3rem;
     font-weight: 900;
     color: var(--text-primary);
@@ -23,43 +53,272 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.02em;
 }
 
-.dashboardHeader p {
+.pageSubtitle {
     font-size: 1.2rem;
     color: var(--text-secondary);
     margin: 0;
+    font-weight: 500;
+}
+
+.headerStats {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.statCard {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.statNumber {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 0.25rem;
+}
+
+.statLabel {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.searchSection {
+    margin-bottom: 2rem;
+}
+
+.searchContainer {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin);
+    backdrop-filter: blur(20px);
+}
+
+.searchInputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.searchInput::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.clearSearchBtn {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clearSearchBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.contentSection {
+    flex: 1;
+}
+
+.errorContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: var(--shadow-admin);
+}
+
+.errorContent {
+    text-align: center;
+    padding: 2rem;
+}
+
+.errorContent h2 {
+    color: #ef4444;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.errorContent p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.retryButton {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.clearUserFilterBtn {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+.clearUserFilterBtn:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+/* ===== DASHBOARD PAGE STYLES ===== */
+
+.dashboardPage {
+    min-height: 100vh;
+    background: var(--gradient-admin);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.dashboardMainContent {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Dashboard Page Header */
+.dashboardPageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    padding: 2.5rem;
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboardPageHeader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.dashboardHeaderContent h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    background: var(--gradient-sport);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.02em;
+}
+
+.dashboardHeaderContent p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 500;
 }
 
 /* Metrics Grid */
 .metricsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .metricCard {
     background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
-    border-radius: 20px;
-    padding: 2rem;
+    border-radius: 15px;
+    padding: 1.5rem;
     border: 1px solid rgba(59, 130, 246, 0.2);
     box-shadow: var(--shadow-admin);
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     transition: all 0.3s ease;
     backdrop-filter: blur(20px);
 }
 
 .metricCard:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-admin), var(--shadow-glow);
     border-color: rgba(59, 130, 246, 0.4);
 }
 
 .metricIcon {
-    font-size: 2.5rem;
+    font-size: 2rem;
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -67,42 +326,80 @@
 }
 
 .metricContent h3 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 900;
     color: var(--text-primary);
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.25rem 0;
 }
 
 .metricContent p {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
     margin: 0;
+}
+
+/* Status Section */
+.statusSection {
+    margin-bottom: 2rem;
+}
+
+.statusSection h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+    text-align: center;
+}
+
+.statusGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
 }
 
 /* Dashboard Grid */
 .dashboardGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
+    padding: 2rem 0;
 }
 
 .dashboardCard {
     background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
-    border-radius: 20px;
-    padding: 2rem;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    box-shadow: var(--shadow-admin);
+    border-radius: 24px;
+    padding: 2.5rem;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
     backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboardCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
 }
 
 .dashboardCard h2 {
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-primary);
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 2rem 0;
     border-bottom: 2px solid rgba(59, 130, 246, 0.3);
-    padding-bottom: 0.5rem;
+    padding-bottom: 1rem;
+    position: relative;
+    z-index: 1;
 }
 
 /* Recent Orders */
@@ -279,26 +576,44 @@
 /* Quick Actions */
 .quickActions {
     background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
-    border-radius: 20px;
-    padding: 2rem;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    box-shadow: var(--shadow-admin);
+    border-radius: 24px;
+    padding: 2.5rem;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
     backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    margin-top: 5rem;
+}
+
+.quickActions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
 }
 
 .quickActions h2 {
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-primary);
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 2rem 0;
     border-bottom: 2px solid rgba(59, 130, 246, 0.3);
-    padding-bottom: 0.5rem;
+    padding-bottom: 1rem;
+    position: relative;
+    z-index: 1;
 }
 
 .actionButtons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    position: relative;
+    z-index: 1;
 }
 
 .actionButton {
@@ -311,6 +626,7 @@
     border-radius: 12px;
     color: var(--text-primary);
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
@@ -320,11 +636,11 @@
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.3);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .actionIcon {
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 /* Responsive Design */
@@ -341,6 +657,10 @@
     .dashboardGrid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+    
+    .dashboardCard {
+        height: 400px;
     }
 }
 
@@ -372,6 +692,12 @@
     
     .dashboardCard {
         padding: 1.5rem;
+        height: 350px;
+    }
+    
+    .dashboardGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
     .actionButtons {
@@ -495,10 +821,7 @@
     animation: shimmer 3s ease-in-out infinite;
 }
 
-@keyframes shimmer {
-    0%, 100% { transform: translateX(-100%); }
-    50% { transform: translateX(100%); }
-}
+
 
 .productHeaderContent h1 {
     font-size: 3rem;
@@ -2291,5 +2614,454 @@ select:focus-visible {
     .clearFilterButton {
         font-size: 0.85rem;
         padding: 0.6rem 0.8rem;
+    }
+}
+
+/* Analytics Page Styles */
+.analyticsPage {
+    min-height: 100vh;
+    background: var(--gradient-admin);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.analyticsMainContent {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    padding: 2.5rem;
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.pageHeader::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.headerContent {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.pageTitle {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    background: var(--gradient-sport);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.02em;
+}
+
+.pageSubtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 500;
+}
+
+.headerActions {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.refreshButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: var(--gradient-sport);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.refreshButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.refreshButton:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.refreshButton:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-heavy), 0 0 30px rgba(59, 130, 246, 0.4);
+}
+
+.refreshButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.analyticsContent {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.dateRangeSection {
+    display: flex;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    padding: 2rem;
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin);
+}
+
+.metricsSection {
+    margin-bottom: 2rem;
+}
+
+.chartsRow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.chartContainer {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.chartContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.productSection {
+    margin-bottom: 2rem;
+}
+
+.additionalSections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.sectionPlaceholder {
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-admin);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.sectionPlaceholder::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.sectionPlaceholder h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+    background: var(--gradient-sport);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    z-index: 1;
+}
+
+.sectionPlaceholder p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+}
+
+.errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(239, 68, 68, 0.2);
+    box-shadow: var(--shadow-admin);
+    position: relative;
+    overflow: hidden;
+}
+
+.errorContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(239, 68, 68, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.errorIcon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.errorTitle {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent-red);
+    margin: 0 0 1rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.errorMessage {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin: 0 0 2rem 0;
+    max-width: 500px;
+    position: relative;
+    z-index: 1;
+}
+
+.retryButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background: var(--gradient-sport);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-admin), var(--shadow-glow);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.retryButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.retryButton:hover::before {
+    left: 100%;
+}
+
+.retryButton:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-heavy), 0 0 30px rgba(59, 130, 246, 0.4);
+}
+
+/* Analytics Page Responsive Design */
+@media (max-width: 1200px) {
+    .analyticsMainContent {
+        padding: 1.5rem;
+    }
+
+    .pageHeader {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: flex-start;
+        padding: 2rem;
+    }
+
+    .headerActions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .additionalSections {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .analyticsMainContent {
+        padding: 1rem;
+    }
+
+    .pageTitle {
+        font-size: 2rem;
+    }
+
+    .pageSubtitle {
+        font-size: 1rem;
+    }
+
+    .refreshButton {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .analyticsContent {
+        gap: 1.5rem;
+    }
+
+    .chartsRow {
+        gap: 1.5rem;
+    }
+
+    .chartContainer {
+        padding: 1.5rem;
+    }
+
+    .sectionPlaceholder {
+        padding: 1.5rem;
+    }
+
+    .sectionPlaceholder h3 {
+        font-size: 1.25rem;
+    }
+
+    .sectionPlaceholder p {
+        font-size: 0.9rem;
+    }
+
+    .errorContainer {
+        padding: 3rem 1.5rem;
+    }
+
+    .errorTitle {
+        font-size: 1.5rem;
+    }
+
+    .errorMessage {
+        font-size: 1rem;
+    }
+
+    .retryButton {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .analyticsMainContent {
+        padding: 0.75rem;
+    }
+
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+
+    .pageSubtitle {
+        font-size: 0.9rem;
+    }
+
+    .refreshButton {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .chartContainer {
+        padding: 1rem;
+    }
+
+    .sectionPlaceholder {
+        padding: 1rem;
+    }
+
+    .errorContainer {
+        padding: 2rem 1rem;
+    }
+
+    .errorTitle {
+        font-size: 1.25rem;
+    }
+
+    .errorMessage {
+        font-size: 0.9rem;
+    }
+
+    .retryButton {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.8rem;
     }
 }

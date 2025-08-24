@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuthentication';
 import { settingsApi } from '../../services/settingsApi';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import LoadingContainer from '../../components/loading/LoadingContainer';
@@ -6,6 +7,7 @@ import ErrorContainer from '../../components/error/ErrorContainer';
 import styles from './adminPages.module.css';
 
 const SettingsPage = () => {
+    const { isAuthenticated, user } = useAuth();
     const [settings, setSettings] = useState({
         store_name: '',
         supplier_name: '',
@@ -15,7 +17,9 @@ const SettingsPage = () => {
         currency: 'USD',
         default_shipping_cost: 0,
         free_shipping_threshold: 0,
-        email_notification: ''
+        email_notification: '',
+        store_instagram: '',
+        store_whatsapp: ''
     });
     
     const [loading, setLoading] = useState(true);
@@ -25,8 +29,11 @@ const SettingsPage = () => {
 
     // Fetch settings on component mount
     useEffect(() => {
-        fetchSettings();
-    }, []);
+        // Only fetch settings if user is authenticated
+        if (isAuthenticated && user) {
+            fetchSettings();
+        }
+    }, [isAuthenticated, user]);
 
     const fetchSettings = async () => {
         try {
@@ -92,12 +99,11 @@ const SettingsPage = () => {
         setError('');
     };
 
-    if (loading) {
-        return <LoadingContainer message="Loading settings..." size="medium" />;
-    }
-
     return (
         <ProtectedRoute requiredRole="admin">
+            {loading ? (
+                <LoadingContainer message="Loading settings..." size="medium" />
+            ) : (
             <div className={styles.settingsManagement}>
                 <div className={styles.settingsMainContent}>
                 <div className={styles.settingsPageHeader}>
@@ -200,6 +206,32 @@ const SettingsPage = () => {
                                 />
                             </div>
                         </div>
+                        <div className={styles.settingsFormRow}>
+                            <div className={styles.settingsFormGroup}>
+                                <label htmlFor="store_instagram">Store Instagram</label>
+                                <input
+                                    type="text"
+                                    id="store_instagram"
+                                    name="store_instagram"
+                                    value={settings.store_instagram}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter Instagram username (without @)"
+                                    disabled={saving}
+                                />
+                            </div>
+                            <div className={styles.settingsFormGroup}>
+                                <label htmlFor="store_whatsapp">Store WhatsApp</label>
+                                <input
+                                    type="tel"
+                                    id="store_whatsapp"
+                                    name="store_whatsapp"
+                                    value={settings.store_whatsapp}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter WhatsApp number with country code"
+                                    disabled={saving}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Financial Settings Section */}
@@ -296,6 +328,7 @@ const SettingsPage = () => {
                 </form>
                 </div>
             </div>
+            )}
         </ProtectedRoute>
     );
 };

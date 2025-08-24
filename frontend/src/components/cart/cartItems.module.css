@@ -11,7 +11,7 @@
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 16px;
-    border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+    border-bottom: 2px solid #e2e8f0;
     position: relative;
 }
 
@@ -22,27 +22,33 @@
     left: 0;
     width: 60px;
     height: 2px;
-    background: linear-gradient(90deg, #00d4ff, #4ecdc4);
+    background: var(--neutral-black);
     border-radius: 1px;
 }
 
 .cartItemsHeader h2 {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--neutral-black);
     margin: 0;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    letter-spacing: -0.025em;
 }
 
 .itemsCount {
-    background: linear-gradient(135deg, #00d4ff, #4ecdc4);
+    background: var(--neutral-black);
     color: white;
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 0.9rem;
     font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
-    border: 1px solid rgba(0, 212, 255, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.itemsCount:hover {
+    background: var(--neutral-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .cartItemsList {
@@ -95,7 +101,7 @@
     }
     
     .itemsCount {
-        border-width: 2px;
+        border: 2px solid var(--neutral-black);
     }
 }
 
@@ -103,5 +109,13 @@
 @media (prefers-reduced-motion: reduce) {
     .cartItemsHeader::after {
         animation: none;
+    }
+    
+    .itemsCount {
+        transition: none;
+    }
+    
+    .itemsCount:hover {
+        transform: none;
     }
 } 

@@ -13,9 +13,9 @@ async function getUserCart(userId) {
         
         let cart;
         if (cartRows.length === 0) {
-            // Create new cart for user
+            // Create new cart for user (or guest)
             const [result] = await db.query(
-                'INSERT INTO carts (user_id, total_cost) VALUES (?, 0.00)',
+                'INSERT INTO carts (user_id, total_cost, created_at) VALUES (?, 0.00, NOW())',
                 [userId]
             );
             cart = {
@@ -69,9 +69,9 @@ async function addToCart(userId, productId, quantity = 1, selectedSize, selected
         
         let cartId;
         if (cartRows.length === 0) {
-            // Create new cart
+            // Create new cart for user (or guest)
             const [result] = await db.query(
-                'INSERT INTO carts (user_id, total_cost) VALUES (?, 0.00)',
+                'INSERT INTO carts (user_id, total_cost, created_at) VALUES (?, 0.00, NOW())',
                 [userId]
             );
             cartId = result.insertId;

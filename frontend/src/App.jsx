@@ -23,6 +23,12 @@ const SettingsPage = lazy(() => import('./pages/adminPages/SettingsPage'));
 const DashboardPage = lazy(() => import('./pages/adminPages/DashboardPage'));
 const ContactSupportPage = lazy(() => import('./pages/ContactSupportPage'));
 const UnauthorizedPage = lazy(() => import('./pages/UnauthorizedPage'));
+const AnalyticsPage = lazy(() => import('./pages/adminPages/AnalyticsPage'));
+const AboutUsPage = lazy(() => import('./pages/AboutUsPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const ShippingPolicyPage = lazy(() => import('./pages/ShippingPolicyPage'));
+const UserManagementPage = lazy(() => import('./pages/adminPages/UserManagmentPage'));
+
 function App() {
   return (
     <AuthProvider>
@@ -36,7 +42,10 @@ function App() {
                  <Route path="products" element={<ProductsPage />} />
                  <Route path="cart" element={<Cart />} />
                  <Route path="orderPage" element={<OrderPage />} />
+                 <Route path="about" element={<AboutUsPage />} />
                  <Route path="contact" element={<ContactSupportPage />} />
+                 <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+                 <Route path="shipping-policy" element={<ShippingPolicyPage />} />
                </Route>
               
               {/* Auth Routes - No Layout */}
@@ -48,8 +57,10 @@ function App() {
               {/* Admin Routes - Admin Layout */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashboardPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="products" element={<ProductManagement />} />
                 <Route path="orders" element={<OrderManagmentPage />} />
+                <Route path="users" element={<UserManagementPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="dashboard" element={<DashboardPage />} />
               </Route>

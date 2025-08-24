@@ -1,78 +1,95 @@
 import React, { useState, useEffect } from 'react';
-import { productApi, orderApi, userApi } from '../../services/index';
+import { useAuth } from '../../hooks/useAuthentication';
+import { useNavigate } from 'react-router-dom';
+import { orderApi, productApi } from '../../services/index';
 import LoadingContainer from '../../components/loading/LoadingContainer';
 import ErrorContainer from '../../components/error/ErrorContainer';
+import StatusCard from '../../components/dashboard/StatusCard';
+import RecentOrders from '../../components/dashboard/RecentOrders';
+import LowStockAlert from '../../components/dashboard/LowStockAlert';
+import TopProducts from '../../components/dashboard/TopProducts';
+import ProductDetailsModal from '../../components/dashboard/ProductDetailsModal';
+import ProductModal from '../../components/productModal/ProductModal';
+import OrderDetails from '../../components/orderDetails/OrderDetails';
+import StockRefuelModal from '../../components/dashboard/StockRefuelModal';
 import styles from './adminPages.module.css';
 
 const DashboardPage = () => {
+    const { isAuthenticated, user } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [stats, setStats] = useState({
-        totalProducts: 0,
-        totalOrders: 0,
-        totalRevenue: 0,
-        totalUsers: 0,
+    
+    // Modal states
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [orderItems, setOrderItems] = useState([]);
+    const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+    const [isStockRefuelModalOpen, setIsStockRefuelModalOpen] = useState(false);
+    
+    const [dashboardData, setDashboardData] = useState({
+        orderStats: {
+            total_orders: 0,
+            total_revenue: 0,
+            pending_orders: 0,
+            processing_orders: 0,
+            shipped_orders: 0,
+            delivered_orders: 0,
+            cancelled_orders: 0
+        },
         recentOrders: [],
         topProducts: [],
-        orderStatuses: {
-            pending: 0,
-            processing: 0,
-            shipped: 0,
-            delivered: 0,
-            cancelled: 0
-        },
-        monthlyRevenue: [],
-        lowStockProducts: []
+        lowStockProducts: [],
+        productStats: {
+            total_products: 0,
+            total_categories: 0,
+            total_stock: 0,
+            avg_price: 0
+        }
     });
 
     useEffect(() => {
-        fetchDashboardData();
-    }, []);
+        if (isAuthenticated && user) {
+            fetchDashboardData();
+        }
+    }, [isAuthenticated, user]);
 
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            // Mock data for dashboard
-            const mockStats = {
-                totalProducts: 156,
-                totalOrders: 89,
-                totalRevenue: 1245,
-                totalUsers: 234,
-                recentOrders: [
-                    { id: 1001, total_amount: 299.99, status: 'delivered', created_at: '2024-01-15' },
-                    { id: 1002, total_amount: 149.50, status: 'shipped', created_at: '2024-01-14' },
-                    { id: 1003, total_amount: 89.99, status: 'processing', created_at: '2024-01-13' },
-                    { id: 1004, total_amount: 199.99, status: 'pending', created_at: '2024-01-12' },
-                    { id: 1005, total_amount: 399.99, status: 'delivered', created_at: '2024-01-11' }
-                ],
-                topProducts: [
-                    { id: 1, name: 'Nike Air Max 270', price: 129.99, orderCount: 45 },
-                    { id: 2, name: 'Adidas Ultraboost 21', price: 179.99, orderCount: 38 },
-                    { id: 3, name: 'Jordan Air 1 Retro', price: 159.99, orderCount: 32 },
-                    { id: 4, name: 'Converse Chuck Taylor', price: 59.99, orderCount: 28 },
-                    { id: 5, name: 'New Balance 990v5', price: 189.99, orderCount: 25 }
-                ],
-                orderStatuses: {
-                    pending: 12,
-                    processing: 8,
-                    shipped: 15,
-                    delivered: 45,
-                    cancelled: 9
-                },
-                lowStockProducts: [
-                    { id: 10, name: 'Nike Zoom Fly', stock: 3 },
-                    { id: 15, name: 'Adidas NMD R1', stock: 5 },
-                    { id: 22, name: 'Puma RS-X', stock: 2 },
-                    { id: 28, name: 'Reebok Classic', stock: 7 }
-                ]
-            };
+            // Fetch all dashboard data in parallel
+            const [orderStatsResponse, lowStockResponse, productStatsResponse] = await Promise.all([
+                orderApi.getDashboardStats(),
+                productApi.getLowStockProducts(10),
+                productApi.getProductStats()
+            ]);
 
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (orderStatsResponse.success) {
+                setDashboardData(prev => ({
+                    ...prev,
+                    orderStats: orderStatsResponse.data.orderStats,
+                    recentOrders: orderStatsResponse.data.recentOrders,
+                    topProducts: orderStatsResponse.data.topProducts
+                }));
+            }
 
-            setStats(mockStats);
+            if (lowStockResponse.success) {
+                setDashboardData(prev => ({
+                    ...prev,
+                    lowStockProducts: lowStockResponse.data
+                }));
+            }
+
+            if (productStatsResponse.success) {
+                setDashboardData(prev => ({
+                    ...prev,
+                    productStats: productStatsResponse.data.productStats
+                }));
+            }
 
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -80,6 +97,124 @@ const DashboardPage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLowStockThresholdChange = async (threshold) => {
+        try {
+            const response = await productApi.getLowStockProducts(threshold);
+            if (response.success) {
+                setDashboardData(prev => ({
+                    ...prev,
+                    lowStockProducts: response.data
+                }));
+            }
+        } catch (error) {
+            console.error('Error updating low stock threshold:', error);
+        }
+    };
+
+    const handleStatusCardClick = (status) => {
+        // Navigate to order management page with status filter
+        navigate('/admin/orders', { state: { statusFilter: status } });
+    };
+
+    // Quick action button handlers
+    const handleAddProduct = () => {
+        setIsAddProductModalOpen(true);
+    };
+
+    const handleCloseAddProductModal = () => {
+        setIsAddProductModalOpen(false);
+        // Refresh dashboard data after adding product
+        fetchDashboardData();
+    };
+
+    const handleViewAllOrders = () => {
+        navigate('/admin/orders');
+    };
+
+    const handleSettings = () => {
+        navigate('/admin/settings');
+    };
+
+    const handleManageUsers = () => {
+        // TODO: Implement user management
+        console.log('User management will be implemented later');
+    };
+
+    const handleStockRefuel = () => {
+        setIsStockRefuelModalOpen(true);
+    };
+
+    const handleCloseStockRefuelModal = () => {
+        setIsStockRefuelModalOpen(false);
+    };
+
+    const handleStockRefuelSuccess = () => {
+        // Refresh dashboard data after successful refuel request
+        fetchDashboardData();
+    };
+
+    // Order modal handlers
+    const handleOrderClick = async (order) => {
+        try {
+            // Fetch order details and items
+            const orderDetails = await orderApi.getOrderById(order.order_id);
+            const orderItemsData = await orderApi.getOrderItems(order.order_id);
+            
+            if (orderDetails.success && orderDetails.data) {
+                console.log('Order details found:', orderDetails.data);
+                setSelectedOrder(orderDetails.data);
+            } else {
+                console.log('Order details not found:', orderDetails);
+                setSelectedOrder(order);
+            }
+            
+            if (orderItemsData.success && orderItemsData.data) {
+                setOrderItems(orderItemsData.data);
+            } else {
+                setOrderItems([]);
+            }
+            
+            setIsOrderModalOpen(true);
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            // Fallback to basic order data
+            setSelectedOrder(order);
+            setOrderItems([]);
+            setIsOrderModalOpen(true);
+        }
+    };
+
+    const handleCloseOrderModal = () => {
+        setIsOrderModalOpen(false);
+        setSelectedOrder(null);
+        setOrderItems([]);
+    };
+
+    // Product modal handlers
+    const handleProductClick = async (product) => {
+        try {
+            // Fetch full product details
+            const productDetails = await productApi.getProductById(product.id);
+            if (productDetails.success && productDetails.data) {
+                console.log('Product details found:', productDetails.data);
+                setSelectedProduct(productDetails.data);
+            } else {
+                setSelectedProduct(product);
+            }
+            setIsProductModalOpen(true);
+        } catch (error) {
+            console.error('Error fetching product details:', error);
+            // Fallback to basic product data
+            setSelectedProduct(product);
+            setIsProductModalOpen(true);
+        }
+    };
+
+    const handleCloseProductModal = () => {
+        setIsProductModalOpen(false);
+        setSelectedProduct(null);
     };
 
     if (loading) {
@@ -95,163 +230,140 @@ const DashboardPage = () => {
         );
     }
 
+    const { orderStats, recentOrders, topProducts, lowStockProducts, productStats } = dashboardData;
+
     return (
         <div className={styles.dashboardPage}>
-            <div className={styles.dashboardHeader}>
-                <h1>Admin Dashboard</h1>
-                <p>Welcome back! Here's an overview of your store.</p>
-            </div>
-
-            {/* Key Metrics Cards */}
-            <div className={styles.metricsGrid}>
-                <div className={styles.metricCard}>
-                    <div className={styles.metricIcon}>📦</div>
-                    <div className={styles.metricContent}>
-                        <h3>{stats.totalProducts}</h3>
-                        <p>Total Products</p>
-                    </div>
-                </div>
-
-                <div className={styles.metricCard}>
-                    <div className={styles.metricIcon}>🛒</div>
-                    <div className={styles.metricContent}>
-                        <h3>{stats.totalOrders}</h3>
-                        <p>Total Orders</p>
-                    </div>
-                </div>
-
-                <div className={styles.metricCard}>
-                    <div className={styles.metricIcon}>💰</div>
-                    <div className={styles.metricContent}>
-                        <h3>${stats.totalRevenue.toFixed(2)}</h3>
-                        <p>Total Revenue</p>
-                    </div>
-                </div>
-
-                <div className={styles.metricCard}>
-                    <div className={styles.metricIcon}>👥</div>
-                    <div className={styles.metricContent}>
-                        <h3>{stats.totalUsers}</h3>
-                        <p>Total Users</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Content Grid */}
-            <div className={styles.dashboardGrid}>
-                {/* Recent Orders */}
-                <div className={styles.dashboardCard}>
-                    <h2>Recent Orders</h2>
-                    <div className={styles.recentOrders}>
-                        {stats.recentOrders.length > 0 ? (
-                            stats.recentOrders.map(order => (
-                                <div key={order.id} className={styles.orderItem}>
-                                    <div className={styles.orderInfo}>
-                                        <span className={styles.orderId}>#{order.id}</span>
-                                        <span className={styles.orderAmount}>${order.total_amount}</span>
-                                    </div>
-                                    <div className={styles.orderStatus}>
-                                        <span className={`${styles.statusBadge} ${styles[order.status]}`}>
-                                            {order.status}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No recent orders</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Order Status Overview */}
-                <div className={styles.dashboardCard}>
-                    <h2>Order Status</h2>
+            <div className={styles.dashboardMainContent}>
+                {/* Order Status Cards */}
+                <div className={styles.statusSection}>
+                    <h2>Order Status Overview</h2>
                     <div className={styles.statusGrid}>
-                        <div className={styles.statusItem}>
-                            <span className={styles.statusLabel}>Pending</span>
-                            <span className={styles.statusCount}>{stats.orderStatuses.pending || 0}</span>
-                        </div>
-                        <div className={styles.statusItem}>
-                            <span className={styles.statusLabel}>Processing</span>
-                            <span className={styles.statusCount}>{stats.orderStatuses.processing || 0}</span>
-                        </div>
-                        <div className={styles.statusItem}>
-                            <span className={styles.statusLabel}>Shipped</span>
-                            <span className={styles.statusCount}>{stats.orderStatuses.shipped || 0}</span>
-                        </div>
-                        <div className={styles.statusItem}>
-                            <span className={styles.statusLabel}>Delivered</span>
-                            <span className={styles.statusCount}>{stats.orderStatuses.delivered || 0}</span>
-                        </div>
-                        <div className={styles.statusItem}>
-                            <span className={styles.statusLabel}>Cancelled</span>
-                            <span className={styles.statusCount}>{stats.orderStatuses.cancelled || 0}</span>
-                        </div>
+                        <StatusCard 
+                            status="pending" 
+                            count={orderStats.pending_orders || 0}
+                            onClick={handleStatusCardClick}
+                        />
+                        <StatusCard 
+                            status="processing" 
+                            count={orderStats.processing_orders || 0}
+                            onClick={handleStatusCardClick}
+                        />
+                        <StatusCard 
+                            status="shipped" 
+                            count={orderStats.shipped_orders || 0}
+                            onClick={handleStatusCardClick}
+                        />
+                        <StatusCard 
+                            status="delivered" 
+                            count={orderStats.delivered_orders || 0}
+                            onClick={handleStatusCardClick}
+                        />
+                        <StatusCard 
+                            status="cancelled" 
+                            count={orderStats.cancelled_orders || 0}
+                            onClick={handleStatusCardClick}
+                        />
                     </div>
                 </div>
 
-                {/* Top Products */}
-                <div className={styles.dashboardCard}>
-                    <h2>Top Products</h2>
-                    <div className={styles.topProducts}>
-                        {stats.topProducts.length > 0 ? (
-                            stats.topProducts.map(product => (
-                                <div key={product.id} className={styles.productItem}>
-                                    <div className={styles.productInfo}>
-                                        <span className={styles.productName}>{product.name}</span>
-                                        <span className={styles.productOrders}>{product.orderCount} orders</span>
-                                    </div>
-                                    <span className={styles.productPrice}>${product.price}</span>
-                                </div>
-                            ))
-                        ) : (
-                            <p>No products ordered yet</p>
-                        )}
-                    </div>
+                {/* Main Content Grid */}
+                <div className={styles.dashboardGrid}>
+                    {/* Recent Orders */}
+                    <RecentOrders 
+                        orders={recentOrders} 
+                        onOrderClick={handleOrderClick}
+                    />
+
+                    {/* Low Stock Alert */}
+                    <LowStockAlert 
+                        products={lowStockProducts}
+                        onThresholdChange={handleLowStockThresholdChange}
+                        onProductClick={handleProductClick}
+                    />
+
+                    {/* Top Products */}
+                    <TopProducts 
+                        products={topProducts}
+                        onProductClick={handleProductClick}
+                    />
                 </div>
 
-                {/* Low Stock Alert */}
-                <div className={styles.dashboardCard}>
-                    <h2>Low Stock Alert</h2>
-                    <div className={styles.lowStockList}>
-                        {stats.lowStockProducts.length > 0 ? (
-                            stats.lowStockProducts.map(product => (
-                                <div key={product.id} className={styles.stockItem}>
-                                    <span className={styles.productName}>{product.name}</span>
-                                    <span className={styles.stockCount}>
-                                        {product.stock} left
-                                    </span>
-                                </div>
-                            ))
-                        ) : (
-                            <p>All products have sufficient stock</p>
-                        )}
+                {/* Quick Actions */}
+                <div className={styles.quickActions}>
+                    <h2>Quick Actions</h2>
+                    <div className={styles.actionButtons}>
+                        <button className={styles.actionButton} onClick={handleAddProduct}>
+                            <span className={styles.actionIcon}>➕</span>
+                            Add New Product
+                        </button>
+                        <button className={styles.actionButton} onClick={handleViewAllOrders}>
+                            <span className={styles.actionIcon}>📋</span>
+                            View All Orders
+                        </button>
+                        <button className={styles.actionButton} onClick={handleManageUsers}>
+                            <span className={styles.actionIcon}>👥</span>
+                            Manage Users
+                        </button>
+                        <button className={styles.actionButton} onClick={handleSettings}>
+                            <span className={styles.actionIcon}>⚙️</span>
+                            Settings
+                        </button>
+                        <button className={styles.actionButton} onClick={handleStockRefuel}>
+                            <span className={styles.actionIcon}>📦</span>
+                            Request Stock Refuel
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className={styles.quickActions}>
-                <h2>Quick Actions</h2>
-                <div className={styles.actionButtons}>
-                    <button className={styles.actionButton}>
-                        <span className={styles.actionIcon}>➕</span>
-                        Add New Product
-                    </button>
-                    <button className={styles.actionButton}>
-                        <span className={styles.actionIcon}>📋</span>
-                        View All Orders
-                    </button>
-                    <button className={styles.actionButton}>
-                        <span className={styles.actionIcon}>👥</span>
-                        Manage Users
-                    </button>
-                    <button className={styles.actionButton}>
-                        <span className={styles.actionIcon}>⚙️</span>
-                        Settings
-                    </button>
+            {/* Order Details Modal */}
+            {isOrderModalOpen && selectedOrder && (
+                <div className={styles.orderModalOverlay} onClick={handleCloseOrderModal}>
+                    <div className={styles.orderModal} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.orderModalHeader}>
+                            <h2>Order Details - {selectedOrder.order_number}</h2>
+                            <button 
+                                onClick={handleCloseOrderModal}
+                                className={styles.orderModalClose}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className={styles.orderModalContent}>
+                            <OrderDetails 
+                                order={selectedOrder} 
+                                orderItems={orderItems}
+                                user={null} // Admin view doesn't need user context
+                                onImageClick={() => {}} // Disable image modal for admin view
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
+
+            {/* Product Details Modal */}
+            {isProductModalOpen && selectedProduct && (
+                <ProductDetailsModal 
+                    product={selectedProduct}
+                    onClose={handleCloseProductModal}
+                />
+            )}
+
+            {/* Add Product Modal */}
+            {isAddProductModalOpen && (
+                <ProductModal 
+                    onClose={handleCloseAddProductModal}
+                    mode="add"
+                />
+            )}
+
+            {/* Stock Refuel Modal */}
+            <StockRefuelModal 
+                isOpen={isStockRefuelModalOpen}
+                onClose={handleCloseStockRefuelModal}
+                onSuccess={handleStockRefuelSuccess}
+            />
         </div>
     );
 };

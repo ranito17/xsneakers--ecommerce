@@ -15,11 +15,13 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
+    "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "mysql2": "^3.14.1",
     "path": "^0.12.7",
     "sequelize": "^6.33.0",
+    "sharp": "^0.34.3",
     "validator": "^13.11.0"
   },
   "devDependencies": {

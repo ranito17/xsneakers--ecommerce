@@ -122,10 +122,48 @@ const createProduct = async (req, res) => {
     }
 };
 
+// Dashboard Analytics Endpoints
+const getLowStockProducts = async (req, res) => {
+    try {
+        const threshold = parseInt(req.query.threshold) || 10;
+        const products = await Product.getLowStockProducts(threshold);
+        res.status(200).json({
+            success: true,
+            message: 'Low stock products retrieved successfully',
+            data: products
+        });
+    } catch (error) {
+        console.error('Error fetching low stock products:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch low stock products'
+        });
+    }
+};
+
+const getProductStats = async (req, res) => {
+    try {
+        const stats = await Product.getProductStats();
+        res.status(200).json({
+            success: true,
+            message: 'Product statistics retrieved successfully',
+            data: stats
+        });
+    } catch (error) {
+        console.error('Error fetching product stats:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch product statistics'
+        });
+    }
+};
+
 module.exports = {
     getProducts,
     getProductById,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getLowStockProducts,
+    getProductStats
 };

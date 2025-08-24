@@ -1,8 +1,9 @@
     // frontend/src/pages/Products.jsx
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { productApi } from '../services/index';
 import ProductList from '../components/productList/ProductList';
-import CategoryNav from '../components/categoryNav/CategoryNav';
+import CategoryContainerWrapper from '../components/categoryContainer/CategoryContainerWrapper';
 import LoadingContainer from '../components/loading/LoadingContainer';
 import ErrorContainer from '../components/error/ErrorContainer';
 import styles from './pages.module.css';
@@ -10,6 +11,9 @@ import ImageModal from '../components/imageModal/ImageModal';
 
 
 const ProductsPage = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    
     // מצב המוצרים - מערך של כל המוצרים מהשרת
     const [products, setProducts] = useState([]);
     console.log('🏪 Initial products state:', products);
@@ -36,11 +40,27 @@ const ProductsPage = () => {
         alt: '',
         initialIndex: 0
     });
+
     // טעינת מוצרים וקטגוריות בעת טעינת הקומפוננטה
     useEffect(() => {
         fetchProducts();
         fetchCategories();
     }, []);
+
+    // Read category from URL on component mount and when location changes
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const categoryFromUrl = searchParams.get('category');
+        console.log('🔍 Category from URL:', categoryFromUrl, 'Current location.search:', location.search);
+        if (categoryFromUrl) {
+            console.log('✅ Setting selectedCategory to:', categoryFromUrl);
+            setSelectedCategory(categoryFromUrl);
+        } else {
+            console.log('✅ Setting selectedCategory to: all');
+            setSelectedCategory('all');
+        }
+    }, [location.search]);
+
     // פונקציה לקבלת כל המוצרים מהשרת באמצעות productApi
     const fetchProducts = async () => {
         try {
@@ -103,8 +123,17 @@ const ProductsPage = () => {
 
     // פונקציה לסנן מוצרים לפי קטגוריה
     const handleCategoryChange = (categoryId) => {
-        console.log('Category changed to:', categoryId);
+        console.log('🔄 Category changed to:', categoryId);
         setSelectedCategory(categoryId);
+        
+        // Update URL with category parameter
+        if (categoryId === 'all') {
+            console.log('📍 Navigating to: /products');
+            navigate('/products');
+        } else {
+            console.log('📍 Navigating to: /products?category=' + categoryId);
+            navigate(`/products?category=${categoryId}`);
+        }
     };
 
     // פונקציה לסנן מוצרים לפי הקטגוריה הנבחרת וחיפוש
@@ -116,8 +145,8 @@ const ProductsPage = () => {
         // Filter by category
         if (selectedCategory !== 'all') {
             filtered = filtered.filter(product => {
-                const matches = product.category_id === selectedCategory;
-                console.log(`Product ${product.name}: category_id=${product.category_id}, selectedCategory=${selectedCategory}, matches=${matches}`);
+                const matches = product.category_id == selectedCategory; // Use loose equality for type conversion
+                console.log(`Product ${product.name}: category_id=${product.category_id} (${typeof product.category_id}), selectedCategory=${selectedCategory} (${typeof selectedCategory}), matches=${matches}`);
                 return matches;
             });
         }
@@ -216,56 +245,42 @@ const ProductsPage = () => {
     // מצג ראשי - מציג את כל המוצרים עם אפשרויות ניהול
     return (
         <div className={styles.productsPage}>
-            <div className={styles.pageHeader}>
-                <h1>Our Products</h1>
-                <p>Discover our amazing collection of products</p>
-                
-                {/* ניווט קטגוריות */}
-                <CategoryNav 
-                    categories={categories}
-                    onCategoryChange={handleCategoryChange}
-                    activeCategory={selectedCategory}
-                    loading={categoriesLoading}
-                    error={categoriesError}
-                />
-            </div>
-
-            {/* Controls Section */}
+            {/* Controls Section - Moved above categories */}
             <div className={styles.controlsSection}>
-                {/* Search Bar */}
-                <div className={styles.searchContainer}>
-                    <div className={styles.searchInputWrapper}>
-                        <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Search products..."
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            className={styles.searchInput}
-                        />
+                    {/* Search Bar */}
+                    <div className={styles.searchContainer}>
+                        <div className={styles.searchInputWrapper}>
+                            <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                className={styles.searchInput}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Sort Controls */}
+                    <div className={styles.sortContainer}>
+                        <label htmlFor="sortSelect" className={styles.sortLabel}>Sort by:</label>
+                        <select
+                            id="sortSelect"
+                            value={sortBy}
+                            onChange={handleSortChange}
+                            className={styles.sortSelect}
+                        >
+                            <option value="name">Name (A-Z)</option>
+                            <option value="price-low">Price (Low to High)</option>
+                            <option value="price-high">Price (High to Low)</option>
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                        </select>
                     </div>
                 </div>
-
-                {/* Sort Controls */}
-                <div className={styles.sortContainer}>
-                    <label htmlFor="sortSelect" className={styles.sortLabel}>Sort by:</label>
-                    <select
-                        id="sortSelect"
-                        value={sortBy}
-                        onChange={handleSortChange}
-                        className={styles.sortSelect}
-                    >
-                        <option value="name">Name (A-Z)</option>
-                        <option value="price-low">Price (Low to High)</option>
-                        <option value="price-high">Price (High to Low)</option>
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                    </select>
-                </div>
-            </div>
             
             {/* Search Results Info */}
             {searchQuery.trim() && (
@@ -287,20 +302,33 @@ const ProductsPage = () => {
                 </div>
             )}
             
-            {/* רשימת המוצרים עם כל הפונקציות */}
-            <ProductList 
-                products={getProcessedProducts()}
-                onImageClick={handleOpenImageModal}
+            {/* Category Container */}
+            <CategoryContainerWrapper 
+                categories={categories}
+                onCategoryChange={handleCategoryChange}
+                activeCategory={selectedCategory}
+                loading={categoriesLoading}
+                error={categoriesError}
             />
             
-            {/* Image Modal */}
-            <ImageModal
-                open={imageModal.open}
-                images={imageModal.images}
-                alt={imageModal.alt}
-                onClose={handleCloseImageModal}
-                initialIndex={imageModal.initialIndex}
-            />
+            {/* Products Section */}
+            <div className={styles.productsSection}>
+               
+                {/* רשימת המוצרים עם כל הפונקציות */}
+                <ProductList 
+                    products={getProcessedProducts()}
+                    onImageClick={handleOpenImageModal}
+                />
+                
+                {/* Image Modal */}
+                <ImageModal
+                    open={imageModal.open}
+                    images={imageModal.images}
+                    alt={imageModal.alt}
+                    onClose={handleCloseImageModal}
+                    initialIndex={imageModal.initialIndex}
+                />
+            </div>
         </div>
     );
 };

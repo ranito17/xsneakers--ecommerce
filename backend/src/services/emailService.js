@@ -395,6 +395,110 @@ class EmailService {
             throw new Error('Failed to send contact email. Please try again later.');
         }
     }
+
+    /**
+     * Send stock refuel email to supplier
+     * @param {Object} refuelData - Stock refuel request data
+     * @param {string} refuelData.supplierEmail - Supplier email address
+     * @param {string} refuelData.supplierName - Supplier name
+     * @param {Array} refuelData.products - Array of products needing restock
+     * @param {string} refuelData.fulfillmentToken - Unique token for fulfillment
+     * @param {string} refuelData.frontendUrl - Frontend URL for fulfillment link
+     */
+    async sendStockRefuelEmail(refuelData) {
+        try {
+            const { supplierEmail, supplierName, products, fulfillmentToken, frontendUrl } = refuelData;
+            
+            const subject = 'Stock Refuel Request - Action Required';
+            const fulfillmentUrl = `${frontendUrl}/api/supplier/fulfill/${fulfillmentToken}`;
+            
+            const text = `
+                Dear ${supplierName},
+                
+                We need to restock the following products. Please review the list below and click the fulfillment button once you have shipped our order.
+                
+                Products needed:
+                ${products.map(product => `- ${product.name}: ${product.quantity} units`).join('\n')}
+                
+                To confirm fulfillment, please click this link: ${fulfillmentUrl}
+                
+                Thank you for your prompt attention to this matter.
+                
+                Best regards,
+                Your Store Team
+            `;
+            
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Stock Refuel Request</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                        .container { max-width: 600px; margin: 0 auto; background: #f9f9f9; }
+                        .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; }
+                        .content { background: white; padding: 30px; }
+                        .product-list { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0; }
+                        .product-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+                        .product-item:last-child { border-bottom: none; }
+                        .fulfillment-button { display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; text-align: center; }
+                        .fulfillment-button:hover { background: linear-gradient(135deg, #047857 0%, #059669 100%); }
+                        .footer { background: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+                        .urgent { color: #dc2626; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>Stock Refuel Request</h1>
+                            <p>Action Required - Please Review</p>
+                        </div>
+                        <div class="content">
+                            <p>Dear ${supplierName},</p>
+                            
+                            <p>We need to restock the following products. Please review the list below and click the fulfillment button once you have shipped our order.</p>
+                            
+                            <div class="product-list">
+                                <h3>Products Needed:</h3>
+                                ${products.map(product => `
+                                    <div class="product-item">
+                                        <span><strong>${product.name}</strong></span>
+                                        <span class="urgent">${product.quantity} units</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <div style="text-align: center;">
+                                <a href="${fulfillmentUrl}" class="fulfillment-button">
+                                    ✅ Confirm Fulfillment
+                                </a>
+                            </div>
+                            
+                            <p><strong>Important:</strong> Please only click the fulfillment button after you have shipped the order to us.</p>
+                            
+                            <p>Thank you for your prompt attention to this matter.</p>
+                            
+                            <p>Best regards,<br>Your Store Team</p>
+                        </div>
+                        <div class="footer">
+                            <p>This is an automated stock refuel request. Please do not reply to this email.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            await this.sendEmail(supplierEmail, subject, text, html);
+            
+            return { success: true, message: 'Stock refuel email sent successfully' };
+            
+        } catch (error) {
+            console.error('Error sending stock refuel email:', error);
+            throw new Error('Failed to send stock refuel email. Please try again later.');
+        }
+    }
 }
 
 module.exports = new EmailService(); 

@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuthentication';
 import styles from './sideBar.module.css';
 
-const SideBar = ({ isOpen, onClose }) => {
-    const { user, isAuthenticated, isLoading, logout } = useAuth();
+const SideBar = ({ isOpen, onClose, onToggle }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { logout } = useAuth();
     const [isClosing, setIsClosing] = useState(false);
+
     // Handle sidebar close with animation
     const handleClose = () => {
         setIsClosing(true);
@@ -17,22 +19,12 @@ const SideBar = ({ isOpen, onClose }) => {
         }, 300);
     };
 
-    // Close sidebar when authentication state changes
+    // Close sidebar when route changes
     useEffect(() => {
-        if (!isOpen) {
-            setIsClosing(false);
+        if (isOpen) {
+            handleClose();
         }
-    }, [isOpen, isAuthenticated]);
-
-    // Debug authentication state changes
-    useEffect(() => {
-        console.log('🔍 SideBar: Auth state changed:', { 
-            isAuthenticated, 
-            isLoading, 
-            userRole: user?.role,
-            userName: user?.name 
-        });
-    }, [isAuthenticated, isLoading, user]);
+    }, [location.pathname]);
 
     // Close sidebar when clicking outside
     useEffect(() => {
@@ -65,104 +57,69 @@ const SideBar = ({ isOpen, onClose }) => {
             handleClose();
             navigate('/');
         } catch (error) {
-            console.error('Logout failed:', error);
+            console.error('Logout error:', error);
+            // Still navigate to home even if logout fails
+            handleClose();
+            navigate('/');
         }
     };
 
-    // Admin navigation options (Simplified)
+    // Admin navigation options
     const adminOptions = [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊', action: () => handleNavigation('/admin/dashboard') },
-        { id: 'products', label: 'Products', icon: '📦', action: () => handleNavigation('/admin/products') },
-        { id: 'orders', label: 'Orders', icon: '📋', action: () => handleNavigation('/admin/orders') },
-        { id: 'settings', label: 'Settings', icon: '⚙️', action: () => handleNavigation('/admin/settings') },
+        { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/admin/dashboard' },
+        {id:'analytics',label:'Analytics',icon:'📈',path:'/admin/analytics'},
+        { id: 'products', label: 'Products', icon: '📦', path: '/admin/products' },
+        { id: 'orders', label: 'Orders', icon: '📋', path: '/admin/orders' },
+        { id: 'users', label: 'Users', icon: '👥', path: '/admin/users' },
+        { id: 'settings', label: 'Settings', icon: '⚙️', path: '/admin/settings' },
         { id: 'logout', label: 'Logout', icon: '🚪', action: handleLogout }
     ];
 
-    // Customer navigation options (Simplified)
-    const customerOptions = [
-        { id: 'orders', label: 'My Orders', icon: '📋', action: () => handleNavigation('/orderPage') },
-        { id: 'wishlist', label: 'Wishlist', icon: '❤️', action: () => handleNavigation('/wishlist') },
-        { id: 'help', label: 'Help & Support', icon: '❓', action: () => handleNavigation('/help') },
-        { id: 'logout', label: 'Logout', icon: '🚪', action: handleLogout }
-    ];
-
-    // Guest navigation options
-    const guestOptions = [
-        { id: 'login', label: 'Login', icon: '🔑', action: () => handleNavigation('/login') },
-        { id: 'signup', label: 'Sign Up', icon: '📝', action: () => handleNavigation('/signup') },
-        { id: 'about', label: 'About Us', icon: 'ℹ️', action: () => handleNavigation('/about') },
-        { id: 'contact', label: 'Contact', icon: '📞', action: () => handleNavigation('/contact') }
-    ];
-
-    // Get current user options
-    const getCurrentOptions = () => {
-        // Show guest options while loading or if not authenticated
-        if (isLoading || !isAuthenticated) return guestOptions;
-        if (user?.role === 'admin') return adminOptions;
-        return customerOptions;
+    const isActive = (path) => {
+        return location.pathname === path;
     };
-
 
     return (
         <>
-            {/* Backdrop */}
-            {isOpen && (
-                <div 
-                    className={`${styles.backdrop} ${isClosing ? styles.fadeOut : styles.fadeIn}`}
-                    onClick={handleClose}
-                />
+            {/* Hamburger Menu Button - Only show when sidebar is closed */}
+            {!isOpen && (
+                <button
+                    className={styles.sidebarToggle}
+                    onClick={onToggle}
+                    aria-label="Toggle admin panel"
+                >
+                    <div className={styles.hamburger}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span>Admin Panel</span>
+                </button>
             )}
 
             {/* Sidebar */}
             <div className={`${styles.sidebar} ${isOpen ? styles.open : ''} ${isClosing ? styles.closing : ''}`}>
-                {/* Header */}
-                <div className={styles.sidebarHeader}>
-                    <div className={styles.userInfo}>
-                        {isLoading ? (
-                            <>
-                                <div className={styles.userAvatar}>⏳</div>
-                                <div className={styles.userDetails}>
-                                    <h3>Loading...</h3>
-                                    <p>Please wait</p>
-                                </div>
-                            </>
-                        ) : isAuthenticated ? (
-                            <>
-                                <div className={styles.userAvatar}>
-                                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                                </div>
-                                <div className={styles.userDetails}>
-                                    <h3>{user?.name || 'User'}</h3>
-                                    <p>{user?.role === 'admin' ? 'Administrator' : 'Customer'}</p>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className={styles.userAvatar}>👤</div>
-                                <div className={styles.userDetails}>
-                                    <h3>Guest User</h3>
-                                    <p>Please login to continue</p>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                    <button 
-                        className={styles.closeButton}
-                        onClick={handleClose}
-                        aria-label="Close sidebar"
-                    >
-                        ✕
-                    </button>
-                </div>
-
+                {/* Close Button */}
                 {/* Navigation Menu */}
                 <nav className={styles.navigation}>
+                    <div className={styles.navHeader}>
+                        <button 
+                            className={styles.closeButton}
+                            onClick={handleClose}
+                            aria-label="Close sidebar"
+                        >
+                            ✕
+                        </button>
+                        <h2>Admin Panel</h2>
+                     
+                    </div>
+                    
                     <ul className={styles.navList}>
-                        {getCurrentOptions().map((option) => (
+                        {adminOptions.map((option) => (
                             <li key={option.id} className={styles.navItem}>
                                 <button
-                                    className={styles.navButton}
-                                    onClick={option.action}
+                                    className={`${styles.navButton} ${option.path && isActive(option.path) ? styles.active : ''}`}
+                                    onClick={option.action || (() => handleNavigation(option.path))}
                                     aria-label={option.label}
                                 >
                                     <span className={styles.navIcon}>{option.icon}</span>
@@ -172,14 +129,6 @@ const SideBar = ({ isOpen, onClose }) => {
                         ))}
                     </ul>
                 </nav>
-
-                {/* Footer */}
-                <div className={styles.sidebarFooter}>
-                    <div className={styles.footerInfo}>
-                        <p>© 2024 Xsneakers</p>
-                        <p>Version 1.0.0</p>
-                    </div>
-                </div>
             </div>
         </>
     );

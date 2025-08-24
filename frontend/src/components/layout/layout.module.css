@@ -14,6 +14,11 @@
     padding: 0;
     margin: 0;
     width: 100%;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.mainWithSidebar {
+    margin-left: 300px;
 }
 
 /* Responsive Design */
@@ -21,10 +26,18 @@
     .main {
         padding: 0;
     }
+    
+    .mainWithSidebar {
+        margin-left: 280px;
+    }
 }
 
 @media (max-width: 480px) {
     .main {
         padding: 0;
+    }
+    
+    .mainWithSidebar {
+        margin-left: 260px;
     }
 } 

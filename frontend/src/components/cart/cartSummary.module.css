@@ -4,17 +4,28 @@
     flex-direction: column;
     gap: 20px;
     padding: 20px;
+    background: var(--neutral-white);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cartSummary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--neutral-black);
 }
 
 .cartSummary h2 {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--neutral-black);
     margin: 0;
     padding-bottom: 16px;
-    border-bottom: 2px solid rgba(0, 212, 255, 0.2);
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    border-bottom: 2px solid #e2e8f0;
     position: relative;
+    letter-spacing: -0.025em;
 }
 
 .cartSummary h2::after {
@@ -24,8 +35,13 @@
     left: 0;
     width: 60px;
     height: 2px;
-    background: linear-gradient(90deg, #00d4ff, #4ecdc4);
+    background: var(--neutral-black);
     border-radius: 1px;
+    transition: width 0.2s ease;
+}
+
+.cartSummary:hover h2::after {
+    width: 80px;
 }
 
 .summaryDetails {
@@ -39,39 +55,57 @@
     justify-content: space-between;
     align-items: center;
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--neutral-dark);
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.summaryRow:hover {
+    color: var(--neutral-black);
+    border-bottom-color: var(--neutral-black);
 }
 
 .summaryRow.freeShipping {
-    color: #4ecdc4;
+    color: var(--success-color);
     font-weight: 600;
 }
 
 .summaryRow.freeShipping span {
-    background: rgba(78, 205, 196, 0.1);
+    background: rgba(16, 185, 129, 0.1);
     padding: 4px 8px;
     border-radius: 6px;
-    border: 1px solid rgba(78, 205, 196, 0.3);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    transition: all 0.2s ease;
+}
+
+.summaryRow.freeShipping:hover span {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--success-color);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
 
 .totalRow {
     font-size: 1.3rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--neutral-black);
     padding-top: 16px;
-    border-top: 2px solid rgba(0, 212, 255, 0.2);
+    border-top: 2px solid #e2e8f0;
     border-bottom: none;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+}
+
+.totalRow:hover {
+    border-top-color: var(--neutral-black);
 }
 
 .totalRow span:last-child {
-    background: linear-gradient(45deg, #00d4ff, #4ecdc4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    color: var(--neutral-black);
+    transition: all 0.2s ease;
+}
+
+.totalRow:hover span:last-child {
+    color: var(--neutral-dark);
 }
 
 .shippingNote {
@@ -81,15 +115,25 @@
     padding: 12px;
     background: rgba(255, 193, 7, 0.1);
     border: 1px solid rgba(255, 193, 7, 0.3);
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.9rem;
-    color: #ffc107;
-    backdrop-filter: blur(10px);
+    color: #f59e0b;
+    transition: all 0.2s ease;
+}
+
+.shippingNote:hover {
+    background: rgba(255, 193, 7, 0.15);
+    border-color: #f59e0b;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
 }
 
 .shippingNote svg {
-    color: #ffc107;
-    filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.5));
+    color: #f59e0b;
+    transition: all 0.2s ease;
+}
+
+.shippingNote:hover svg {
+    transform: scale(1.1);
 }
 
 .freeShippingBadge {
@@ -97,22 +141,36 @@
     align-items: center;
     gap: 8px;
     padding: 12px;
-    background: rgba(78, 205, 196, 0.1);
-    border: 1px solid rgba(78, 205, 196, 0.3);
-    border-radius: 12px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
     font-size: 0.9rem;
-    color: #4ecdc4;
+    color: var(--success-color);
     font-weight: 600;
-    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+.freeShippingBadge:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--success-color);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
 
 .freeShippingBadge svg {
-    color: #4ecdc4;
-    filter: drop-shadow(0 0 8px rgba(78, 205, 196, 0.5));
+    color: var(--success-color);
+    transition: all 0.2s ease;
+}
+
+.freeShippingBadge:hover svg {
+    transform: scale(1.1);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .cartSummary {
+        padding: 16px;
+    }
+    
     .cartSummary h2 {
         font-size: 1.5rem;
     }
@@ -134,7 +192,7 @@
 
 @media (max-width: 480px) {
     .cartSummary {
-        padding: 16px;
+        padding: 12px;
     }
     
     .cartSummary h2 {
@@ -158,6 +216,10 @@
 
 /* High Contrast Mode Support */
 @media (prefers-contrast: high) {
+    .cartSummary {
+        border: 2px solid var(--neutral-black);
+    }
+    
     .cartSummary h2 {
         border-bottom-width: 3px;
     }
@@ -182,7 +244,42 @@
 
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
-    .cartSummary h2::after {
-        animation: none;
+    .cartSummary,
+    .cartSummary h2::after,
+    .summaryRow,
+    .summaryRow.freeShipping span,
+    .totalRow,
+    .totalRow span:last-child,
+    .shippingNote,
+    .shippingNote svg,
+    .freeShippingBadge,
+    .freeShippingBadge svg {
+        transition: none;
+    }
+    
+    .cartSummary:hover h2::after {
+        width: 60px;
+    }
+    
+    .summaryRow:hover,
+    .totalRow:hover {
+        border-color: inherit;
+    }
+    
+    .summaryRow.freeShipping:hover span,
+    .shippingNote:hover,
+    .freeShippingBadge:hover {
+        background: inherit;
+        border-color: inherit;
+        box-shadow: none;
+    }
+    
+    .totalRow:hover span:last-child {
+        color: inherit;
+    }
+    
+    .shippingNote:hover svg,
+    .freeShippingBadge:hover svg {
+        transform: none;
     }
 } 

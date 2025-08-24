@@ -77,15 +77,7 @@ export const uploadApi = {
      */
     validateFile: (file) => {
         const maxSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-
-        if (!allowedTypes.includes(file.type)) {
-            return {
-                isValid: false,
-                error: 'Only JPEG, PNG, WebP, and GIF images are allowed'
-            };
-        }
-
+        
         if (file.size > maxSize) {
             return {
                 isValid: false,

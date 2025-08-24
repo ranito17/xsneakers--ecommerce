@@ -1,22 +1,21 @@
 import api from './api';
 
-// Cart API functions with authentication
+// Cart API functions - backend handles guest vs logged-in user logic
 export const cartApi = {
-    // Get user's cart with all items
-    getUserCart: async (userId) => {
+    // Get user's cart (works for both guests and logged-in users)
+    getUserCart: async () => {
         try {
-            const response = await api.get(`/api/cartRoutes/cart/${userId}`);
+            const response = await api.get('/api/cartRoutes/cart');
             return response.data;
         } catch (error) {
             throw error;
         }
     },
 
-    // Add item to cart (from product page)
-    addToCart: async (userId, productId, quantity = 1, selected_size, selected_color) => {
+    // Add item to cart (works for both guests and logged-in users)
+    addToCart: async (productId, quantity = 1, selected_size = null, selected_color = null) => {
         try {
             const response = await api.post('/api/cartRoutes/add', {
-                userId,
                 productId,
                 quantity,
                 selected_size,
@@ -28,11 +27,10 @@ export const cartApi = {
         }
     },
 
-    // Update item quantity (from cart page)
-    updateQuantity: async (userId, cartItemId, quantity) => {
+    // Update item quantity (works for both guests and logged-in users)
+    updateQuantity: async (cartItemId, quantity) => {
         try {
             const response = await api.put(`/api/cartRoutes/update/${cartItemId}`, {
-                userId,
                 quantity
             });
             return response.data;
@@ -41,24 +39,20 @@ export const cartApi = {
         }
     },
 
-    // Remove item from cart
-    removeFromCart: async (userId, cartItemId) => {
+    // Remove item from cart (works for both guests and logged-in users)
+    removeFromCart: async (cartItemId) => {
         try {
-            const response = await api.delete(`/api/cartRoutes/remove/${cartItemId}`, {
-                data: { userId }
-            });
+            const response = await api.delete(`/api/cartRoutes/remove/${cartItemId}`);
             return response.data;
         } catch (error) {
             throw error;
         }
     },
 
-    // Clear entire cart
-    clearCart: async (userId) => {
+    // Clear entire cart (works for both guests and logged-in users)
+    clearCart: async () => {
         try {
-            const response = await api.delete('/api/cartRoutes/clear', {
-                data: { userId }
-            });
+            const response = await api.delete('/api/cartRoutes/clear');
             return response.data;
         } catch (error) {
             throw error;

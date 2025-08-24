@@ -31,15 +31,15 @@ const OrderDetails = ({ order, orderItems, user, onImageClick }) => {
                 <div className={styles.infoGrid}>
                     <div className={styles.infoItem}>
                         <span className={styles.label}>Name:</span>
-                        <span className={styles.value}>{user?.full_name || 'N/A'}</span>
+                        <span className={styles.value}>{order.customer_name || user?.full_name || 'N/A'}</span>
                     </div>
                     <div className={styles.infoItem}>
                         <span className={styles.label}>Email:</span>
-                        <span className={styles.value}>{user?.email || 'N/A'}</span>
+                        <span className={styles.value}>{order.customer_email || user?.email || 'N/A'}</span>
                     </div>
                     <div className={styles.infoItem}>
                         <span className={styles.label}>Address:</span>
-                        <span className={styles.value}>{user?.address || 'N/A'}</span>
+                        <span className={styles.value}>{order.shipping_address || user?.address || 'N/A'}</span>
                     </div>
                 </div>
             </div>
@@ -68,16 +68,18 @@ const OrderDetails = ({ order, orderItems, user, onImageClick }) => {
                             {order.status}
                         </span>
                     </div>
-                    <div className={styles.infoItem}>
-                        <span className={styles.label}>Estimated Delivery:</span>
-                        <span className={styles.value}>
-                            {new Date(order.arrival_date_estimated).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            })}
-                        </span>
-                    </div>
+                    {order.arrival_date_estimated && (
+                        <div className={styles.infoItem}>
+                            <span className={styles.label}>Estimated Delivery:</span>
+                            <span className={styles.value}>
+                                {new Date(order.arrival_date_estimated).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })}
+                            </span>
+                        </div>
+                    )}
                     <div className={styles.infoItem}>
                         <span className={styles.label}>Payment Status:</span>
                         <span className={`${styles.value} ${styles.status} ${styles[order.payment_status]}`}>

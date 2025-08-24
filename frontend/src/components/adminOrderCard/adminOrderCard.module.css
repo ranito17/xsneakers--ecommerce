@@ -24,7 +24,7 @@
     right: 0;
     bottom: 0;
     background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
-    animation: shimmer 3s ease-in-out infinite;
+
     pointer-events: none;
 }
 

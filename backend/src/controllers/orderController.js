@@ -125,23 +125,9 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
-const deleteOrder = async (req, res) => {
-    try {
-        const orderId = req.params.id;
-        await Order.deleteOrder(orderId);
-        res.status(200).json({
-            success: true,
-            message: 'Order deleted successfully',
-            data: null
-        });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: err.message,
-            data: null
-        });
-    }
-};
+// Order deletion is not allowed for financial data protection
+// Orders must be preserved for accounting, legal, and audit purposes
+
 
 const getOrderItems = async (req, res) => {
     try {
@@ -161,6 +147,205 @@ const getOrderItems = async (req, res) => {
     }
 };
 
+// Dashboard Analytics Endpoints
+const getDashboardStats = async (req, res) => {
+    try {
+        const stats = await Order.getDashboardStats();
+        res.status(200).json({
+            success: true,
+            message: 'Dashboard statistics retrieved successfully',
+            data: stats
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
+const getOrdersByStatus = async (req, res) => {
+    try {
+        const { status } = req.params;
+        const orders = await Order.getOrdersByStatus(status);
+        res.status(200).json({
+            success: true,
+            message: `Orders with status '${status}' retrieved successfully`,
+            data: orders
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
+// Enhanced Analytics Controllers
+const getRevenueAnalytics = async (req, res) => {
+    try {
+        const { startDate, endDate, groupBy = 'day' } = req.query;
+        
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date and end date are required',
+                data: null
+            });
+        }
+
+        const revenueData = await Order.getRevenueAnalytics(startDate, endDate, groupBy);
+        res.status(200).json({
+            success: true,
+            message: 'Revenue analytics retrieved successfully',
+            data: revenueData
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
+const getProductAnalytics = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date and end date are required',
+                data: null
+            });
+        }
+
+        const productData = await Order.getProductAnalytics(startDate, endDate);
+        res.status(200).json({
+            success: true,
+            message: 'Product analytics retrieved successfully',
+            data: productData
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
+const getUserAnalytics = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date and end date are required',
+                data: null
+            });
+        }
+
+        const userData = await Order.getUserAnalytics(startDate, endDate);
+        res.status(200).json({
+            success: true,
+            message: 'User analytics retrieved successfully',
+            data: userData
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
+const getProfitAnalytics = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date and end date are required',
+                data: null
+            });
+        }
+
+        const profitData = await Order.getProfitAnalytics(startDate, endDate);
+        res.status(200).json({
+            success: true,
+            message: 'Profit analytics retrieved successfully',
+            data: profitData
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
+const getOrderStatusAnalytics = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date and end date are required',
+                data: null
+            });
+        }
+
+        const statusData = await Order.getOrderStatusAnalytics(startDate, endDate);
+        res.status(200).json({
+            success: true,
+            message: 'Order status analytics retrieved successfully',
+            data: statusData
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
+const getGeographicAnalytics = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date and end date are required',
+                data: null
+            });
+        }
+
+        const geographicData = await Order.getGeographicAnalytics(startDate, endDate);
+        res.status(200).json({
+            success: true,
+            message: 'Geographic analytics retrieved successfully',
+            data: geographicData
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message,
+            data: null
+        });
+    }
+};
+
 module.exports = {
     placeOrder,
     getAllOrders,
@@ -168,6 +353,13 @@ module.exports = {
     updateOrder,
     updateOrderStatus,
     getUserOrders,
-    deleteOrder,
-    getOrderItems
+    getOrderItems,
+    getDashboardStats,
+    getOrdersByStatus,
+    getRevenueAnalytics,
+    getProductAnalytics,
+    getUserAnalytics,
+    getProfitAnalytics,
+    getOrderStatusAnalytics,
+    getGeographicAnalytics
 };
