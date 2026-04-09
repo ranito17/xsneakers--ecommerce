@@ -1,6 +1,6 @@
 // models/Upload.js
 const dbSingleton = require('../config/database');
-
+const { normalizeImageUrls, imageUrlsToString, stripToPathname } = require('../utils/image');
 class Upload {
   static async updateProductImages(productId, imageUrls) {
     const db = await dbSingleton.getConnection();
@@ -17,10 +17,10 @@ class Upload {
       }
 
       // Combine existing and new image URLs
-      const existingUrls = rows[0].image_urls ? rows[0].image_urls.split(',') : [];
-      const allUrls = [...existingUrls, ...imageUrls];
-      const imageUrlsString = allUrls.join(',');
-      
+      const existingUrls = normalizeImageUrls(rows[0].image_urls, 'products');
+const newUrls = normalizeImageUrls(imageUrls, 'products');
+const allUrls = [...existingUrls, ...newUrls];
+const imageUrlsString = allUrls.join(',');
     const query = 'UPDATE products SET image_urls = ? WHERE id = ?';
       await db.query(query, [imageUrlsString, productId]);
     } catch (error) {
@@ -43,38 +43,66 @@ class Upload {
         throw new Error('Product not found');
       }
 
-      const currentUrls = rows[0].image_urls ? rows[0].image_urls.split(',') : [];
+      
       
       // Helper function to normalize URLs for comparison
-      const normalizeUrl = (url) => {
-        let normalized = url.trim();
-        // Remove base URL if present
-        if (normalized.includes('http://localhost:3001/uploads/products/')) {
-          normalized = normalized.replace('http://localhost:3001/uploads/products/', '');
-        } else if (normalized.startsWith('/uploads/products/')) {
-          normalized = normalized.replace('/uploads/products/', '');
-        }
-        return normalized;
-      };
+      const currentUrls = normalizeImageUrls(rows[0].image_urls, 'products');
 
-      const targetUrl = normalizeUrl(imageUrl);
-      const updatedUrls = currentUrls.filter(url => normalizeUrl(url) !== targetUrl);
+const targetUrl = stripToPathname(imageUrl);
+const normalizedTarget = targetUrl.startsWith('/uploads/')
+    ? targetUrl
+    : `/uploads/products/${targetUrl.replace(/^\/+/, '')}`;
+
+const updatedUrls = currentUrls.filter(url => url !== normalizedTarget);
 
       console.log('🗑️ Database update:', { 
         originalUrls: currentUrls, 
         targetUrl: imageUrl, 
-        normalizedTarget: targetUrl,
+        normalizedTarget: normalizedTarget,
         remainingUrls: updatedUrls 
       });
 
       // Update with remaining URLs
       const query = 'UPDATE products SET image_urls = ? WHERE id = ?';
-      const updatedUrlsString = updatedUrls.join(',');
+      const updatedUrlsString = imageUrlsToString(updatedUrls, 'products');
     
       await db.query(query, [updatedUrlsString, productId]);
       console.log('✅ Database updated successfully');
     } catch (error) {
       console.error('Error in removeProductImage:', error);
+      throw error;
+    }
+  }
+
+  static async getProductImages(productId) {
+    try {
+      const db = await dbSingleton.getConnection();
+  
+      const [rows] = await db.query(
+        'SELECT image_urls FROM products WHERE id = ?',
+        [productId]
+      );
+  
+      if (rows.length === 0) {
+        return [];
+      }
+  
+      return normalizeImageUrls(rows[0].image_urls, 'products');
+    } catch (error) {
+      console.error('Error in getProductImages:', error);
+      throw error;
+    }
+  }
+
+  static async removeAllProductImages(productId) {
+    const db = await dbSingleton.getConnection();
+    
+    try {
+      const query = 'UPDATE products SET image_urls = NULL WHERE id = ?';
+      await db.query(query, [productId]);
+      console.log('✅ All images removed from database for product:', productId);
+    } catch (error) {
+      console.error('Error in removeAllProductImages:', error);
       throw error;
     }
   }

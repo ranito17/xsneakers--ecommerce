@@ -1,0 +1,672 @@
+/* Admin Product Card - Compact Design for 4 per row */
+.productCard {
+    background: #dddde0;
+    border: 1px solid #c8cbce;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: all 0.2s ease;
+    width: 100%;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+}
+
+.productCard {
+    cursor: pointer;
+}
+
+.productCard:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Status Styles */
+.productCard.active {
+    border-color: #10b981;
+    border-width: 2px;
+}
+
+.productCard.active:hover {
+    border-color: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.productCard.inactive {
+    border-color: #64748b;
+    opacity: 0.85;
+    background: #f8fafc;
+}
+
+.productCard.inactive:hover {
+    border-color: #475569;
+    opacity: 1;
+}
+
+/* Image Section at Top */
+.cardHeader {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.productImage {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.productImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.productCard:hover .productImage img {
+    transform: scale(1.05);
+}
+
+.imagePlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #64748b;
+    background: #f1f5f9;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Status Badge */
+.statusBadge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.statusBadge.active {
+    background: rgba(16, 185, 129, 0.9);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.statusBadge.inactive {
+    background: rgba(100, 116, 139, 0.9);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Content Section */
+.cardContent {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.productName {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    transition: color 0.2s ease;
+}
+
+.productCard:hover .productName {
+    color: #3b82f6;
+}
+
+/* Product Info Section */
+.productInfo {
+    margin-bottom: 16px;
+    flex: 1;
+}
+
+.infoRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.infoRow:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.label {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.value {
+    color: #1e293b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    word-wrap: break-word;
+}
+
+.price {
+    color: #059669;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.categoryName {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.unitsSold {
+    color: #10b981;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.stockQuantity {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.cardActions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.buttonRow {
+    display: flex;
+    gap: 8px;
+}
+
+.cardActions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    min-height: 36px;
+}
+
+.viewDetailsButton,
+.editButton {
+    flex: 1;
+    min-width: 80px;
+}
+
+.editButton {
+    background: #10b981;
+    color: white;
+}
+
+.editButton:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.deleteButton {
+    background: #ef4444;
+    color: white;
+}
+
+.deleteButton:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.deleteButton:disabled {
+    background: #9ca3af;
+    color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Sizes Button */
+.sizesButton {
+    flex: 1;
+    min-width: 80px;
+    background: #8b5cf6;
+    color: white;
+}
+
+.sizesButton:hover:not(:disabled) {
+    background: #7c3aed;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+/* Images Button */
+.imagesButton {
+    flex: 1;
+    min-width: 80px;
+    background: #f59e0b;
+    color: white;
+}
+
+.imagesButton:hover:not(:disabled) {
+    background: #d97706;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.cardActions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cardActions button:active {
+    transform: translateY(0);
+}
+
+/* Image Management Section */
+.imageSection {
+    border-top: 1px solid #e2e8f0;
+    padding: 16px 20px 20px 20px;
+    background: #f8fafc;
+}
+
+.imageInfo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.imageCount {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 500;
+}
+
+.deleteImageButton {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.deleteImageButton:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.deleteImageButton:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.deleteImageButton svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Product Images Display */
+.productImagesDisplay {
+    margin-top: 12px;
+}
+
+.productImagesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.productImageItem {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.productImageThumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.productImageThumbnail:hover {
+    transform: scale(1.05);
+}
+
+.deleteSingleImageButton {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.deleteSingleImageButton:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 1);
+    transform: scale(1.1);
+}
+
+.deleteSingleImageButton:disabled {
+    background: rgba(107, 114, 128, 0.9);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.noImagesMessage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    color: #64748b;
+    font-size: 0.8rem;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+}
+
+/* Upload Section */
+.uploadSection {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.uploadControls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.fileInput {
+    display: none;
+}
+
+.fileInputLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fileInputLabel:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.fileInputLabel:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.uploadButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.uploadButton:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.uploadButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Upload Progress */
+.uploadProgress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.progressBar {
+    flex: 1;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.progressText {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e293b;
+    min-width: 35px;
+    text-align: center;
+}
+
+/* Upload Error */
+.uploadError {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: rgba(239, 62, 62, 0.1);
+    border: 1px solid rgba(239, 62, 62, 0.3);
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.8rem;
+}
+
+.uploadError svg {
+    flex-shrink: 0;
+}
+
+/* Selected Files Preview */
+.selectedFilesPreview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.filePreview {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.previewImage {
+    width: 100%;
+    height: 60px;
+    object-fit: cover;
+    display: block;
+}
+
+.removeFileButton {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    background: rgba(239, 62, 62, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.6rem;
+}
+
+.removeFileButton:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+/* Spinner Animation */
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .productCard {
+        max-width: 100%;
+        min-height: 300px;
+    }
+    
+    .productName {
+        font-size: 1rem;
+    }
+    
+    .cardActions {
+        flex-direction: column;
+    }
+    
+    .viewDetailsButton,
+    .editButton {
+        width: 100%;
+    }
+    
+    .uploadControls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .fileInputLabel,
+    .uploadButton {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .cardContent {
+        padding: 16px;
+    }
+    
+    .imageSection {
+        padding: 12px 16px 16px 16px;
+    }
+    
+    .productName {
+        font-size: 0.95rem;
+    }
+    
+    .viewDetailsButton,
+    .editButton {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        min-height: 32px;
+    }
+} 

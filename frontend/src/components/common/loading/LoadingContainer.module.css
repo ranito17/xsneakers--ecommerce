@@ -1,0 +1,142 @@
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.loadingContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.loadingContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    z-index: 2;
+    padding: 3rem;
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.spinner {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+
+.spinnerRing {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #2563eb;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+
+/* Size variants */
+.small .spinner {
+    width: 40px;
+    height: 40px;
+}
+
+.medium .spinner {
+    width: 60px;
+    height: 60px;
+}
+
+.large .spinner {
+    width: 100px;
+    height: 100px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loadingMessage {
+    font-size: 1.2rem;
+    color: #1e293b;
+    text-align: center;
+    margin: 0;
+    font-weight: 500;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .loadingContent {
+        padding: 2rem;
+        gap: 1.5rem;
+    }
+    
+    .loadingMessage {
+        font-size: 1rem;
+    }
+    
+    .medium .spinner {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .large .spinner {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .loadingContent {
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+    
+    .loadingMessage {
+        font-size: 0.9rem;
+    }
+    
+    .medium .spinner {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .large .spinner {
+        width: 70px;
+        height: 70px;
+    }
+} 

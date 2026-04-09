@@ -1,0 +1,236 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: #ffffff;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.modalHeader h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.025em;
+}
+
+.modalHeader .closeButton {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalHeader .closeButton:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.modalBody {
+    padding: 2rem;
+    background: #ffffff;
+}
+
+.userHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #c8cbce;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.userName {
+    color: #1e293b;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.role {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.roleAdmin {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.roleCustomer {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.roleDefault {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.userInfo {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #dddde0;
+    border: 1px solid #c8cbce;
+    border-radius: 12px;
+}
+
+.infoRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #c8cbce;
+    background: #ffffff;
+    border-radius: 6px;
+}
+
+.infoRow:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.infoRow:not(:last-child) {
+    margin-bottom: 0.5rem;
+}
+
+.label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.value {
+    color: #1e293b;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+    word-wrap: break-word;
+}
+
+.modalActions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: #f8fafc;
+    border: 1px solid #c8cbce;
+    border-radius: 8px;
+}
+
+.viewOrdersButton,
+.cartButton,
+.messageButton,
+.deleteButton {
+    flex: 1;
+    min-width: 120px;
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.viewOrdersButton {
+    background: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.viewOrdersButton:hover:not(:disabled) {
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+.cartButton {
+    background: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.cartButton:hover {
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+.messageButton {
+    background: #8b5cf6;
+}
+
+.messageButton:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.deleteButton {
+    background: #ef4444;
+}
+
+.deleteButton:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.viewOrdersButton:disabled,
+.deleteButton:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+

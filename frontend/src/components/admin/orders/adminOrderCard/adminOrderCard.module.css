@@ -1,0 +1,340 @@
+/* Admin Order Card - Redesigned to match customer order card style */
+.orderCard {
+    background: #dddde0;
+    border: 1px solid #c8cbce;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 350px;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.orderCard:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Product Image Section */
+.orderImageSection {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.productImageWrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+}
+
+.productImageWrapper:hover {
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
+}
+
+.productImageWrapper:hover .imageOverlay {
+    opacity: 1;
+}
+
+.productImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: #f8fafc;
+    padding: 4px;
+}
+
+.imageOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(59, 130, 246, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: #ffffff;
+}
+
+.imageCount {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(30, 58, 138, 0.95);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 2;
+}
+
+/* Order Header */
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    position: relative;
+    z-index: 2;
+}
+
+.orderNumber {
+    color: #1e293b;
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+/* Status Styles */
+.status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statusPending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.statusProcessing {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.statusShipped {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.statusDelivered {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.statusCancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.statusDefault {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Order Info */
+.orderInfo {
+    flex: 1;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+}
+
+.infoRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.infoRow:last-child {
+    margin-bottom: 0;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: none;
+}
+
+.label {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.value {
+    color: #1e293b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.totalAmount {
+    color: #059669;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* Order Actions */
+.orderActions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.viewButton {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    letter-spacing: 0.025em;
+}
+
+.viewButton:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.viewButton:active {
+    transform: translateY(0);
+}
+
+.statusSelect {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.statusSelect:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.statusSelect:hover {
+    border-color: #9ca3af;
+}
+
+.statusSelect option {
+    padding: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-weight: 500;
+}
+
+/* Payment Status Colors (if needed) */
+.paymentPaid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.paymentPending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.paymentFailed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.paymentDefault {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .orderCard {
+        max-width: 100%;
+        padding: 16px;
+    }
+    
+    .orderHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .orderNumber {
+        font-size: 1rem;
+    }
+    
+    .infoRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .value {
+        align-self: flex-end;
+        max-width: 100%;
+    }
+    
+    .status {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .orderCard {
+        padding: 12px;
+        min-height: 250px;
+    }
+    
+    .orderNumber {
+        font-size: 0.9rem;
+    }
+    
+    .viewButton {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .statusSelect {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .totalAmount {
+        font-size: 0.9rem;
+    }
+} 

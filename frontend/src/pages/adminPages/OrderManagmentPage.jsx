@@ -1,40 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuthentication';
 import { useLocation } from 'react-router-dom';
+import { useToast } from '../../components/common/toast';
 import { orderApi } from '../../services/orderApi';
-import AdminOrderList from '../../components/adminOrderList/AdminOrderList';
-import AdminOrderModal from '../../components/adminOrderModal/AdminOrderModal';
-import OrderDetails from '../../components/orderDetails/OrderDetails';
+import { AdminOrderList, AdminOrderModal, OrderFilterModal } from '../../components/admin/orders';
+import { SearchBar } from '../../components/admin/common';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import LoadingContainer from '../../components/loading/LoadingContainer';
-import ErrorContainer from '../../components/error/ErrorContainer';
+import { LoadingContainer, ErrorContainer, ImageModal } from '../../components/contactForm';
+import { filterOrders, sortOrders, getAllAvailableSizes } from '../../utils/order.utils';
 import styles from './adminPages.module.css';
 
 const OrderManagmentPage = () => {
     const { isAuthenticated, user } = useAuth();
+    const { showSuccess, showError, showConfirmation } = useToast();
     const location = useLocation();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [showOrderModal, setShowOrderModal] = useState(false);
+    const [showFilterModal, setShowFilterModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
-    const [showOrderDetails, setShowOrderDetails] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [editingOrder, setEditingOrder] = useState(null);
-    const [editLoading, setEditLoading] = useState(false);
     const [orderItems, setOrderItems] = useState({});
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [selectedProductName, setSelectedProductName] = useState('');
+    const [filters, setFilters] = useState({
+        status: 'all',
+        sizes: [],
+        minTotal: '',
+        maxTotal: '',
+        productSearch: '',
+        startDate: '',
+        endDate: '',
+        minQuantity: '',
+        maxQuantity: '',
+        sortBy: 'created_at',
+        sortOrder: 'desc'
+    });
 
-    // Fetch orders from API
+    // fetchOrders - טוען את כל ההזמנות ופריטי ההזמנות מהשרת
+    // שליחה לשרת: getAllOrders(), getOrderItems(orderId) לכל הזמנה
+    // תגובה מהשרת: { success: true, data: [...] }, { success: true, data: [...] }
     const fetchOrders = async () => {
         try {
             setLoading(true);
             setError(null);
             const response = await orderApi.getAllOrders();
-            console.log('Orders response:', response);
-            
             if (response.success) {
-                setOrders(response.data || []);
+                const ordersData = response.data || [];
+                console.log(ordersData);
+                setOrders(ordersData);
+                const itemsData = {};
+                for (const order of ordersData) {
+                    try {
+                        const itemsResponse = await orderApi.getOrderItems(order.order_id);
+                        if (itemsResponse.success) {
+                            itemsData[order.order_id] = itemsResponse.data || [];
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching items for order ${order.order_id}:`, error);
+                        itemsData[order.order_id] = [];
+                    }
+                }
+                setOrderItems(itemsData);
             } else {
                 setError('Failed to fetch orders');
             }
@@ -46,153 +75,189 @@ const OrderManagmentPage = () => {
         }
     };
 
-    // Fetch order items for a specific order
-    const fetchOrderItems = async (orderId) => {
+
+    // handleStatusUpdate - מעדכן סטטוס הזמנה
+    // שליחה לשרת: updateOrderStatus(orderId, newStatus)
+    // תגובה מהשרת: { success: true }
+    const handleStatusUpdate = async (orderId, newStatus) => {
+        const order = orders.find(o => o.order_id === orderId);
+        const orderNumber = order?.order_number || `Order #${orderId}`;
+        const currentStatus = order?.status || 'pending';
+        const statusLabel = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+        const currentStatusLabel = currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1);
+        
+        // Show confirmation if status is being changed
+        if (currentStatus !== newStatus) {
+            const confirmed = await showConfirmation(
+                `Change order ${orderNumber} status from "${currentStatusLabel}" to "${statusLabel}"?`
+            );
+            if (!confirmed) {
+                return;
+            }
+        }
+        
         try {
-            const response = await orderApi.getOrderItems(orderId);
-            console.log('Order items response:', response);
-            
+            const response = await orderApi.updateOrderStatus(orderId, newStatus);
             if (response.success) {
-                setOrderItems(prev => ({
-                    ...prev,
-                    [orderId]: response.data || []
-                }));
+                setOrders(prevOrders =>
+                    prevOrders.map(order =>
+                        order.order_id === orderId ? { ...order, status: newStatus } : order
+                    )
+                );
+                showSuccess(`Order ${orderNumber} status updated to ${statusLabel} successfully!`);
+            } else {
+                const errorMessage = response.message || 'Failed to update order status';
+                setError(errorMessage);
+                showError(errorMessage);
             }
         } catch (error) {
-            console.error('Error fetching order items:', error);
+            console.error('Error updating order status:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to update order status';
+            setError(errorMessage);
+            showError(errorMessage);
         }
     };
 
+
+    // handleViewOrder - פותח מודל הזמנה
+    const handleViewOrder = (order) => {
+        const originalOrder = orders.find(o => o.order_id === order.id);
+        if (!originalOrder) {
+            console.error('Original order not found for ID:', order.id);
+            return;
+        }
+        setSelectedOrder(originalOrder);
+        setShowOrderModal(true);
+    };
+
+
+    // handleCloseOrderModal - סוגר מודל הזמנה
+    const handleCloseOrderModal = () => {
+        setShowOrderModal(false);
+        setSelectedOrder(null);
+    };
+
+
+    // handleOpenFilterModal - פותח מודל פילטרים
+    const handleOpenFilterModal = () => {
+        setShowFilterModal(true);
+    };
+
+
+    // handleCloseFilterModal - סוגר מודל פילטרים
+    const handleCloseFilterModal = () => {
+        setShowFilterModal(false);
+    };
+
+
+    // handleApplyFilters - מחיל פילטרים חדשים
+    const handleApplyFilters = (newFilters) => {
+        setFilters(newFilters);
+    };
+
+
+    // getActiveFiltersCount - מחזיר את מספר הפילטרים הפעילים
+    const getActiveFiltersCount = () => {
+        let count = 0;
+        if (filters.status && filters.status !== 'all') {
+            count++;
+        }
+        if (filters.sizes && filters.sizes.length > 0) {
+            count++;
+        }
+        if (filters.minTotal || filters.maxTotal) {
+            count++;
+        }
+        if (filters.productSearch) {
+            count++;
+        }
+        if (filters.startDate || filters.endDate) {
+            count++;
+        }
+        if (filters.minQuantity || filters.maxQuantity) {
+            count++;
+        }
+        return count;
+    };
+
+
+    // handleOpenImageModal - פותח מודל תמונות מוצר
+    const handleOpenImageModal = (images, productName) => {
+        setSelectedImages(images);
+        setSelectedProductName(productName);
+        setImageModalOpen(true);
+    };
+
+
+    // handleCloseImageModal - סוגר מודל תמונות
+    const handleCloseImageModal = () => {
+        setImageModalOpen(false);
+        setSelectedImages([]);
+        setSelectedProductName('');
+    };
+
+
     useEffect(() => {
-        // Only fetch orders if user is authenticated
         if (isAuthenticated && user) {
             fetchOrders();
         }
     }, [isAuthenticated, user]);
 
-    // Handle navigation state from dashboard status cards and user management
+
     useEffect(() => {
         if (location.state?.statusFilter) {
-            setFilterStatus(location.state.statusFilter);
+            setFilters(prev => ({
+                ...prev,
+                status: location.state.statusFilter
+            }));
         }
-        
-        // Handle user filter from user management page
         if (location.state?.userFilter) {
             const { userFilter } = location.state;
             setSearchTerm(userFilter.userEmail);
         }
     }, [location.state]);
 
-    const handleStatusUpdate = async (orderId, newStatus) => {
-        try {
-            const response = await orderApi.updateOrderStatus(orderId, newStatus);
-            
-            if (response.success) {
-                // Update local state
-                setOrders(prevOrders =>
-                    prevOrders.map(order =>
-                        order.order_id === orderId ? { ...order, status: newStatus } : order
-                    )
-                );
-            } else {
-                setError(response.message || 'Failed to update order status');
-            }
-        } catch (error) {
-            console.error('Error updating order status:', error);
-            setError('Failed to update order status');
-        }
-    };
 
-    // Order deletion removed - financial data must be preserved
-    // handleDeleteOrder function removed for compliance with financial data protection
-
-    const handleViewOrderDetails = async (order) => {
-        // Find the original API order data
-        const originalOrder = orders.find(o => o.order_id === order.id);
-        setSelectedOrder(originalOrder);
-        setShowOrderDetails(true);
-        
-        // Fetch order items if not already loaded
-        if (!orderItems[originalOrder.order_id]) {
-            await fetchOrderItems(originalOrder.order_id);
-        }
-    };
-
-    const handleEditOrder = (order) => {
-        // Find the original API order data
-        const originalOrder = orders.find(o => o.order_id === order.id);
-        setEditingOrder(originalOrder);
-        setShowEditModal(true);
-    };
-
-    const handleSaveOrder = async (updatedData) => {
-        try {
-            setEditLoading(true);
-            const response = await orderApi.updateOrder(editingOrder.order_id, updatedData);
-            
-            if (response.success) {
-                // Update local state
-                setOrders(prevOrders =>
-                    prevOrders.map(order =>
-                        order.order_id === editingOrder.order_id 
-                            ? { ...order, ...updatedData }
-                            : order
-                    )
-                );
-                setShowEditModal(false);
-                setEditingOrder(null);
-                setError(null);
-            } else {
-                setError(response.message || 'Failed to update order');
-            }
-        } catch (error) {
-            console.error('Error updating order:', error);
-            setError(error.response?.data?.message || 'Failed to update order');
-        } finally {
-            setEditLoading(false);
-        }
-    };
-
-    const handleCloseEditModal = () => {
-        setShowEditModal(false);
-        setEditingOrder(null);
-        setEditLoading(false);
-    };
-
-    // Transform API data to match component expectations
     const transformOrdersForComponents = (apiOrders) => {
-        return apiOrders.map(order => ({
-            id: order.order_id,
-            orderNumber: order.order_number,
-            customerName: order.customer_name,
-            customerEmail: order.customer_email,
-            totalAmount: parseFloat(order.total_amount),
-            status: order.status || 'pending',
-            orderDate: order.created_at,
-            paymentStatus: order.payment_status,
-            shippingAddress: {
-                street: order.shipping_address,
-                city: '', // Not available in current API
-                state: '', // Not available in current API
-                zipCode: '' // Not available in current API
-            },
-            items: orderItems[order.order_id] || []
-        }));
+        return apiOrders.map(order => {
+            let shippingAddressObj = order.shipping_address || null;
+            if (typeof shippingAddressObj === 'string' && shippingAddressObj.trim()) {
+                try {
+                    shippingAddressObj = JSON.parse(shippingAddressObj);
+                } catch (e) {
+                    shippingAddressObj = null;
+                }
+            }
+            return {
+                id: order.order_id,
+                orderNumber: order.order_number,
+                customerName: order.customer_name,
+                customerEmail: order.customer_email,
+                totalAmount: parseFloat(order.total_amount),
+                status: order.status || 'pending',
+                orderDate: order.created_at,
+                paymentStatus: order.payment_status,
+                shippingAddress: shippingAddressObj || {}
+            };
+        });
     };
-
-    // Filter orders based on search and status
-    const filteredOrders = orders.filter(order => {
-        const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
-        const matchesSearch = 
-            (order.order_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (order.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (order.customer_email || '').toLowerCase().includes(searchTerm.toLowerCase());
-        
-        return matchesStatus && matchesSearch;
-    });
-
-    const transformedOrders = transformOrdersForComponents(filteredOrders);
-
+    const getProcessedOrders = () => {
+        let searchFiltered = orders.filter(order => {
+            const matchesSearch = 
+                (order.order_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (order.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (order.customer_email || '').toLowerCase().includes(searchTerm.toLowerCase());
+            return matchesSearch;
+        });
+        const filtered = filterOrders(searchFiltered, {
+            ...filters,
+            orderItems
+        });
+        const sorted = sortOrders(filtered, filters.sortBy, filters.sortOrder);
+        return sorted;
+    };
+    const processedOrders = getProcessedOrders();
+    const transformedOrders = transformOrdersForComponents(processedOrders);
     return (
         <ProtectedRoute requiredRole="admin">
             {loading ? (
@@ -200,16 +265,9 @@ const OrderManagmentPage = () => {
             ) : (
             <div className={styles.orderManagement}>
                 <div className={styles.orderMainContent}>
-                <div className={styles.orderPageHeader}>
-                    <div className={styles.orderHeaderContent}>
-                        <h1>Order Management</h1>
-                        <p>
-                            {location.state?.userFilter 
-                                ? `Orders for ${location.state.userFilter.userEmail}`
-                                : 'Manage and track all customer orders'
-                            }
-                        </p>
-                        {location.state?.userFilter && (
+                    {location.state?.userFilter && (
+                        <div className={styles.userFilterInfo}>
+                            <p>Orders for {location.state.userFilter.userEmail}</p>
                             <button 
                                 onClick={() => {
                                     setSearchTerm('');
@@ -217,114 +275,76 @@ const OrderManagmentPage = () => {
                                 }}
                                 className={styles.clearUserFilterBtn}
                             >
-                                Clear User Filter
+                                Clear Filter
                             </button>
-                        )}
-                    </div>
-                    <div className={styles.orderStats}>
-                        <div className={styles.orderStatItem}>
-                            <span className={styles.orderStatNumber}>{orders.length}</span>
-                            <span className={styles.orderStatLabel}>Total Orders</span>
                         </div>
-                        <div className={styles.orderStatItem}>
-                            <span className={styles.orderStatNumber}>
-                                {orders.filter(o => o.status === 'pending').length}
-                            </span>
-                            <span className={styles.orderStatLabel}>Pending</span>
-                        </div>
-                        <div className={styles.orderStatItem}>
-                            <span className={styles.orderStatNumber}>
-                                {orders.filter(o => o.status === 'shipped').length}
-                            </span>
-                            <span className={styles.orderStatLabel}>Shipped</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={styles.orderControlsSection}>
-                    <div className={styles.orderSearchContainer}>
-                        <div className={styles.orderSearchInput}>
-                            <input
-                                type="text"
-                                placeholder="Search orders by number, customer name, or email..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className={styles.orderSearchField}
-                            />
+                    )}
+                    <div className={styles.orderFilterInfo}>
+                        <SearchBar
+                            count={processedOrders.length}
+                            totalCount={orders.length}
+                            itemName="order"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onClear={() => setSearchTerm('')}
+                        />
+                        <div className={styles.orderControlsRight}>
+                            <button
+                                onClick={handleOpenFilterModal}
+                                className={styles.filterButton}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                                </svg>
+                                <span>
+                                    {getActiveFiltersCount() > 0 
+                                        ? `${getActiveFiltersCount()} filter${getActiveFiltersCount() > 1 ? 's' : ''}`
+                                        : 'Filters & Sort'
+                                    }
+                                </span>
+                            </button>
                         </div>
                     </div>
-                    
-                    <div className={styles.orderFilterContainer}>
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className={styles.orderFilterSelect}
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                </div>
-
-                {error && (
-                    <ErrorContainer 
-                        message={error}
-                        onRetry={fetchOrders}
-                    />
-                )}
-
-                <div className={styles.orderContentArea}>
-                    {/* Use AdminOrderList component */}
+                    {error && (
+                        <ErrorContainer 
+                            message={error}
+                            onRetry={fetchOrders}
+                        />
+                    )}
                     <AdminOrderList
                         orders={transformedOrders}
+                        orderItems={orderItems}
                         loading={loading}
                         error={error}
-                        onViewDetails={handleViewOrderDetails}
                         onUpdateStatus={handleStatusUpdate}
-                        onEditOrder={handleEditOrder}
+                        onViewOrder={handleViewOrder}
+                        onOpenImageModal={handleOpenImageModal}
+                    />
+                    <OrderFilterModal
+                        isOpen={showFilterModal}
+                        onClose={handleCloseFilterModal}
+                        onApplyFilters={handleApplyFilters}
+                        availableSizes={getAllAvailableSizes(orderItems)}
+                        allProducts={[]}
+                        orders={orders}
+                        orderItems={orderItems}
+                    />
+                    {showOrderModal && selectedOrder && (
+                        <AdminOrderModal
+                            isOpen={showOrderModal}
+                            onClose={handleCloseOrderModal}
+                            order={selectedOrder}
+                            orderItems={orderItems[selectedOrder.order_id] || []}
+                            readOnly={true}
+                        />
+                    )}
+                    <ImageModal
+                        open={imageModalOpen}
+                        images={selectedImages}
+                        alt={selectedProductName}
+                        onClose={handleCloseImageModal}
                     />
                 </div>
-
-                {/* Order Details Modal */}
-                {showOrderDetails && selectedOrder && (
-                    <div className={styles.orderModalOverlay} onClick={() => setShowOrderDetails(false)}>
-                        <div className={styles.orderModal} onClick={(e) => e.stopPropagation()}>
-                            <div className={styles.orderModalHeader}>
-                                <h2>Order Details - {selectedOrder.order_number}</h2>
-                                <button 
-                                    onClick={() => setShowOrderDetails(false)}
-                                    className={styles.orderModalClose}
-                                >
-                                    ×
-                                </button>
-                            </div>
-                            <div className={styles.orderModalContent}>
-                                <OrderDetails 
-                                    order={selectedOrder} 
-                                    orderItems={orderItems[selectedOrder.order_id] || []}
-                                    user={null} // Admin view doesn't need user context
-                                    onImageClick={() => {}} // Disable image modal for admin view
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Edit Order Modal */}
-                {showEditModal && editingOrder && (
-                    <AdminOrderModal
-                        isOpen={showEditModal}
-                        onClose={handleCloseEditModal}
-                        order={editingOrder}
-                        onSave={handleSaveOrder}
-                        loading={editLoading}
-                    />
-                )}
-            </div>
             </div>
             )}
         </ProtectedRoute>

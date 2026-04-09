@@ -1,8 +1,8 @@
 import api from './api';
 
-// Authentication API functions
+// פונקציות API לאימות משתמשים (Login/Signup/Reset)
 export const authApi = {
-    // Check if user is authenticated
+    // בדיקת סטטוס התחברות
     checkAuth: async () => {
         try {
             const response = await api.get('/api/userRoutes/me');
@@ -13,7 +13,7 @@ export const authApi = {
         }
     },
 
-    // Login user
+    // התחברות משתמש
     login: async (email, password) => {
         try {
             const response = await api.post('/api/userRoutes/login', {
@@ -26,7 +26,7 @@ export const authApi = {
         }
     },
 
-    // Signup user
+    // הרשמת משתמש חדש
     signup: async (userData) => {
         try {
             const response = await api.post('/api/userRoutes/signup', {
@@ -43,7 +43,7 @@ export const authApi = {
         }
     },
 
-    // Logout user
+    // התנתקות
     logout: async () => {
         try {
             const response = await api.post('/api/userRoutes/logout');
@@ -53,7 +53,7 @@ export const authApi = {
         }
     },
 
-    // Forgot password
+    // בקשת קוד שחזור סיסמה
     forgotPassword: async (email) => {
         try {
             const response = await api.post('/api/userRoutes/forgot-password', {
@@ -65,23 +65,15 @@ export const authApi = {
         }
     },
 
-    // Reset password
-    resetPassword: async (token, newPassword) => {
+    // איפוס סיסמה עם קוד שחזור
+    resetPassword: async (email, code, newPassword, confirmPassword) => {
         try {
             const response = await api.post('/api/userRoutes/reset-password', {
-                token,
-                newPassword
+                email,
+                code,
+                newPassword,
+                confirmPassword
             });
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    // Verify reset token
-    verifyResetToken: async (token) => {
-        try {
-            const response = await api.get(`/api/userRoutes/verify-reset-token/${token}`);
             return response.data;
         } catch (error) {
             throw error;

@@ -1,130 +1,112 @@
+// ShippingPolicyPage.jsx
 import React from 'react';
-import styles from './shippingPolicyPage.module.css';
+import styles from './pages.module.css';
+import { useSettings } from '../context/SettingsProvider';
+import { formatPrice } from '../utils/price.utils';
 
 const ShippingPolicyPage = () => {
+    const { 
+        settings, 
+        loading
+    } = useSettings();
+
+    const deliveryCost = settings?.default_delivery_cost || 0;
+    const freeDeliveryThreshold = settings?.free_delivery_threshold || 0;
+    const currency = settings?.currency || 'ILS';
     return (
-        <div className={styles.shippingPolicyPage}>
-            <div className={styles.container}>
-                <div className={styles.header}>
-                    <h1>Shipping Policy</h1>
-                    <p className={styles.lastUpdated}>Last updated: January 2025</p>
+        <div className={styles.aboutUsPage}>
+            {/* Hero Section */}
+            <div className={styles.aboutHeroSection}>
+                <div className={styles.aboutHeroContent}>
+                    <h1 className={styles.aboutHeroTitle}>Delivery Policy</h1>
+                    <p className={styles.aboutHeroSubtitle}>
+                        Fast, reliable delivery throughout Israel with transparent pricing and tracking.
+                    </p>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className={styles.aboutMainContent}>
+                <div className={styles.aboutSection}>
+                    <div className={styles.aboutSectionHeader}>
+                        <h2 className={styles.aboutSectionTitle}>1. Overview</h2>
+                        <div className={styles.aboutTitleUnderline}></div>
+                    </div>
+                    <div className={styles.aboutStoryText}>
+                        <p>
+                            At XsneaKers, we are based in Israel and provide fast, reliable delivery services throughout the country. This delivery policy outlines our delivery methods, costs, and what you can expect when ordering from us.
+                        </p>
+                    </div>
                 </div>
 
-                <div className={styles.content}>
-                    <section className={styles.section}>
-                        <h2>1. Overview</h2>
-                        <p>
-                            At XsneaKers, we strive to provide fast, reliable, and secure shipping for all your sneaker needs. This shipping policy outlines our shipping methods, delivery times, costs, and what you can expect when ordering from us.
-                        </p>
-                    </section>
+                <div className={styles.aboutSection}>
+                    <div className={styles.aboutSectionHeader}>
+                        <h2 className={styles.aboutSectionTitle}>2. Delivery Methods</h2>
+                        <div className={styles.aboutTitleUnderline}></div>
+                    </div>
+                    <div className={styles.aboutStoryText}>
+                        {loading ? (
+                            <p>Loading delivery information...</p>
+                        ) : (
+                            <>
+                                                                 <h3 style={{ color: 'var(--primary-color)', fontSize: '1.1rem', marginBottom: '0.75rem' }}>2.1 Standard Delivery</h3>
+                                 <ul>
+                                     <li><strong>Estimated Delivery Time:</strong> 2 weeks</li>
+                                     <li><strong>Cost:</strong> {formatPrice(deliveryCost, currency)}</li>
+                                     <li><strong>Tracking:</strong> Included</li>
+                                 </ul>
 
-                    <section className={styles.section}>
-                        <h2>2. Shipping Methods</h2>
-                        
-                        <h3>2.1 Standard Shipping</h3>
-                        <ul>
-                            <li><strong>Delivery Time:</strong> 5-7 business days</li>
-                            <li><strong>Cost:</strong> $8.99</li>
-                            <li><strong>Tracking:</strong> Included</li>
-                            <li><strong>Signature Required:</strong> No</li>
-                        </ul>
+                                 <h3 style={{ color: 'var(--primary-color)', fontSize: '1.1rem', marginBottom: '0.75rem', marginTop: '1.5rem' }}>2.2 Free Delivery</h3>
+                                 <p>Free delivery is available on orders over {formatPrice(freeDeliveryThreshold, currency)}.</p>
+                            </>
+                        )}
+                    </div>
+                </div>
 
-                        <h3>2.2 Express Shipping</h3>
-                        <ul>
-                            <li><strong>Delivery Time:</strong> 2-3 business days</li>
-                            <li><strong>Cost:</strong> $15.99</li>
-                            <li><strong>Tracking:</strong> Included</li>
-                            <li><strong>Signature Required:</strong> No</li>
-                        </ul>
-
-                        <h3>2.3 Overnight Shipping</h3>
-                        <ul>
-                            <li><strong>Delivery Time:</strong> 1 business day</li>
-                            <li><strong>Cost:</strong> $29.99</li>
-                            <li><strong>Tracking:</strong> Included</li>
-                            <li><strong>Signature Required:</strong> Yes</li>
-                        </ul>
-
-                        <h3>2.4 Free Shipping</h3>
-                        <p>Free standard shipping is available on orders over $150.00.</p>
-                    </section>
-
-                    <section className={styles.section}>
-                        <h2>3. Processing Time</h2>
+                <div className={styles.aboutSection}>
+                    <div className={styles.aboutSectionHeader}>
+                        <h2 className={styles.aboutSectionTitle}>3. Processing Time</h2>
+                        <div className={styles.aboutTitleUnderline}></div>
+                    </div>
+                    <div className={styles.aboutStoryText}>
                         <p>
                             Orders are typically processed and shipped within 1-2 business days after payment confirmation. Processing times may be extended during peak seasons, holidays, or promotional periods.
                         </p>
-                        <p><strong>Note:</strong> Orders placed after 2:00 PM EST will be processed the next business day.</p>
-                    </section>
+                        <p><strong>Note:</strong> Orders placed after 2:00 PM Israel time will be processed the next business day.</p>
+                    </div>
+                </div>
 
-                    <section className={styles.section}>
-                        <h2>4. Shipping Destinations</h2>
-                        <p>We currently ship to the following locations:</p>
-                        
-                        <h3>4.1 Domestic Shipping (United States)</h3>
-                        <ul>
-                            <li>All 50 states</li>
-                            <li>Washington D.C.</li>
-                            <li>U.S. territories (Puerto Rico, Guam, U.S. Virgin Islands)</li>
-                        </ul>
+                <div className={styles.aboutSection}>
+                    <div className={styles.aboutSectionHeader}>
+                        <h2 className={styles.aboutSectionTitle}>4. Delivery Destinations</h2>
+                        <div className={styles.aboutTitleUnderline}></div>
+                    </div>
+                    <div className={styles.aboutStoryText}>
+                        <p>We currently deliver to all locations within Israel.</p>
+                        <p><strong>Note:</strong> We do not offer international delivery at this time.</p>
+                    </div>
+                </div>
 
-                        <h3>4.2 International Shipping</h3>
-                        <p>We currently do not offer international shipping. We apologize for any inconvenience.</p>
-                    </section>
-
-                    <section className={styles.section}>
-                        <h2>5. Order Tracking</h2>
+                <div className={styles.aboutSection}>
+                    <div className={styles.aboutSectionHeader}>
+                        <h2 className={styles.aboutSectionTitle}>5. Order Tracking</h2>
+                        <div className={styles.aboutTitleUnderline}></div>
+                    </div>
+                    <div className={styles.aboutStoryText}>
                         <p>
-                            Once your order ships, you will receive a confirmation email with tracking information. You can also track your order through your account dashboard.
+                            Once your order ships, you will receive a confirmation email with tracking information. You can also track your order through your account dashboard in the Orders page.
                         </p>
                         <p>Tracking information typically becomes available within 24 hours of shipment.</p>
-                    </section>
+                    </div>
+                </div>
 
-                    <section className={styles.section}>
-                        <h2>6. Delivery Information</h2>
-                        
-                        <h3>6.1 Delivery Attempts</h3>
-                        <p>Our shipping partners will make up to 3 delivery attempts. If delivery is unsuccessful:</p>
-                        <ul>
-                            <li>Packages will be held at the local post office or shipping facility</li>
-                            <li>You will receive a notification with pickup instructions</li>
-                            <li>Packages will be held for 5-7 days before being returned</li>
-                        </ul>
-
-                        <h3>6.2 Delivery Address</h3>
-                        <p>Please ensure your delivery address is complete and accurate. We are not responsible for delays or failed deliveries due to incorrect address information.</p>
-
-                        <h3>6.3 Business Hours</h3>
-                        <p>Deliveries are made during regular business hours (Monday-Friday, 8:00 AM - 6:00 PM). Weekend deliveries may be available for express and overnight shipping.</p>
-                    </section>
-
-                    <section className={styles.section}>
-                        <h2>7. Shipping Restrictions</h2>
-                        <p>Some items may have shipping restrictions:</p>
-                        <ul>
-                            <li>Limited edition releases may have delayed shipping</li>
-                            <li>Pre-order items will ship on or after the release date</li>
-                            <li>Custom or personalized items may require additional processing time</li>
-                        </ul>
-                    </section>
-
-                    <section className={styles.section}>
-                        <h2>8. Shipping Delays</h2>
-                        <p>While we strive for timely delivery, shipping delays may occur due to:</p>
-                        <ul>
-                            <li>Weather conditions</li>
-                            <li>Holiday periods</li>
-                            <li>High order volume</li>
-                            <li>Shipping carrier delays</li>
-                            <li>Customs processing (if applicable)</li>
-                        </ul>
-                        <p>We will notify you of any significant delays and provide updated tracking information.</p>
-                    </section>
-
-                    <section className={styles.section}>
-                        <h2>9. Damaged or Lost Packages</h2>
-                        
-                        <h3>9.1 Damaged Packages</h3>
+                <div className={styles.aboutSection}>
+                    <div className={styles.aboutSectionHeader}>
+                        <h2 className={styles.aboutSectionTitle}>6. Damaged or Lost Packages</h2>
+                        <div className={styles.aboutTitleUnderline}></div>
+                    </div>
+                    <div className={styles.aboutStoryText}>
+                        <h3 style={{ color: 'var(--primary-color)', fontSize: '1.1rem', marginBottom: '0.75rem' }}>6.1 Damaged Packages</h3>
                         <p>If your package arrives damaged:</p>
                         <ul>
                             <li>Do not accept the package if damage is visible</li>
@@ -133,35 +115,37 @@ const ShippingPolicyPage = () => {
                             <li>We will arrange for a replacement or refund</li>
                         </ul>
 
-                        <h3>9.2 Lost Packages</h3>
+                        <h3 style={{ color: 'var(--primary-color)', fontSize: '1.1rem', marginBottom: '0.75rem', marginTop: '1.5rem' }}>6.2 Lost Packages</h3>
                         <p>If your package is lost in transit:</p>
                         <ul>
-                            <li>Contact us after 7 days for standard shipping</li>
-                            <li>Contact us after 3 days for express shipping</li>
-                            <li>Contact us after 1 day for overnight shipping</li>
+                            <li>Contact us after 14 days for standard delivery</li>
                             <li>We will investigate and provide a replacement or refund</li>
                         </ul>
-                    </section>
+                    </div>
+                </div>
 
-                    <section className={styles.section}>
-                        <h2>10. Returns and Exchanges</h2>
+                <div className={styles.aboutSection}>
+                    <div className={styles.aboutSectionHeader}>
+                        <h2 className={styles.aboutSectionTitle}>7. Returns and Exchanges</h2>
+                        <div className={styles.aboutTitleUnderline}></div>
+                    </div>
+                    <div className={styles.aboutStoryText}>
                         <p>
-                            For information about returns and exchanges, please refer to our <a href="/refund-policy" className={styles.link}>Refund Policy</a>. Return shipping costs and procedures are outlined there.
+                            Our refund policy requires items to be returned exactly as received, with the original price tag attached. The return process is handled outside our website through direct communication.
                         </p>
-                    </section>
-
-                    <section className={styles.section}>
-                        <h2>11. Contact Information</h2>
                         <p>
-                            If you have questions about shipping or need assistance with your order, please contact us:
+                            <strong>Return Process:</strong>
                         </p>
-                        <div className={styles.contactInfo}>
-                            <p><strong>Email:</strong> shipping@xsneakers.com</p>
-                            <p><strong>Phone:</strong> +1 (555) 123-4567</p>
-                            <p><strong>Hours:</strong> Monday-Friday, 9:00 AM - 6:00 PM EST</p>
-                            <p><strong>Address:</strong> 123 Sneaker Street, Fashion District, NY 10001</p>
-                        </div>
-                    </section>
+                        <ul>
+                            <li>Customer must email us first to initiate the return process</li>
+                            <li>Our admin team will guide you through the complete return procedure</li>
+                            <li>Items must be returned in original condition with price tag attached</li>
+                            <li>Return delivery costs are the responsibility of the customer</li>
+                        </ul>
+                        <p>
+                            For detailed information about our return policy, please refer to our <a href="/refund-policy" style={{ color: 'var(--primary-color)', textDecoration: 'underline' }}>Refund Policy</a> page.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

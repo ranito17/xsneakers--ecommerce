@@ -1,7 +1,26 @@
+/**
+ * Provider לאימות - AuthProvider
+ * 
+ * Provider זה מספק גישה גלובלית לאימות המשתמש בכל האפליקציה.
+ * מטפל בהתחברות, התנתקות ובדיקת אימות.
+ * 
+ * API Calls:
+ * - authApi.checkAuth() - בודק אם המשתמש מאומת
+ * - authApi.login() - מתחבר למשתמש
+ * - authApi.logout() - מתנתק מהמשתמש
+ * 
+ * תכונות:
+ * - בדיקת אימות אוטומטית בעת טעינת האפליקציה
+ * - ניהול state של משתמש ואימות
+ * - ניקוי עגלה בעת התנתקות
+ * 
+ * @param {ReactNode} children - רכיבי הילדים לעטיפה
+ */
 import React, { useState, useEffect, createContext, useCallback } from 'react';
 import { authApi } from '../services';
+import { clearCartFromStorage } from '../utils/cartUtils';
 
-// Create the auth context
+// יצירת Context לאימות
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -10,7 +29,19 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Check if user is authenticated on app load
+    /**
+     * בודק אם המשתמש מאומת בעת טעינת האפליקציה
+     * 
+     * API Call: authApi.checkAuth()
+     * 
+     * @returns {Promise<void>}
+     * 
+     * תהליך:
+     * 1. קורא ל-authApi.checkAuth()
+     * 2. אם המשתמש מאומת - מעדכן state
+     * 3. אם לא - מאפס state
+     * 4. מטפל בשגיאות
+     */
     const checkAuth = async () => {
         try {
             setIsLoading(true);
@@ -46,7 +77,20 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Login function - immediately set user state
+    /**
+     * מתחבר למשתמש
+     * 
+     * API Call: authApi.login(email, password)
+     * 
+     * @param {string} email - אימייל המשתמש
+     * @param {string} password - סיסמת המשתמש
+     * @returns {Promise<Object>} { success: boolean, user?: Object, error?: string }
+     * 
+     * תהליך:
+     * 1. קורא ל-authApi.login()
+     * 2. אם הצליח - מעדכן state עם נתוני המשתמש
+     * 3. מחזיר תוצאה
+     */
     const login = async (email, password) => {
         try {
             console.log('🔐 AuthProvider: Starting login process...');
@@ -81,16 +125,32 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Logout function
+    /**
+     * מתנתק מהמשתמש
+     * 
+     * API Call: authApi.logout()
+     * 
+     * @returns {Promise<void>}
+     * 
+     * תהליך:
+     * 1. קורא ל-authApi.logout()
+     * 2. מאפס את state של המשתמש
+     * 3. מנקה את עגלת הקניות מ-localStorage
+     */
     const logout = async () => {
         try {
+            console.log('🔐 AuthProvider: Starting logout process...');
             await authApi.logout();
+            console.log('🔐 AuthProvider: Backend logout successful');
         } catch (err) {
             console.error('Logout error:', err);
         } finally {
             // Immediately clear user state
+            console.log('🔐 AuthProvider: Clearing user state and cart');
             setUser(null);
             setIsAuthenticated(false);
+            clearCartFromStorage(); // Clear cart on logout
+            console.log('🔐 AuthProvider: Logout process completed');
         }
     };
 

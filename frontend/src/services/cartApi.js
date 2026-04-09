@@ -1,8 +1,8 @@
 import api from './api';
 
-// Cart API functions - backend handles guest vs logged-in user logic
+// פונקציות API לעגלה - השרת מטפל בהבדל אורח/משתמש מחובר
 export const cartApi = {
-    // Get user's cart (works for both guests and logged-in users)
+    // קבלת עגלת המשתמש (אורח או מחובר)
     getUserCart: async () => {
         try {
             const response = await api.get('/api/cartRoutes/cart');
@@ -12,14 +12,13 @@ export const cartApi = {
         }
     },
 
-    // Add item to cart (works for both guests and logged-in users)
-    addToCart: async (productId, quantity = 1, selected_size = null, selected_color = null) => {
+    // הוספת פריט לעגלה (אורח/מחובר)
+    addToCart: async (productId, quantity = 1, selected_size = null) => {
         try {
             const response = await api.post('/api/cartRoutes/add', {
                 productId,
                 quantity,
-                selected_size,
-                selected_color
+                selected_size
             });
             return response.data;
         } catch (error) {
@@ -27,7 +26,7 @@ export const cartApi = {
         }
     },
 
-    // Update item quantity (works for both guests and logged-in users)
+    // עדכון כמות פריט
     updateQuantity: async (cartItemId, quantity) => {
         try {
             const response = await api.put(`/api/cartRoutes/update/${cartItemId}`, {
@@ -39,7 +38,7 @@ export const cartApi = {
         }
     },
 
-    // Remove item from cart (works for both guests and logged-in users)
+    // הסרת פריט מהעגלה
     removeFromCart: async (cartItemId) => {
         try {
             const response = await api.delete(`/api/cartRoutes/remove/${cartItemId}`);
@@ -49,7 +48,7 @@ export const cartApi = {
         }
     },
 
-    // Clear entire cart (works for both guests and logged-in users)
+    // ניקוי כל העגלה
     clearCart: async () => {
         try {
             const response = await api.delete('/api/cartRoutes/clear');

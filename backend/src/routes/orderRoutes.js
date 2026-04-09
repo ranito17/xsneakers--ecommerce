@@ -3,30 +3,55 @@ const router = express.Router();
 const orderController = require('../controllers/orderController');
 const isAuthenticated = require('../middleware/auth');
 const { adminAuth } = require('../middleware/adminAuth');
+const { trackActivity, ACTION_TYPES, ENTITY_TYPES } = require('../middleware/activityLogger');
+const { orderLimiter } = require('../middleware/rateLimiter');
+// Customer actions
+router.post(
+    '/place',
+   
+    isAuthenticated,
+    orderLimiter,
+    trackActivity({
+        action_type: ACTION_TYPES.ORDER_PLACED,
+        entity_type: ENTITY_TYPES.ORDER,
+        description: 'New order placed #{id}'
+    }),
+    orderController.placeOrder
+);
 
-// Customer operations (authenticated users)
-router.post('/place', isAuthenticated, orderController.placeOrder);
-router.get('/user/:userId', isAuthenticated, orderController.getUserOrders);
+router.get('/my-orders', isAuthenticated, orderController.getMyOrders);
+router.get('/my-orders/count', isAuthenticated, orderController.getMyOrderCount);
+
 router.get('/:id/items', isAuthenticated, orderController.getOrderItems);
-
-// Admin operations (admin only)
-router.get('/', isAuthenticated, adminAuth, orderController.getAllOrders);
+router.get('/:id/receipt', isAuthenticated, orderController.generateOrderReceiptPDF);
 router.get('/:id', isAuthenticated, orderController.getOrderById);
-router.put('/:id', isAuthenticated, adminAuth, orderController.updateOrder);
-router.patch('/:id/status', isAuthenticated, adminAuth, orderController.updateOrderStatus);
 
-// Dashboard Analytics Routes (admin only)
-router.get('/dashboard/stats', isAuthenticated, adminAuth, orderController.getDashboardStats);
+// Admin actions
+router.get('/', isAuthenticated, adminAuth, orderController.getAllOrders);
+
+router.patch(
+    '/:id/status',
+    isAuthenticated,
+    adminAuth,
+    trackActivity({
+        action_type: ACTION_TYPES.ORDER_STATUS_CHANGED,
+        entity_type: ENTITY_TYPES.ORDER,
+        description: 'Order #{id} status changed'
+    }),
+    orderController.updateOrderStatus
+);
+
 router.get('/status/:status', isAuthenticated, adminAuth, orderController.getOrdersByStatus);
 
-// Enhanced Analytics Routes (admin only)
+// Admin analytics
 router.get('/analytics/revenue', isAuthenticated, adminAuth, orderController.getRevenueAnalytics);
 router.get('/analytics/products', isAuthenticated, adminAuth, orderController.getProductAnalytics);
+router.get('/analytics/order-status', isAuthenticated, adminAuth, orderController.getOrderStatusAnalytics);
 router.get('/analytics/users', isAuthenticated, adminAuth, orderController.getUserAnalytics);
-router.get('/analytics/profit', isAuthenticated, adminAuth, orderController.getProfitAnalytics);
-router.get('/analytics/status', isAuthenticated, adminAuth, orderController.getOrderStatusAnalytics);
-router.get('/analytics/geographic', isAuthenticated, adminAuth, orderController.getGeographicAnalytics);
+router.get('/analytics/product/:productId/sizes', isAuthenticated, adminAuth, orderController.getProductSizeAnalytics);
+router.get('/admin/user/:userId/count', isAuthenticated, adminAuth, orderController.getUserOrderCountByAdmin);
 
-// Order deletion route removed - financial data must be preserved
+// Public
+router.get('/analytics/best-sellers', orderController.getBestSellers);
 
-module.exports = router;    
+module.exports = router;

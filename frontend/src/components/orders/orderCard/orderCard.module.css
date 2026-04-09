@@ -1,0 +1,198 @@
+.orderCard {
+    background: #dddde0;
+    border: 1px solid #c8cbce;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.orderCard:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    position: relative;
+    z-index: 2;
+}
+
+.orderHeader h2 {
+    color: #1e293b;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.status {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.orderInfo {
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.infoRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.infoRow:last-child {
+    margin-bottom: 0;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: none;
+}
+
+.label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.value {
+    color: #1e293b;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.totalAmount {
+    color: #059669;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.buttonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.viewDetailsButton {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    letter-spacing: 0.025em;
+}
+
+.viewDetailsButton:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.viewDetailsButton:active {
+    transform: translateY(0);
+}
+
+.downloadReceiptButton {
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    letter-spacing: 0.025em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.downloadReceiptButton:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.downloadReceiptButton:active {
+    transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .orderCard {
+        padding: 1.5rem;
+        aspect-ratio: auto;
+        min-height: 300px;
+    }
+    
+    .orderHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .orderHeader h2 {
+        font-size: 1.25rem;
+    }
+    
+    .infoRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .value {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .orderCard {
+        padding: 1rem;
+        aspect-ratio: auto;
+        min-height: 280px;
+    }
+    
+    .orderHeader h2 {
+        font-size: 1.1rem;
+    }
+    
+    .viewDetailsButton,
+    .downloadReceiptButton {
+        padding: 10px 20px;
+        font-size: 0.85rem;
+    }
+    
+    .totalAmount {
+        font-size: 1rem;
+    }
+} 

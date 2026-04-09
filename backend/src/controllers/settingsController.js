@@ -1,8 +1,15 @@
 const Settings = require('../models/Settings');
+const { validateUpdateSettingsPayload } = require('../validation/settingsValidator');
 
 const getSettings = async (req, res) => {
     try {
-        const settings = await Settings.getSettings();
+        // בדיקה אם תיאורים נדרשים
+        const includeDescriptions = req.query.descriptions === 'true';
+        
+        const settings = includeDescriptions 
+            ? await Settings.getSettingsWithDescriptions()
+            : await Settings.getSettings();
+            
         res.status(200).json({
             success: true,
             message: 'Settings retrieved successfully',
@@ -20,12 +27,15 @@ const getSettings = async (req, res) => {
 const getPublicSettings = async (req, res) => {
     try {
         const settings = await Settings.getSettings();
-        // Only return public settings needed for footer
+        // החזרת הגדרות ציבוריות כולל מידע משלוח ומטבע
         const publicSettings = {
             store_name: settings?.store_name || '',
             supplier_email: settings?.supplier_email || '',
             store_instagram: settings?.store_instagram || '',
-            store_whatsapp: settings?.store_whatsapp || ''
+            currency: settings?.currency || 'ILS',
+            default_delivery_cost: settings?.default_delivery_cost || settings?.default_shipping_cost || 0.00,
+            free_delivery_threshold: settings?.free_delivery_threshold || settings?.free_shipping_threshold || 0.00,
+            homepage_display_limit: settings?.homepage_display_limit || 8
         };
         res.status(200).json({
             success: true,
@@ -43,8 +53,16 @@ const getPublicSettings = async (req, res) => {
 
 const updateSettings = async (req, res) => {
     try {
-        const settingsData = req.body;
-        const result = await Settings.updateSettings(settingsData);
+        const validation = validateUpdateSettingsPayload(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validation.errors
+            });
+        }
+
+        const result = await Settings.updateSettings(validation.sanitizedData);
         res.status(200).json({
             success: true,
             message: 'Settings updated successfully',

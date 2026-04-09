@@ -1,0 +1,36 @@
+.orderList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.orderList:empty::after {
+    content: "No orders found.";
+    text-align: center;
+    color: #64748b;
+    font-style: italic;
+    padding: 60px 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+    .orderList {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .orderList {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+} 

@@ -1,23 +1,27 @@
+// נתיבי עגלה - מגדירים את הנתיבים לכל הפעולות הקשורות לעגלת קניות
+// כל פעולות העגלה דורשות אימות (אורחים משתמשים ב-LocalStorage)
 const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/cartController');
+const isAuthenticated = require('../middleware/auth');
+const { adminAuth } = require('../middleware/adminAuth');
 
-// Cart routes work for both guests and logged-in users
-// Authentication is handled automatically by the cart service
+// קבלת עגלת משתמש (רק משתמשים מחוברים)
+router.get('/cart', isAuthenticated, cartController.getUserCart);
 
-// Get user's cart (works for both guests and logged-in users)
-router.get('/cart', cartController.getUserCart);
+// הוספת פריט לעגלה (רק משתמשים מחוברים)
+router.post('/add', isAuthenticated, cartController.addToCart);
 
-// Add item to cart (works for both guests and logged-in users)
-router.post('/add', cartController.addToCart);
+// עדכון כמות פריט (רק משתמשים מחוברים)
+router.put('/update/:cartItemId', isAuthenticated, cartController.updateQuantity);
 
-// Update item quantity (works for both guests and logged-in users)
-router.put('/update/:cartItemId', cartController.updateQuantity);
+// הסרת פריט מעגלה (רק משתמשים מחוברים)
+router.delete('/remove/:cartItemId', isAuthenticated, cartController.removeFromCart);
 
-// Remove item from cart (works for both guests and logged-in users)
-router.delete('/remove/:cartItemId', cartController.removeFromCart);
+// ניקוי עגלה מלאה (רק משתמשים מחוברים)
+router.delete('/clear', isAuthenticated, cartController.clearCart);
 
-// Clear entire cart (works for both guests and logged-in users)
-router.delete('/clear', cartController.clearCart);
+// אדמין: קבלת עגלת משתמש ספציפי
+router.get('/admin/user/:userId', isAuthenticated, adminAuth, cartController.getUserCartByAdmin);
 
 module.exports = router;

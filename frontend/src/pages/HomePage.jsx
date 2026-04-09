@@ -1,207 +1,415 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { productApi } from '../services/productApi';
-import ProductCard from '../components/productCard/productCard';
+import { useAuth } from '../hooks/useAuthentication';
+import { useToast } from '../components/common/toast';
+import { productApi, analyticsApi } from '../services';
+import { addToWishlist, removeFromWishlist, getWishlist } from '../services/userApi';
+import { useSettings } from '../context/SettingsProvider';
+import HeroSection from '../components/home/HeroSection';
+import NewArrivals from '../components/home/NewArrivals';
+import BestSellers from '../components/home/BestSellers';
+import CategoryContainer from '../components/home/categoryContainer/CategoryContainer';
+import { ErrorContainer, LoadingContainer, ImageModal } from '../components/contactForm';
+import { ProductList } from '../components/products';
+import { SearchBar } from '../components/admin/common';
+import { formatSizesForCustomer } from '../utils/product.utils';
+import { parseImageUrls, getAbsoluteImageUrl } from '../utils/image.utils';
 import styles from './pages.module.css';
 
 function Home() {
-    const navigate = useNavigate();
+    const { settings } = useSettings();
+    const { isAuthenticated, user } = useAuth();
+    const { showError, showInfo } = useToast();
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [newArrivals, setNewArrivals] = useState([]);
     const [bestSellers, setBestSellers] = useState([]);
+    const [allProducts, setAllProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [email, setEmail] = useState('');
-
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await productApi.getProducts();
-                if (response.success && response.data) {
-                    const products = response.data;
-                    
-                    // Get first 8 products for featured
-                    setFeaturedProducts(products.slice(0, 8));
-                    
-                    // Sort by creation date and get newest 3
-                    const sortedByDate = products.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-                    setNewArrivals(sortedByDate.slice(0, 3));
-                    
-                    // Mock best sellers (you can implement actual logic based on sales)
-                    setBestSellers(products.slice(3, 6));
-                }
-            } catch (error) {
-                console.error('Error fetching products:', error);
-            } finally {
-                setLoading(false);
+    const [error, setError] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    const [categoriesError, setCategoriesError] = useState(null);
+    const [bestSellersLoading, setBestSellersLoading] = useState(true);
+    const [bestSellersError, setBestSellersError] = useState(null);
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [modalImages, setModalImages] = useState([]);
+    const [modalAlt, setModalAlt] = useState('');
+    const [modalInitialIndex, setModalInitialIndex] = useState(0);
+    const [wishlistIds, setWishlistIds] = useState([]);
+    // fetchProducts - טוען את כל המוצרים מהשרת
+    // שליחה לשרת: getProducts()
+    // תגובה מהשרת: { success: true, data: [...] }
+    const fetchProducts = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await productApi.getProducts();
+            if (response.success && response.data) {
+                const products = response.data.map(product => ({
+                    ...product,
+                    sizes_display: formatSizesForCustomer(product.sizes)
+                }));
+                setAllProducts(products);
+                // Don't set newArrivals/featuredProducts here - let the useEffect handle it
+                // This ensures we always use the correct settings value
             }
-        };
-
-        fetchProducts();
-    }, []);
-
-    const handleNewsletterSubmit = (e) => {
-        e.preventDefault();
-        // Add newsletter signup logic here
-        alert('Thanks for signing up! You\'ll receive early access to exclusive drops.');
-        setEmail('');
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            setError('Failed to load products. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
+
+    // fetchCategories - טוען את כל הקטגוריות מהשרת
+    // שליחה לשרת: getCategories()
+    // תגובה מהשרת: { success: true, data: [...] }
+    const fetchCategories = async () => {
+        try {
+            setCategoriesLoading(true);
+            setCategoriesError(null);
+            const response = await productApi.getCategories();
+            if (response && response.success && Array.isArray(response.data)) {
+                setCategories(response.data);
+            } else {
+                setCategories([]);
+            }
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            setCategoriesError(error.response?.data?.message || 'Failed to load categories');
+            setCategories([]);
+        } finally {
+            setCategoriesLoading(false);
+        }
+    };
+
+
+    // fetchBestSellers - טוען את המוצרים הנמכרים ביותר מהשרת
+    // שליחה לשרת: getBestSellers()
+    // תגובה מהשרת: { success: true, data: { products: [...] } }
+    const fetchBestSellers = async () => {
+        try {
+            setBestSellersLoading(true);
+            setBestSellersError(null);
+            const response = await analyticsApi.getBestSellers();
+            if (response.success && response.data) {
+                const { products } = response.data;
+                let formattedProducts = products.map(product => {
+                    // Parse image_urls - backend returns it as 'images' field
+                    const imageUrls = product.images || product.image_urls || '';
+                    const parsedImages = parseImageUrls(imageUrls);
+                    const absoluteImages = parsedImages.map(img => getAbsoluteImageUrl(img));
+                    
+                    return {
+                        ...product,
+                        id: product.product_id || product.id,
+                        sizes_display: formatSizesForCustomer(product.sizes),
+                        images: absoluteImages,
+                        image_urls: absoluteImages.join(','),
+                        img_url: absoluteImages[0] || null
+                    };
+                });
+                const displayLimit = settings?.homepage_display_limit ?? 8;
+                if (displayLimit > 0) {
+                    setBestSellers(formattedProducts.slice(0, displayLimit));
+                } else {
+                    setBestSellers([]);
+                }
+            } else {
+                throw new Error('Failed to fetch best sellers data');
+            }
+        } catch (error) {
+            console.error('Error fetching best sellers:', error);
+            setBestSellersError('Failed to load best sellers. Please try again.');
+            try {
+                const displayLimit = settings?.homepage_display_limit ?? 8;
+                if (displayLimit > 0) {
+                    const fallbackProducts = allProducts
+                        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+                        .slice(0, displayLimit);
+                    setBestSellers(fallbackProducts);
+                } else {
+                    setBestSellers([]);
+                }
+            } catch (fallbackError) {
+                console.error('Fallback also failed:', fallbackError);
+            }
+        } finally {
+            setBestSellersLoading(false);
+        }
+    };
+
+
+    // loadWishlist - טוען את רשימת ה-wishlist של המשתמש
+    // שליחה לשרת: getWishlist()
+    // תגובה מהשרת: { wishlist: [...] }
+    const loadWishlist = async () => {
+        try {
+            const response = await getWishlist();
+            const wishlist = response.wishlist || [];
+            setWishlistIds(wishlist.map(id => Number(id)));
+        } catch (error) {
+            console.error('Error loading wishlist:', error);
+        }
+    };
+
+
+    // handleAddToWishlist - מוסיף מוצר ל-wishlist
+    // שליחה לשרת: addToWishlist(productId)
+    // תגובה מהשרת: { success: true }
+    const handleAddToWishlist = async (productId) => {
+        if (!isAuthenticated) {
+            showInfo('Please login to add items to your wishlist');
+            return;
+        }
+        if (user?.role === 'admin') {
+            showInfo('Admins cannot add items to wishlist');
+            return;
+        }
+        try {
+            await addToWishlist(productId);
+            setWishlistIds(prev => [...prev, Number(productId)]);
+        } catch (error) {
+            console.error('Error adding product to wishlist:', error);
+            showError('Failed to add item to wishlist. Please try again.');
+        }
+    };
+
+
+    // handleRemoveFromWishlist - מסיר מוצר מה-wishlist
+    // שליחה לשרת: removeFromWishlist(productId)
+    // תגובה מהשרת: { success: true }
+    const handleRemoveFromWishlist = async (productId) => {
+        try {
+            await removeFromWishlist(productId);
+            setWishlistIds(prev => prev.filter(id => id !== Number(productId)));
+        } catch (error) {
+            console.error('Error removing product from wishlist:', error);
+            showError('Failed to remove item from wishlist. Please try again.');
+        }
+    };
+
+
+    // handleSearchChange - מעדכן את מילת החיפוש
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+        if (query.trim() || selectedCategory !== 'all') {
+            setShowSearchResults(true);
+        } else {
+            setShowSearchResults(false);
+        }
+    };
+
+
+    // handleCategoryChange - מעדכן את הקטגוריה הנבחרת
+    const handleCategoryChange = (e) => {
+        const categoryId = e.target.value;
+        setSelectedCategory(categoryId);
+        if (categoryId !== 'all' || searchQuery.trim()) {
+            setShowSearchResults(true);
+        } else {
+            setShowSearchResults(false);
+        }
+    };
+
+
+    // handleImageClick - פותח מודל תמונה
+    const handleImageClick = (images, alt, initialIndex = 0) => {
+        setModalImages(images);
+        setModalAlt(alt);
+        setModalInitialIndex(initialIndex);
+        setImageModalOpen(true);
+    };
+
+
+    // handleModalClose - סוגר מודל תמונה
+    const handleModalClose = () => {
+        setImageModalOpen(false);
+        setModalImages([]);
+        setModalAlt('');
+        setModalInitialIndex(0);
+    };
+
+
+    useEffect(() => {
+        fetchProducts();
+        fetchCategories();
+        if (isAuthenticated) {
+            loadWishlist();
+        }
+    }, [isAuthenticated]);
+
+
+    useEffect(() => {
+        if (allProducts.length > 0) {
+            fetchBestSellers();
+        }
+    }, [allProducts]);
+
+    // Update newArrivals and featuredProducts when displayLimit changes
+    useEffect(() => {
+        if (allProducts.length > 0) {
+            // Only update if settings are loaded (to avoid defaulting to 8)
+            // Check for both undefined and null
+            if (settings?.homepage_display_limit !== undefined && settings?.homepage_display_limit !== null) {
+                const displayLimit = Number(settings.homepage_display_limit);
+                console.log('Updating newArrivals with displayLimit:', displayLimit);
+                if (displayLimit > 0) {
+                    setFeaturedProducts(allProducts.slice(0, displayLimit));
+                    const sortedByDate = [...allProducts].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                    setNewArrivals(sortedByDate.slice(0, displayLimit));
+                } else {
+                    console.log('Setting newArrivals to empty array because displayLimit is 0');
+                    setFeaturedProducts([]);
+                    setNewArrivals([]);
+                }
+            } else {
+                console.log('Settings not loaded yet, homepage_display_limit:', settings?.homepage_display_limit);
+            }
+        }
+    }, [allProducts, settings?.homepage_display_limit]);
+    const getFilteredProducts = () => {
+        let filtered = allProducts;
+        if (selectedCategory !== 'all') {
+            filtered = filtered.filter(product => 
+                product.category_id == selectedCategory
+            );
+        }
+        if (searchQuery.trim()) {
+            filtered = filtered.filter(product => {
+                const searchTerm = searchQuery.toLowerCase().trim();
+                const productName = (product.name || '').toLowerCase();
+                return productName.startsWith(searchTerm);
+            });
+        }
+        return filtered;
+    };
+    if (error) {
+        return (
+            <div className={styles.homePage}>
+                <div className={styles.mainContent}>
+                    <HeroSection />
+                    <ErrorContainer 
+                        message={error} 
+                        onRetry={fetchProducts}
+                        showRetry={true}
+                    />
+                </div>
+            </div>
+        );
+    }
     return (
         <div className={styles.homePage}>
-            {/* Hero Section */}
-            <div className={styles.heroSection}>
-                <div className={styles.heroContent}>
-                    <h1 className={styles.heroTitle}>Step Into Style</h1>
-                    <p className={styles.heroSubtitle}>
-                        Discover the latest in premium sneakers and streetwear. 
-                        Your ultimate destination for authentic kicks and urban fashion.
-                    </p>
-                    <div className={styles.heroButtons}>
-                        <button 
-                            className={styles.primaryButton}
-                            onClick={() => navigate('/products')}
-                        >
-                            Shop Now
-                        </button>
-                        <button 
-                            className={styles.secondaryButton}
-                            onClick={() => navigate('/products')}
-                        >
-                            Explore Collection
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Navigation */}
-            <div className={styles.quickNavSection}>
-                <div className={styles.quickNavGrid}>
-                    <div className={styles.quickNavCard} onClick={() => navigate('/products')}>
-                        <div className={styles.quickNavIcon}>👨</div>
-                        <h3>Men's</h3>
-                    </div>
-                    <div className={styles.quickNavCard} onClick={() => navigate('/products')}>
-                        <div className={styles.quickNavIcon}>👩</div>
-                        <h3>Women's</h3>
-                    </div>
-                    <div className={styles.quickNavCard} onClick={() => navigate('/products')}>
-                        <div className={styles.quickNavIcon}>🧒</div>
-                        <h3>Kids'</h3>
-                    </div>
-                    <div className={styles.quickNavCard} onClick={() => navigate('/products')}>
-                        <div className={styles.quickNavIcon}>⭐</div>
-                        <h3>Limited</h3>
-                    </div>
-                    <div className={styles.quickNavCard} onClick={() => navigate('/products')}>
-                        <div className={styles.quickNavLogo}>NIKE</div>
-                    </div>
-                    <div className={styles.quickNavCard} onClick={() => navigate('/products')}>
-                        <div className={styles.quickNavLogo}>JORDAN</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* New Arrivals */}
-            {!loading && newArrivals.length > 0 && (
-                <div className={styles.productSection}>
-                    <div className={styles.sectionHeader}>
-                        <h2 className={styles.sectionTitle}>New Arrivals</h2>
-                        <button 
-                            className={styles.viewAllButton}
-                            onClick={() => navigate('/products')}
-                        >
-                            View All
-                        </button>
-                    </div>
-                    <div className={styles.productGrid}>
-                        {newArrivals.map((product) => (
-                            <ProductCard 
-                                key={product.product_id} 
-                                product={product}
-                                onImageClick={() => {}} 
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Best Sellers */}
-            {!loading && bestSellers.length > 0 && (
-                <div className={styles.productSection}>
-                    <div className={styles.sectionHeader}>
-                        <h2 className={styles.sectionTitle}>Best Sellers</h2>
-                        <button 
-                            className={styles.viewAllButton}
-                            onClick={() => navigate('/products')}
-                        >
-                            View All
-                        </button>
-                    </div>
-                    <div className={styles.productGrid}>
-                        {bestSellers.map((product) => (
-                            <ProductCard 
-                                key={product.product_id} 
-                                product={product}
-                                onImageClick={() => {}} 
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Trust & Social Proof */}
-            <div className={styles.trustSection}>
-                <div className={styles.trustContent}>
-                    <div className={styles.trustStats}>
-                        <div className={styles.statItem}>
-                            <span className={styles.statNumber}>50K+</span>
-                            <span className={styles.statLabel}>Customers</span>
-                        </div>
-                        <div className={styles.statItem}>
-                            <span className={styles.statNumber}>4.9★</span>
-                            <span className={styles.statLabel}>Rating</span>
-                        </div>
-                        <div className={styles.statItem}>
-                            <span className={styles.statNumber}>100%</span>
-                            <span className={styles.statLabel}>Authentic</span>
-                        </div>
-                    </div>
-                    <div className={styles.trustBenefits}>
-                        <span className={styles.trustBenefit}>✓ Free Shipping</span>
-                        <span className={styles.trustBenefit}>✓ Secure Payment</span>
-                        <span className={styles.trustBenefit}>✓ Early Access</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Newsletter Signup */}
-            <div className={styles.newsletterSection}>
-                <div className={styles.newsletterContent}>
-                    <h2 className={styles.newsletterTitle}>Get Early Access to Drops</h2>
-                    <p className={styles.newsletterDescription}>
-                        Be the first to know about new releases, exclusive sales, and limited drops.
-                        Plus get 10% off your first purchase!
-                    </p>
-                    <form className={styles.newsletterForm} onSubmit={handleNewsletterSubmit}>
-                        <input
-                            type="email"
-                            placeholder="Enter your email address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={styles.newsletterInput}
-                            required
+            <div className={styles.mainContent}>
+                <div className={styles.homeSearchSection}>
+                    <div className={styles.searchControls}>
+                        <SearchBar
+                            count={getFilteredProducts().length}
+                            itemName="product"
+                            value={searchQuery}
+                            onChange={(e) => handleSearchChange(e)}
+                            onClear={() => {
+                                setSearchQuery('');
+                                setShowSearchResults(false);
+                            }}
                         />
-                        <button type="submit" className={styles.newsletterButton}>
-                            Subscribe
-                        </button>
-                    </form>
-                    <p className={styles.newsletterDisclaimer}>
-                        * No spam, unsubscribe anytime. Your email is safe with us.
-                    </p>
+                        <div className={styles.categoryContainer}>
+                            {categoriesLoading ? (
+                                <div className={styles.categoryLoadingInline}>
+                                    <div className={styles.categoryLoadingSpinner}></div>
+                                    <span>Loading categories...</span>
+                                </div>
+                            ) : categoriesError ? (
+                                <div className={styles.categoryError}>
+                                    <span>Failed to load</span>
+                                    <button 
+                                        onClick={fetchCategories}
+                                        className={styles.categoryRetryButton}
+                                    >
+                                        Retry
+                                    </button>
+                                </div>
+                            ) : (
+                                <select
+                                    value={selectedCategory}
+                                    onChange={handleCategoryChange}
+                                    className={styles.categorySelect}
+                                >
+                                    <option value="all">All Categories</option>
+                                    {categories.map(category => (
+                                        <option key={category.category_id} value={category.category_id}>
+                                            {category.category_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    </div>
+                    <HeroSection />
                 </div>
+            {showSearchResults && (
+                <div className={styles.searchResultsSection}>
+                    <ProductList 
+                        products={getFilteredProducts()}
+                        onImageClick={handleImageClick}
+                        wishlistIds={wishlistIds}
+                        onAddToWishlist={handleAddToWishlist}
+                        onRemoveFromWishlist={handleRemoveFromWishlist}
+                        isAuthenticated={isAuthenticated}
+                        user={user}
+                    />
+                </div>
+            )}
+            {!showSearchResults && (
+                <>
+                     {settings?.homepage_display_limit !== undefined && 
+                      settings.homepage_display_limit > 0 && 
+                      newArrivals.length > 0 && (
+                         <NewArrivals
+                             products={newArrivals}
+                             loading={loading}
+                             onImageClick={handleImageClick}
+                             wishlistIds={wishlistIds}
+                             onAddToWishlist={handleAddToWishlist}
+                             onRemoveFromWishlist={handleRemoveFromWishlist}
+                             isAuthenticated={isAuthenticated}
+                             user={user}
+                         />
+                     )}
+                     {((settings?.homepage_display_limit ?? 8) > 0 && bestSellers.length > 0) && (
+                         <BestSellers 
+                             products={bestSellers} 
+                             loading={bestSellersLoading} 
+                             error={bestSellersError}
+                             onRetry={fetchBestSellers}
+                             onImageClick={handleImageClick}
+                             wishlistIds={wishlistIds}
+                             onAddToWishlist={handleAddToWishlist}
+                             onRemoveFromWishlist={handleRemoveFromWishlist}
+                             isAuthenticated={isAuthenticated}
+                             user={user}
+                         />
+                     )}
+                     <CategoryContainer 
+                         categories={categories}
+                         loading={categoriesLoading}
+                         error={categoriesError}
+                     />
+                </>
+            )}
+            <ImageModal
+                open={imageModalOpen}
+                images={modalImages}
+                alt={modalAlt}
+                initialIndex={modalInitialIndex}
+                onClose={handleModalClose}
+            />
             </div>
-
-
         </div>
     );
 }

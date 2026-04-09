@@ -1,12 +1,13 @@
 import React from 'react';
+import { useToast } from '../../components/common/toast';
 import styles from './cartActions.module.css';
 
 
-const CartActions = ({ cartTotal, clearCart, isLoading,handlePlaceOrder }) => {
-
+const CartActions = ({ cartTotal, clearCart, isLoading, handleCheckout: onCheckout }) => {
+    const { showConfirmation, showSuccess } = useToast();
 
     const handleCheckout = () => {
-        handlePlaceOrder();
+        onCheckout();
     };
 
     const handleContinueShopping = () => {
@@ -14,9 +15,11 @@ const CartActions = ({ cartTotal, clearCart, isLoading,handlePlaceOrder }) => {
         window.location.href = '/products';
     };
 
-    const handleClearCart = () => {
-        if (window.confirm('Are you sure you want to clear your cart?')) {
+    const handleClearCart = async () => {
+        const confirmed = await showConfirmation('Are you sure you want to clear your cart?');
+        if (confirmed) {
             clearCart();
+            showSuccess('Cart cleared successfully');
         }
     };
 

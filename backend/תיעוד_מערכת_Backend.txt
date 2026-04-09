@@ -1,0 +1,1284 @@
+================================================================================
+תיעוד מקיף של מערכת ה-Backend - מערכת ניהול חנות נעליים
+================================================================================
+
+תוכן עניינים:
+1. סקירה כללית
+2. מבנה הקבצים
+3. מודלים (Models)
+4. בקרים (Controllers)
+5. נתיבים (Routes) וחיבורים ל-Frontend
+6. שירותים (Services)
+7. Middleware
+8. מסד נתונים
+
+================================================================================
+1. סקירה כללית
+================================================================================
+
+המערכת בנויה על Node.js עם Express, ומשתמשת ב-MySQL כמסד נתונים.
+המערכת מספקת API מלא לניהול חנות נעליים, כולל:
+- ניהול משתמשים והרשאות
+- ניהול מוצרים וקטגוריות
+- ניהול הזמנות ותשלומים
+- ניהול עגלת קניות
+- מערכת הודעות
+- אנליטיקס ודוחות
+- מעקב פעילות מנהלים
+
+================================================================================
+2. מבנה הקבצים
+================================================================================
+
+backend/src/
+├── app.js                    - קובץ האפליקציה הראשי, מגדיר את השרת והנתיבים
+├── config/                   - קבצי הגדרות
+│   ├── config.js            - הגדרות כלליות (פורט, JWT, CORS, וכו')
+│   └── database.js          - חיבור למסד הנתונים
+├── controllers/              - בקרים - לוגיקת עסקים וטיפול בבקשות
+├── models/                   - מודלים - פעולות מסד נתונים
+├── routes/                   - נתיבים - הגדרת API endpoints
+├── services/                 - שירותים - לוגיקה חיצונית (אימייל, PayPal)
+├── middleware/               - Middleware - אימות, לוגים, שגיאות
+└── uploads/                  - תיקיית העלאת קבצים
+
+================================================================================
+3. מודלים (Models)
+================================================================================
+
+כל מודל מנהל את הפעולות הקשורות לטבלה מסוימת במסד הנתונים.
+
+3.1 User.js - מודל המשתמשים
+----------------------------
+תפקיד: ניהול כל הפעולות הקשורות למשתמשים במסד הנתונים
+
+פונקציות עיקריות:
+- findUser(email, password) - מציאת משתמש ואימות סיסמה
+  * שאילתה: SELECT password FROM users WHERE email = ?
+  * בודקת סיסמה עם bcrypt
+  * מחזירה: אובייקט משתמש או null
+  
+- findUserByEmail(email) - מציאת משתמש לפי אימייל
+  * שאילתה: SELECT * FROM users WHERE email = ?
+  * מחזירה: אובייקט משתמש או null
+  
+- createUser(userData) - יצירת משתמש חדש
+  * שאילתה: INSERT INTO users (full_name, email, address, phone_number, password, role)
+  * מצפינה סיסמה עם bcrypt
+  * משתמשת בטרנזקציה
+  * מחזירה: userId (insertId)
+  
+- createPasswordResetToken(email) - יצירת טוקן לאיפוס סיסמה
+  * יוצרת טוקן אקראי עם crypto
+  * מעדכנת את המשתמש עם הטוקן ותאריך תפוגה (שעה אחת)
+  * שאילתה: UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?
+  
+- findUserByResetToken(resetToken) - מציאת משתמש לפי טוקן
+  * שאילתה: SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()
+  * מחזירה: אובייקט משתמש או null
+  
+- resetPassword(resetToken, newPassword) - איפוס סיסמה
+  * בודקת שהטוקן תקין
+  * מצפינה סיסמה חדשה
+  * מעדכנת סיסמה ומנקה טוקן
+  * שאילתה: UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?
+  
+- getAllUsers() - קבלת כל המשתמשים
+  * שאילתה: SELECT id, full_name, email, address, phone_number, role, created_at FROM users
+  * מחזירה: מערך של משתמשים (ללא סיסמאות)
+  
+- deleteUser(userId) - מחיקת משתמש
+  * בודקת אם למשתמש יש הזמנות (לא מאפשרת מחיקה אם יש)
+  * שאילתה: DELETE FROM users WHERE id = ?
+  * מחזירה: true אם הצליחה
+  
+- updateProfile(userId, profileData) - עדכון פרטי משתמש
+  * מעדכנת שם וטלפון
+  * שאילתה דינמית: UPDATE users SET full_name = ?, phone_number = ? WHERE id = ?
+  
+- updateAddress(userId, addressData) - עדכון כתובת
+  * שומרת כתובת בפורמט JSON
+  * שאילתה: UPDATE users SET address = ? WHERE id = ?
+  
+- changePassword(userId, currentPassword, newPassword) - שינוי סיסמה
+  * מאמתת סיסמה נוכחית
+  * מצפינה סיסמה חדשה
+  * שאילתה: UPDATE users SET password = ? WHERE id = ?
+  
+- getWishlist(userId) - קבלת רשימת משאלות
+  * שאילתה: SELECT wishlist FROM users WHERE id = ?
+  * מחזירה: מערך של product IDs
+  
+- addToWishlist(userId, productId) - הוספת מוצר לרשימת משאלות
+  * בודקת אם המוצר כבר קיים
+  * מעדכנת את רשימת המשאלות ב-JSON
+  * שאילתה: UPDATE users SET wishlist = ? WHERE id = ?
+  
+- removeFromWishlist(userId, productId) - הסרת מוצר מרשימת משאלות
+  * מסננת את המוצר מהרשימה
+  * מעדכנת את רשימת המשאלות
+  * שאילתה: UPDATE users SET wishlist = ? WHERE id = ?
+
+3.2 Product.js - מודל המוצרים
+-----------------------------
+תפקיד: ניהול כל הפעולות הקשורות למוצרים במסד הנתונים
+
+פונקציות עיקריות:
+- getAllProducts() - קבלת כל המוצרים
+  * שאילתה מורכבת עם JOIN לקטגוריות וסטטיסטיקות מכירות
+  * מחשבת: total_quantity_sold, total_revenue, total_sales
+  * מעבדת תמונות וגדלים (JSON)
+  * מחזירה: מערך מוצרים מעובדים עם תמונות מלאות וגדלים
+  
+- getProductById(id) - קבלת מוצר לפי מזהה
+  * שאילתה: SELECT p.*, c.category_name FROM products p LEFT JOIN categories c
+  * מעבדת תמונות וגדלים
+  * מחזירה: אובייקט מוצר מעובד
+  
+- createProduct(productData) - יצירת מוצר חדש
+  * מחשבת total_stock מגדלים
+  * שומרת גדלים כ-JSON
+  * שאילתה: INSERT INTO products (category_id, name, price, stock_quantity, description, sizes, image_urls, is_active)
+  * מחזירה: result object עם insertId
+  
+- updateProduct(id, productData) - עדכון מוצר
+  * מעדכנת את כל השדות כולל גדלים
+  * שאילתה: UPDATE products SET category_id = ?, name = ?, price = ?, ...
+  
+- deleteProduct(id) - מחיקת מוצר
+  * בודקת אם המוצר פעיל (לא מאפשרת מחיקה אם פעיל)
+  * שאילתה: DELETE FROM products WHERE id = ?
+  
+- getLowStockProducts(threshold) - מוצרים עם מלאי נמוך (סה"כ)
+  * שאילתה: SELECT * FROM products WHERE stock_quantity <= ?
+  * מחזירה: מוצרים עם מלאי נמוך
+  
+- getProductsWithLowStockSizes(sizeThreshold) - מוצרים עם גדלים במלאי נמוך
+  * שאילתה מורכבת: SELECT * FROM products ORDER BY name
+  * מעבדת כל מוצר ובודקת גדלים
+  * מחזירה רק מוצרים שיש להם לפחות גדל אחד במלאי נמוך
+  * כוללת תמונות מעובדות
+  
+- updateSizeQuantityForProduct(productId, size, newQuantity) - עדכון כמות גדל
+  * מעדכנת כמות גדל ספציפי
+  * מחשבת מחדש total_stock
+  * שאילתה: UPDATE products SET sizes = ?, stock_quantity = ? WHERE id = ?
+  
+- addSizeToProduct(productId, size, quantity) - הוספת גדל למוצר
+  * מוסיפה גדל חדש או מעדכנת קיים
+  * מחשבת מחדש total_stock
+  
+- decreaseStockForSize(productId, size, quantityToDecrease) - הפחתת מלאי לאחר הזמנה
+  * מפחיתה כמות מגדל ספציפי
+  * בודקת אם יש מספיק מלאי
+  * מעדכנת total_stock
+  
+- getStockForSize(productId, size) - קבלת מלאי לגדל ספציפי
+  * מחזירה: כמות זמינה לגדל
+  
+- deactivateProduct(productId) - השבתת מוצר
+  * שאילתה: UPDATE products SET is_active = 0 WHERE id = ?
+  
+- activateProduct(productId) - הפעלת מוצר
+  * שאילתה: UPDATE products SET is_active = 1 WHERE id = ?
+
+3.3 Order.js - מודל ההזמנות
+-----------------------------
+תפקיד: ניהול כל הפעולות הקשורות להזמנות במסד הנתונים
+
+פונקציות עיקריות:
+- placeOrder(orderData) - יצירת הזמנה חדשה
+  * בודקת מלאי לפני יצירת הזמנה
+  * יוצרת מספר הזמנה בפורמט ORD-YYYY-XXX
+  * מחשבת תאריך אספקה משוער (חודש מהיום)
+  * שומרת כתובת כ-JSON
+  * שאילתות:
+    - INSERT INTO orders (user_id, total_amount, payment_status, order_number, status, arrival_date_estimated, address)
+    - INSERT INTO order_items (order_id, product_id, quantity, selected_size)
+  * מפחיתה מלאי מכל מוצר
+  * מחזירה: { success: true, orderId, orderNumber }
+  
+- getAllOrders(sizeFilter) - קבלת כל ההזמנות
+  * שאילתה מורכבת עם JOIN למשתמשים
+  * תמיכה בסינון לפי גדל
+  * מעבדת כתובות JSON
+  * מחזירה: מערך הזמנות
+  
+- getOrderById(orderId) - קבלת הזמנה לפי מזהה
+  * שאילתה: SELECT o.*, u.full_name, u.email FROM orders o JOIN users u
+  * מעבדת כתובת JSON
+  * מחזירה: אובייקט הזמנה
+  
+- getUserOrderById(orderId, userId) - קבלת הזמנה של משתמש ספציפי
+  * בודקת שההזמנה שייכת למשתמש
+  * שאילתה: SELECT * FROM orders WHERE order_id = ? AND user_id = ?
+  
+- updateOrder(orderId, orderData) - עדכון הזמנה
+  * מעדכנת סכום, סטטוס, ומספר מעקב
+  * שאילתה: UPDATE orders SET total_amount = ?, status = ?, tracking_number = ?
+  
+- updateOrderStatus(orderId, status) - עדכון סטטוס הזמנה
+  * שאילתה: UPDATE orders SET status = ? WHERE order_id = ?
+  
+- getUserOrders(userId) - קבלת הזמנות של משתמש
+  * שאילתה: SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC
+  
+- getUserOrderCount(userId) - ספירת הזמנות של משתמש
+  * שאילתה: SELECT COUNT(*) FROM orders WHERE user_id = ?
+  
+- getOrderItems(orderId) - קבלת פריטי הזמנה
+  * שאילתה מורכבת עם JOIN למוצרים
+  * מעבדת תמונות וכתובות
+  * מחזירה: מערך פריטי הזמנה
+  
+- getDashboardStats() - סטטיסטיקות לדשבורד
+  * שאילתות מורכבות:
+    - סטטיסטיקות הזמנות (סה"כ, הכנסות, לפי סטטוס)
+    - הזמנות אחרונות (8)
+    - מוצרים מובילים (8)
+    - הכנסות חודשיות (6 חודשים אחרונים)
+  * מחזירה: אובייקט עם כל הסטטיסטיקות
+  
+- getBestSellers(limit) - מוצרים מובילים
+  * שאילתה מורכבת המחשבת מכירות לפי טווח זמן מהגדרות
+  * מדרגת לפי כמות נמכרה ואז הכנסות
+  * מחזירה: { products, timeRange, limit, totalFound }
+  
+- getRevenueAnalytics(startDate, endDate, groupBy) - אנליטיקס הכנסות
+  * מקבצת הכנסות לפי תקופה (יום/שבוע/חודש/שנה)
+  * שאילתה: SELECT DATE_FORMAT(created_at, ?) as period, SUM(total_amount) as revenue
+  * מחזירה: מערך נתונים לפי תקופה
+  
+- getProductAnalytics(startDate, endDate) - אנליטיקס מוצרים
+  * שאילתות מורכבות:
+    - ביצועי מוצרים (מכירות, הכנסות, מלאי נותר)
+    - ביצועי קטגוריות
+  * מחזירה: { productPerformance, categoryPerformance }
+  
+- getUserAnalytics(startDate, endDate) - אנליטיקס משתמשים
+  * מחשב: משתמשים חדשים, משתמשים פעילים, משתמשים חוזרים
+  * שאילתות: COUNT משתמשים לפי קריטריונים
+  * מחזירה: { newUsers, activeUsers, returningUsers, growthRate, userGrowth }
+
+3.4 Category.js - מודל הקטגוריות
+----------------------------------
+תפקיד: ניהול כל הפעולות הקשורות לקטגוריות במסד הנתונים
+
+פונקציות עיקריות:
+- getCategories() - קבלת כל הקטגוריות
+  * שאילתה: SELECT * FROM categories
+  * מחזירה: מערך קטגוריות
+  
+- getCategoryById(categoryId) - קבלת קטגוריה לפי מזהה
+  * שאילתה: SELECT * FROM categories WHERE category_id = ?
+  
+- addCategory(categoryData) - הוספת קטגוריה חדשה
+  * בודקת אם קטגוריה עם שם זה כבר קיימת
+  * שומרת תמונה כ-JSON array
+  * שאילתה: INSERT INTO categories (category_name, description, image_urls)
+  * מחזירה: { category_id, category_name, description, image_url }
+  
+- updateCategory(categoryId, categoryData) - עדכון קטגוריה
+  * בודקת התנגשויות בשם
+  * שאילתה דינמית לפי השדות לעדכון
+  * מחזירה: קטגוריה מעודכנת
+  
+- deleteCategory(categoryId) - מחיקת קטגוריה
+  * בודקת אם יש מוצרים בקטגוריה (לא מאפשרת מחיקה אם יש)
+  * שאילתה: DELETE FROM categories WHERE category_id = ?
+
+3.5 Cart.js - מודל עגלת הקניות
+--------------------------------
+תפקיד: ניהול עגלת הקניות של המשתמשים
+
+פונקציות עיקריות:
+- getUserCart(userId) - קבלת עגלת קניות של משתמש
+  * יוצרת עגלה אם לא קיימת
+  * שאילתה: SELECT * FROM carts WHERE user_id = ?
+  * שאילתה: SELECT ci.*, p.* FROM cart_items ci JOIN products p
+  * מחזירה: { cartId, items, totalCost }
+  
+- addToCart(userId, productId, quantity, selectedSize) - הוספת פריט לעגלה
+  * בודקת אם פריט כבר קיים (עם אותו גדל)
+  * מעדכנת כמות או מוסיפה פריט חדש
+  * מעדכנת סה"כ עגלה
+  * שאילתות:
+    - INSERT INTO cart_items (cart_id, product_id, quantity, price, selected_size)
+    - UPDATE cart_items SET quantity = ?
+  
+- updateQuantity(userId, cartItemId, quantity) - עדכון כמות פריט
+  * בודקת שהפריט שייך למשתמש
+  * מעדכנת כמות ומחשב מחדש סה"כ
+  * שאילתה: UPDATE cart_items SET quantity = ? WHERE cart_item_id = ?
+  
+- removeFromCart(userId, cartItemId) - הסרת פריט מעגלה
+  * בודקת שהפריט שייך למשתמש
+  * מוחקת פריט ומעדכנת סה"כ
+  * שאילתה: DELETE FROM cart_items WHERE cart_item_id = ?
+  
+- clearCart(userId) - ניקוי עגלה
+  * מוחקת כל הפריטים מעגלה
+  * שאילתה: DELETE FROM cart_items WHERE cart_id = ?
+
+3.6 Settings.js - מודל ההגדרות
+--------------------------------
+תפקיד: ניהול הגדרות המערכת (key-value)
+
+פונקציות עיקריות:
+- getSettings() - קבלת כל ההגדרות
+  * שאילתה: SELECT setting_key, setting_value FROM settings
+  * ממירה ערכים לטיפוסים (מספר, בוליאני, JSON)
+  * מחזירה: אובייקט עם כל ההגדרות
+  
+- getSetting(key, defaultValue) - קבלת הגדרה אחת
+  * שאילתה: SELECT setting_value FROM settings WHERE setting_key = ?
+  * מחזירה: ערך ההגדרה או default
+  
+- updateSettings(settingsData) - עדכון הגדרות
+  * משתמשת ב-INSERT ... ON DUPLICATE KEY UPDATE
+  * שאילתה: INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE
+  
+- getSettingsWithDescriptions() - קבלת הגדרות עם תיאורים
+  * מחזירה: אובייקט עם value ו-description לכל הגדרה
+
+3.7 Message.js - מודל ההודעות
+-------------------------------
+תפקיד: ניהול הודעות קשר (לקוחות/אורחים/אדמינים)
+
+פונקציות עיקריות:
+- getAllMessages() - קבלת כל ההודעות
+  * שאילתה מורכבת עם JOIN להזמנות, מוצרים, משתמשים
+  * מחזירה: מערך הודעות
+  
+- getMessageById(messageId) - קבלת הודעה לפי מזהה
+  * שאילתה: SELECT cm.*, o.order_number, p.name, u.full_name FROM contact_messages cm
+  
+- createMessage(messageData) - יצירת הודעה חדשה
+  * שאילתה: INSERT INTO contact_messages (message_type, sender_user_id, sender_name, ...)
+  * מחזירה: { messageId, ...messageData }
+  
+- updateMessageStatus(messageId, status) - עדכון סטטוס הודעה
+  * שאילתה: UPDATE contact_messages SET status = ? WHERE message_id = ?
+  
+- deleteMessage(messageId) - מחיקת הודעה
+  * בודקת שההודעה resolved או archived
+  * שאילתה: DELETE FROM contact_messages WHERE message_id = ?
+  
+- getUnreadCount() - ספירת הודעות שלא נקראו
+  * שאילתה: SELECT COUNT(*) FROM contact_messages WHERE status = 'new'
+
+3.8 Activity.js - מודל מעקב פעילות
+------------------------------------
+תפקיד: מעקב אחר פעולות מנהלים במערכת
+
+פונקציות עיקריות:
+- create(activityData) - יצירת רשומת פעילות
+  * שאילתה: INSERT INTO activities (user_id, action_type, entity_type, entity_id, description)
+  
+- getAll(filters) - קבלת פעילויות עם סינון
+  * שאילתה מורכבת עם JOIN למשתמשים
+  * תמיכה בסינון לפי: action_type, entity_type, user_id, user_email, תאריכים
+  * תמיכה ב-pagination (limit, offset)
+  * מחזירה: מערך פעילויות
+  
+- getCount(filters) - ספירת פעילויות
+  * שאילתה: SELECT COUNT(*) FROM activities WHERE ...
+  
+- getStatistics(days_back) - סטטיסטיקות פעילות
+  * שאילתה: SELECT action_type, entity_type, COUNT(*) FROM activities GROUP BY ...
+  
+- deleteOldActivities(daysOld) - מחיקת פעילויות ישנות
+  * שאילתה: DELETE FROM activities WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+
+================================================================================
+4. בקרים (Controllers)
+================================================================================
+
+כל בקר מקבל בקשות HTTP, מטפל בהן, קורא למודל המתאים, ומחזיר תגובה.
+
+4.1 userController.js
+---------------------
+תפקיד: טיפול בכל הבקשות הקשורות למשתמשים
+
+פונקציות:
+- login(req, res) - התחברות משתמש
+  * קורא ל-User.findUser()
+  * יוצר JWT token
+  * שומר token ב-HTTP-only cookie
+  * מחזיר: { success: true, user: {...} }
+  * Frontend: LoginForm, AuthPage
+  
+- me(req, res) - בדיקת אימות נוכחי
+  * משתמש ב-middleware auth
+  * מחזיר: { success: true, user: req.user }
+  * Frontend: App.jsx (בדיקת אימות)
+  
+- logout(req, res) - התנתקות
+  * מנקה cookie
+  * מחזיר: { success: true, message: 'Logout successful' }
+  * Frontend: Header, Navigation
+  
+- createUser(req, res) - יצירת משתמש חדש
+  * קורא ל-User.createUser()
+  * שולח אימייל ברכה
+  * מחזיר: { success: true, userId }
+  * Frontend: SignupForm
+  
+- forgotPassword(req, res) - בקשת איפוס סיסמה
+  * קורא ל-User.createPasswordResetToken()
+  * שולח אימייל עם קישור איפוס
+  * מחזיר: { success: true, message: '...' }
+  * Frontend: ForgotPasswordForm
+  
+- resetPassword(req, res) - איפוס סיסמה
+  * קורא ל-User.resetPassword()
+  * מחזיר: { success: true, message: 'Password has been reset successfully' }
+  * Frontend: ResetPasswordPage
+  
+- verifyResetToken(req, res) - אימות טוקן איפוס
+  * קורא ל-User.findUserByResetToken()
+  * מחזיר: { success: true, message: 'Token is valid' }
+  * Frontend: ResetPasswordPage
+  
+- getAllUsers(req, res) - קבלת כל המשתמשים (אדמין)
+  * קורא ל-User.getAllUsers()
+  * מחזיר: { success: true, data: users }
+  * Frontend: UserManagementPage
+  
+- deleteUser(req, res) - מחיקת משתמש (אדמין)
+  * קורא ל-User.deleteUser()
+  * מחזיר: { success: true, message: 'User deleted successfully' }
+  * Frontend: UserManagementPage, UserModal
+  
+- getProfile(req, res) - קבלת פרופיל משתמש
+  * קורא ל-User.findUserByEmail()
+  * מעבד כתובת JSON
+  * מחזיר: { success: true, data: {...} }
+  * Frontend: ProfilePage
+  
+- updateProfile(req, res) - עדכון פרופיל
+  * קורא ל-User.updateProfile()
+  * מחזיר: { success: true, data: updatedUser }
+  * Frontend: ProfilePage
+  
+- updateAddress(req, res) - עדכון כתובת
+  * קורא ל-User.updateAddress()
+  * מחזיר: { success: true, data: updatedUser }
+  * Frontend: ProfilePage
+  
+- changePassword(req, res) - שינוי סיסמה
+  * קורא ל-User.changePassword()
+  * מחזיר: { success: true, message: 'Password changed successfully' }
+  * Frontend: ProfilePage
+  
+- getWishlist(req, res) - קבלת רשימת משאלות
+  * קורא ל-User.getWishlist()
+  * מחזיר: { success: true, wishlist: [...] }
+  * Frontend: WishlistPage
+  
+- addToWishlist(req, res) - הוספה לרשימת משאלות
+  * קורא ל-User.addToWishlist()
+  * מחזיר: { success: true, wishlist: [...] }
+  * Frontend: ProductCard, ProductModal
+  
+- removeFromWishlist(req, res) - הסרה מרשימת משאלות
+  * קורא ל-User.removeFromWishlist()
+  * מחזיר: { success: true, wishlist: [...] }
+  * Frontend: WishlistPage, WishlistCard
+
+4.2 productController.js
+-------------------------
+תפקיד: טיפול בכל הבקשות הקשורות למוצרים
+
+פונקציות:
+- getProducts(req, res) - קבלת כל המוצרים
+  * קורא ל-Product.getAllProducts()
+  * מחזיר: { success: true, data: products }
+  * Frontend: ProductsPage, HomePage (Best Sellers, New Arrivals)
+  
+- getProductById(req, res) - קבלת מוצר לפי מזהה
+  * קורא ל-Product.getProductById()
+  * מחזיר: { success: true, data: product }
+  * Frontend: ProductModal, ProductDetails
+  
+- createProduct(req, res) - יצירת מוצר חדש (אדמין)
+  * קורא ל-Product.createProduct()
+  * מחזיר: { success: true, data: product }
+  * Frontend: ProductManagementPage, AddProductModal
+  
+- updateProduct(req, res) - עדכון מוצר (אדמין)
+  * קורא ל-Product.updateProduct()
+  * מחזיר: { success: true, message: 'Product updated successfully' }
+  * Frontend: ProductManagementPage, ProductModal
+  
+- deleteProduct(req, res) - מחיקת מוצר (אדמין)
+  * קורא ל-Product.deleteProduct()
+  * מחזיר: { success: true, message: 'Product deleted successfully' }
+  * Frontend: ProductManagementPage
+  
+- getLowStockProducts(req, res) - מוצרים עם מלאי נמוך (אדמין)
+  * קורא ל-Product.getLowStockProducts()
+  * מחזיר: { success: true, data: products }
+  * Frontend: DashboardPage
+  
+- getProductsWithLowStockSizes(req, res) - מוצרים עם גדלים במלאי נמוך (אדמין)
+  * קורא ל-Product.getProductsWithLowStockSizes()
+  * מקבל threshold מהגדרות
+  * מחזיר: { success: true, data: products }
+  * Frontend: StockRefuelModal
+  
+- updateSizeQuantity(req, res) - עדכון כמות גדל (אדמין)
+  * קורא ל-Product.updateSizeQuantityForProduct()
+  * מחזיר: { success: true, message: 'Stock updated successfully' }
+  * Frontend: ProductSizesModal
+  
+- addSizeToProduct(req, res) - הוספת גדל (אדמין)
+  * קורא ל-Product.addSizeToProduct()
+  * מחזיר: { success: true, message: 'Size added successfully' }
+  * Frontend: ProductSizesModal
+  
+- deactivateProduct(req, res) - השבתת מוצר (אדמין)
+  * קורא ל-Product.deactivateProduct()
+  * מחזיר: { success: true, message: 'Product deactivated' }
+  * Frontend: ProductManagementPage
+  
+- activateProduct(req, res) - הפעלת מוצר (אדמין)
+  * קורא ל-Product.activateProduct()
+  * מחזיר: { success: true, message: 'Product activated' }
+  * Frontend: ProductManagementPage
+
+4.3 orderController.js
+----------------------
+תפקיד: טיפול בכל הבקשות הקשורות להזמנות
+
+פונקציות:
+- placeOrder(req, res) - יצירת הזמנה
+  * קורא ל-Order.placeOrder()
+  * מחזיר: { success: true, orderId, orderNumber }
+  * Frontend: PaymentPage, Checkout
+  
+- getAllOrders(req, res) - קבלת כל ההזמנות (אדמין)
+  * קורא ל-Order.getAllOrders()
+  * מחזיר: { success: true, data: orders }
+  * Frontend: OrderManagementPage
+  
+- getOrderById(req, res) - קבלת הזמנה לפי מזהה
+  * קורא ל-Order.getOrderById()
+  * מחזיר: { success: true, data: order }
+  * Frontend: AdminOrderModal, OrderDetails
+  
+- getUserOrders(req, res) - קבלת הזמנות של משתמש
+  * קורא ל-Order.getUserOrders()
+  * מחזיר: { success: true, data: orders }
+  * Frontend: OrdersPage (לקוח)
+  
+- getUserOrderCount(req, res) - ספירת הזמנות משתמש
+  * קורא ל-Order.getUserOrderCount()
+  * מחזיר: { success: true, count: number }
+  * Frontend: OrdersPage, SearchBar
+  
+- getOrderItems(req, res) - קבלת פריטי הזמנה
+  * קורא ל-Order.getOrderItems()
+  * מחזיר: { success: true, data: items }
+  * Frontend: AdminOrderModal, OrderDetails
+  
+- updateOrderStatus(req, res) - עדכון סטטוס הזמנה (אדמין)
+  * קורא ל-Order.updateOrderStatus()
+  * מחזיר: { success: true, message: 'Order status updated' }
+  * Frontend: OrderManagementPage, AdminOrderModal
+  
+- getDashboardStats(req, res) - סטטיסטיקות דשבורד (אדמין)
+  * קורא ל-Order.getDashboardStats()
+  * מחזיר: { success: true, data: { orderStats, recentOrders, topProducts, monthlyRevenue } }
+  * Frontend: DashboardPage
+  
+- getBestSellers(req, res) - מוצרים מובילים (ציבורי)
+  * קורא ל-Order.getBestSellers()
+  * מחזיר: { success: true, data: { products, timeRange, limit } }
+  * Frontend: HomePage (Best Sellers section)
+  
+- getRevenueAnalytics(req, res) - אנליטיקס הכנסות (אדמין)
+  * קורא ל-Order.getRevenueAnalytics()
+  * מחזיר: { success: true, data: revenueData }
+  * Frontend: AnalyticsPage
+  
+- getProductAnalytics(req, res) - אנליטיקס מוצרים (אדמין)
+  * קורא ל-Order.getProductAnalytics()
+  * מחזיר: { success: true, data: { productPerformance, categoryPerformance } }
+  * Frontend: AnalyticsPage
+  
+- getUserAnalytics(req, res) - אנליטיקס משתמשים (אדמין)
+  * קורא ל-Order.getUserAnalytics()
+  * מחזיר: { success: true, data: { newUsers, activeUsers, ... } }
+  * Frontend: AnalyticsPage
+
+4.4 categoryController.js
+--------------------------
+תפקיד: טיפול בכל הבקשות הקשורות לקטגוריות
+
+פונקציות:
+- getCategories(req, res) - קבלת כל הקטגוריות
+  * קורא ל-Category.getCategories()
+  * מחזיר: { success: true, data: categories }
+  * Frontend: CategoryContainer, ProductsPage, CategoryManagementPage
+  
+- addCategory(req, res) - הוספת קטגוריה (אדמין)
+  * קורא ל-Category.addCategory()
+  * מחזיר: { success: true, data: category }
+  * Frontend: CategoryManagementPage, CategoryModal
+  
+- updateCategory(req, res) - עדכון קטגוריה (אדמין)
+  * קורא ל-Category.updateCategory()
+  * מחזיר: { success: true, data: category }
+  * Frontend: CategoryManagementPage, CategoryModal
+  
+- deleteCategory(req, res) - מחיקת קטגוריה (אדמין)
+  * קורא ל-Category.deleteCategory()
+  * מחזיר: { success: true, message: 'Category deleted successfully' }
+  * Frontend: CategoryManagementPage
+  
+- uploadCategoryImage(req, res) - העלאת תמונת קטגוריה (אדמין)
+  * משתמש ב-middleware upload
+  * מחזיר: { success: true, imageUrl }
+  * Frontend: CategoryModal
+  
+- deleteCategoryImage(req, res) - מחיקת תמונת קטגוריה (אדמין)
+  * מוחקת קובץ מהשרת
+  * מעדכנת קטגוריה
+  * מחזיר: { success: true }
+  * Frontend: CategoryModal
+
+4.5 cartController.js
+---------------------
+תפקיד: טיפול בכל הבקשות הקשורות לעגלת קניות
+
+פונקציות:
+- getCart(req, res) - קבלת עגלת קניות
+  * קורא ל-Cart.getUserCart()
+  * מחזיר: { success: true, data: { cartId, items, totalCost } }
+  * Frontend: CartPage
+  
+- addToCart(req, res) - הוספה לעגלה
+  * קורא ל-Cart.addToCart()
+  * מחזיר: { success: true, data: cart }
+  * Frontend: ProductCard, ProductModal
+  
+- updateQuantity(req, res) - עדכון כמות
+  * קורא ל-Cart.updateQuantity()
+  * מחזיר: { success: true, data: cart }
+  * Frontend: CartPage, CartItem
+  
+- removeFromCart(req, res) - הסרה מעגלה
+  * קורא ל-Cart.removeFromCart()
+  * מחזיר: { success: true, data: cart }
+  * Frontend: CartPage, CartItem
+  
+- clearCart(req, res) - ניקוי עגלה
+  * קורא ל-Cart.clearCart()
+  * מחזיר: { success: true, data: cart }
+  * Frontend: CartPage
+
+4.6 settingsController.js
+--------------------------
+תפקיד: טיפול בכל הבקשות הקשורות להגדרות
+
+פונקציות:
+- getSettings(req, res) - קבלת כל ההגדרות (אדמין)
+  * קורא ל-Settings.getSettings()
+  * מחזיר: { success: true, data: settings }
+  * Frontend: SettingsPage
+  
+- updateSettings(req, res) - עדכון הגדרות (אדמין)
+  * קורא ל-Settings.updateSettings()
+  * מחזיר: { success: true, message: 'Settings updated successfully' }
+  * Frontend: SettingsPage
+  
+- getPublicSettings(req, res) - קבלת הגדרות ציבוריות
+  * קורא ל-Settings.getSettings()
+  * מסנן רק הגדרות ציבוריות
+  * מחזיר: { success: true, data: { store_name, currency, delivery_cost, ... } }
+  * Frontend: SettingsProvider (Context), כל הדפים הציבוריים
+
+4.7 messageController.js
+------------------------
+תפקיד: טיפול בכל הבקשות הקשורות להודעות
+
+פונקציות:
+- getAllMessages(req, res) - קבלת כל ההודעות (אדמין)
+  * קורא ל-Message.getAllMessages()
+  * מחזיר: { success: true, data: messages }
+  * Frontend: MessagesPage
+  
+- getMessageById(req, res) - קבלת הודעה לפי מזהה (אדמין)
+  * קורא ל-Message.getMessageById()
+  * מחזיר: { success: true, data: message }
+  * Frontend: MessageDetailModal
+  
+- createMessage(req, res) - יצירת הודעה
+  * קורא ל-Message.createMessage()
+  * מחזיר: { success: true, data: message }
+  * Frontend: ContactFormModal, MessageComposer
+  
+- updateMessageStatus(req, res) - עדכון סטטוס הודעה (אדמין)
+  * קורא ל-Message.updateMessageStatus()
+  * מחזיר: { success: true, data: message }
+  * Frontend: MessagesPage, MessageDetailModal
+  
+- deleteMessage(req, res) - מחיקת הודעה (אדמין)
+  * קורא ל-Message.deleteMessage()
+  * מחזיר: { success: true, message: 'Message deleted successfully' }
+  * Frontend: MessagesPage, MessageDetailModal
+
+4.8 supplierController.js
+--------------------------
+תפקיד: טיפול בבקשות מלאי לספק
+
+פונקציות:
+- sendStockRefuelEmail(req, res) - שליחת אימייל בקשת מלאי (אדמין)
+  * מקבל רשימת מוצרים עם גדלים וכמויות
+  * קורא ל-emailService.sendStockRefuelEmail()
+  * מחזיר: { success: true, message: 'Email sent successfully' }
+  * Frontend: StockRefuelModal
+
+4.9 analyticsController.js
+---------------------------
+תפקיד: טיפול בבקשות אנליטיקס
+
+פונקציות:
+- getFinanceAnalytics(req, res) - אנליטיקס פיננסי (אדמין)
+  * קורא ל-Order.getRevenueAnalytics()
+  * מחזיר: { success: true, data: revenueData }
+  * Frontend: AnalyticsPage
+  
+- getOrderAnalytics(req, res) - אנליטיקס הזמנות (אדמין)
+  * קורא ל-Order.getOrderStatusAnalytics(), Order.getProductAnalytics()
+  * מחזיר: { success: true, data: { statusDistribution, productAnalytics } }
+  * Frontend: AnalyticsPage
+
+4.10 activityController.js
+---------------------------
+תפקיד: טיפול בבקשות מעקב פעילות
+
+פונקציות:
+- getActivities(req, res) - קבלת פעילויות (אדמין)
+  * קורא ל-Activity.getAll()
+  * מחזיר: { success: true, data: activities, total: count }
+  * Frontend: ActivityPageAdmin
+  
+- getActivityStatistics(req, res) - סטטיסטיקות פעילות (אדמין)
+  * קורא ל-Activity.getStatistics()
+  * מחזיר: { success: true, data: statistics }
+  * Frontend: ActivityPageAdmin
+  
+- deleteOldActivities(req, res) - מחיקת פעילויות ישנות (אדמין)
+  * קורא ל-Activity.deleteOldActivities()
+  * מחזיר: { success: true, deleted: count }
+  * Frontend: ActivityPageAdmin
+
+================================================================================
+5. נתיבים (Routes) וחיבורים ל-Frontend
+================================================================================
+
+5.1 userRoutes.js - /api/userRoutes
+------------------------------------
+- POST /login
+  * Controller: userController.login
+  * Frontend: LoginForm, AuthPage
+  
+- GET /me
+  * Middleware: isAuthenticated
+  * Controller: userController.me
+  * Frontend: App.jsx (בדיקת אימות)
+  
+- POST /logout
+  * Controller: userController.logout
+  * Frontend: Header, Navigation
+  
+- POST /signup
+  * Middleware: trackActivity
+  * Controller: userController.createUser
+  * Frontend: SignupForm
+  
+- POST /forgot-password
+  * Controller: userController.forgotPassword
+  * Frontend: ForgotPasswordForm
+  
+- POST /reset-password
+  * Controller: userController.resetPassword
+  * Frontend: ResetPasswordPage
+  
+- GET /verify-reset-token/:token
+  * Controller: userController.verifyResetToken
+  * Frontend: ResetPasswordPage
+  
+- GET /all
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: userController.getAllUsers
+  * Frontend: UserManagementPage
+  
+- DELETE /delete/:userId
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: userController.deleteUser
+  * Frontend: UserManagementPage, UserModal
+  
+- GET /profile
+  * Middleware: isAuthenticated
+  * Controller: userController.getProfile
+  * Frontend: ProfilePage
+  
+- PUT /profile
+  * Middleware: isAuthenticated
+  * Controller: userController.updateProfile
+  * Frontend: ProfilePage
+  
+- PUT /address
+  * Middleware: isAuthenticated
+  * Controller: userController.updateAddress
+  * Frontend: ProfilePage
+  
+- PUT /change-password
+  * Middleware: isAuthenticated
+  * Controller: userController.changePassword
+  * Frontend: ProfilePage
+  
+- GET /wishlist
+  * Middleware: isAuthenticated
+  * Controller: userController.getWishlist
+  * Frontend: WishlistPage
+  
+- POST /wishlist
+  * Middleware: isAuthenticated
+  * Controller: userController.addToWishlist
+  * Frontend: ProductCard, ProductModal
+  
+- DELETE /wishlist/:productId
+  * Middleware: isAuthenticated
+  * Controller: userController.removeFromWishlist
+  * Frontend: WishlistPage, WishlistCard
+
+5.2 productRoutes.js - /api/productRoutes
+------------------------------------------
+- GET /
+  * Controller: productController.getProducts
+  * Frontend: ProductsPage, HomePage
+  
+- GET /:id
+  * Controller: productController.getProductById
+  * Frontend: ProductModal, ProductDetails
+  
+- GET /:productId/stock/:size
+  * Controller: productController.getStockForSize
+  * Frontend: ProductModal, CartPage
+  
+- POST /
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: productController.createProduct
+  * Frontend: ProductManagementPage
+  
+- PUT /:id
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: productController.updateProduct
+  * Frontend: ProductManagementPage
+  
+- DELETE /:id
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: productController.deleteProduct
+  * Frontend: ProductManagementPage
+  
+- PUT /:productId/size-quantity
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: productController.updateSizeQuantity
+  * Frontend: ProductSizesModal
+  
+- POST /:productId/sizes
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: productController.addSizeToProduct
+  * Frontend: ProductSizesModal
+  
+- GET /dashboard/low-stock
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: productController.getLowStockProducts
+  * Frontend: DashboardPage
+  
+- GET /dashboard/low-stock-sizes
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: productController.getProductsWithLowStockSizes
+  * Frontend: StockRefuelModal
+  
+- GET /dashboard/stats
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: productController.getProductStats
+  * Frontend: DashboardPage
+  
+- POST /:id/deactivate
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: productController.deactivateProduct
+  * Frontend: ProductManagementPage
+  
+- POST /:id/activate
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: productController.activateProduct
+  * Frontend: ProductManagementPage
+
+5.3 orderRoutes.js - /api/orderRoutes
+---------------------------------------
+- POST /place
+  * Middleware: isAuthenticated, trackActivity
+  * Controller: orderController.placeOrder
+  * Frontend: PaymentPage, Checkout
+  
+- GET /user/:userId
+  * Middleware: isAuthenticated
+  * Controller: orderController.getUserOrders
+  * Frontend: OrdersPage (לקוח)
+  
+- GET /user/:userId/count
+  * Middleware: isAuthenticated
+  * Controller: orderController.getUserOrderCount
+  * Frontend: OrdersPage, SearchBar
+  
+- GET /:id/items
+  * Middleware: isAuthenticated
+  * Controller: orderController.getOrderItems
+  * Frontend: AdminOrderModal, OrderDetails
+  
+- GET /
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getAllOrders
+  * Frontend: OrderManagementPage
+  
+- GET /:id
+  * Middleware: isAuthenticated
+  * Controller: orderController.getOrderById
+  * Frontend: AdminOrderModal, OrderDetails
+  
+- PATCH /:id/status
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: orderController.updateOrderStatus
+  * Frontend: OrderManagementPage, AdminOrderModal
+  
+- GET /dashboard/stats
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getDashboardStats
+  * Frontend: DashboardPage
+  
+- GET /status/:status
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getOrdersByStatus
+  * Frontend: OrderManagementPage
+  
+- GET /filtered/recent
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getFilteredRecentOrders
+  * Frontend: DashboardPage
+  
+- GET /analytics/revenue
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getRevenueAnalytics
+  * Frontend: AnalyticsPage
+  
+- GET /analytics/products
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getProductAnalytics
+  * Frontend: AnalyticsPage
+  
+- GET /analytics/order-status
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getOrderStatusAnalytics
+  * Frontend: AnalyticsPage
+  
+- GET /analytics/users
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getUserAnalytics
+  * Frontend: AnalyticsPage
+  
+- GET /analytics/product/:productId/sizes
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: orderController.getProductSizeAnalytics
+  * Frontend: AnalyticsPage
+  
+- GET /analytics/best-sellers
+  * Controller: orderController.getBestSellers (ציבורי)
+  * Frontend: HomePage (Best Sellers section)
+
+5.4 categoryRoutes.js - /api/categoryRoutes
+---------------------------------------------
+- GET /
+  * Controller: categoryController.getCategories
+  * Frontend: CategoryContainer, ProductsPage, CategoryManagementPage
+  
+- POST /
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: categoryController.addCategory
+  * Frontend: CategoryManagementPage
+  
+- PUT /:id
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: categoryController.updateCategory
+  * Frontend: CategoryManagementPage
+  
+- DELETE /:id
+  * Middleware: isAuthenticated, adminAuth, trackActivity
+  * Controller: categoryController.deleteCategory
+  * Frontend: CategoryManagementPage
+  
+- POST /upload
+  * Middleware: isAuthenticated, adminAuth, categoryUpload
+  * Controller: categoryController.uploadCategoryImage
+  * Frontend: CategoryModal
+  
+- DELETE /:categoryId/image
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: categoryController.deleteCategoryImage
+  * Frontend: CategoryModal
+
+5.5 cartRoutes.js - /api/cartRoutes
+-------------------------------------
+- GET /
+  * Middleware: isAuthenticated
+  * Controller: cartController.getCart
+  * Frontend: CartPage
+  
+- POST /
+  * Middleware: isAuthenticated
+  * Controller: cartController.addToCart
+  * Frontend: ProductCard, ProductModal
+  
+- PUT /:cartItemId
+  * Middleware: isAuthenticated
+  * Controller: cartController.updateQuantity
+  * Frontend: CartPage, CartItem
+  
+- DELETE /:cartItemId
+  * Middleware: isAuthenticated
+  * Controller: cartController.removeFromCart
+  * Frontend: CartPage, CartItem
+  
+- DELETE /clear
+  * Middleware: isAuthenticated
+  * Controller: cartController.clearCart
+  * Frontend: CartPage
+
+5.6 settingsRoutes.js - /api/settingsRoutes
+---------------------------------------------
+- GET /
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: settingsController.getSettings
+  * Frontend: SettingsPage
+  
+- PUT /
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: settingsController.updateSettings
+  * Frontend: SettingsPage
+  
+- GET /public
+  * Controller: settingsController.getPublicSettings (ציבורי)
+  * Frontend: SettingsProvider (Context), כל הדפים
+
+5.7 messageRoutes.js - /api/messages
+-------------------------------------
+- GET /
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: messageController.getAllMessages
+  * Frontend: MessagesPage
+  
+- GET /:id
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: messageController.getMessageById
+  * Frontend: MessageDetailModal
+  
+- POST /
+  * Controller: messageController.createMessage
+  * Frontend: ContactFormModal, MessageComposer
+  
+- PATCH /:id/status
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: messageController.updateMessageStatus
+  * Frontend: MessagesPage, MessageDetailModal
+  
+- DELETE /:id
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: messageController.deleteMessage
+  * Frontend: MessagesPage, MessageDetailModal
+
+5.8 supplierRoutes.js - /api/supplier
+--------------------------------------
+- POST /stock-refuel
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: supplierController.sendStockRefuelEmail
+  * Frontend: StockRefuelModal
+
+5.9 analyticsRoutes.js - /api/analytics
+----------------------------------------
+- GET /finance
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: analyticsController.getFinanceAnalytics
+  * Frontend: AnalyticsPage
+  
+- GET /orders
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: analyticsController.getOrderAnalytics
+  * Frontend: AnalyticsPage
+
+5.10 activityRoutes.js - /api/activityRoutes
+---------------------------------------------
+- GET /
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: activityController.getActivities
+  * Frontend: ActivityPageAdmin
+  
+- GET /statistics
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: activityController.getActivityStatistics
+  * Frontend: ActivityPageAdmin
+  
+- DELETE /old
+  * Middleware: isAuthenticated, adminAuth
+  * Controller: activityController.deleteOldActivities
+  * Frontend: ActivityPageAdmin
+
+5.11 paymentRoutes.js - /api/payments
+--------------------------------------
+- POST /create-payment
+  * Middleware: isAuthenticated
+  * Controller: paypalController.createPayment
+  * Frontend: PaymentPage
+  
+- POST /execute-payment
+  * Middleware: isAuthenticated
+  * Controller: paypalController.executePayment
+  * Frontend: PaymentPage
+
+5.12 contactRoutes.js - /api/contact
+-------------------------------------
+- POST /
+  * Controller: contactController.sendContactMessage
+  * Frontend: ContactSupportPage, ContactFormModal
+
+5.13 uploadRoutes.js - /api/upload
+-----------------------------------
+- POST /product
+  * Middleware: isAuthenticated, adminAuth, productUpload
+  * Controller: uploadController.uploadProductImage
+  * Frontend: ProductModal, ProductImagesModal
+
+================================================================================
+6. שירותים (Services)
+================================================================================
+
+6.1 emailService.js
+--------------------
+תפקיד: שליחת אימיילים באמצעות SendGrid
+
+פונקציות:
+- sendWelcomeEmail(email, name) - אימייל ברכה למשתמש חדש
+- sendPasswordResetEmail(email, token, resetUrl) - אימייל איפוס סיסמה
+- sendStockRefuelEmail(supplierEmail, products) - אימייל בקשת מלאי לספק
+- sendOrderConfirmationEmail(email, orderData) - אימייל אישור הזמנה
+
+6.2 paypalService.js
+---------------------
+תפקיד: אינטגרציה עם PayPal לתשלומים
+
+פונקציות:
+- createPayment(amount, currency) - יצירת תשלום PayPal
+- executePayment(paymentId, payerId) - ביצוע תשלום PayPal
+
+================================================================================
+7. Middleware
+================================================================================
+
+7.1 auth.js
+-----------
+תפקיד: אימות משתמשים באמצעות JWT
+
+- בודקת token ב-cookie
+- מפענחת JWT
+- מוסיפה req.user עם פרטי המשתמש
+- מחזירה 401 אם לא מאומת
+
+7.2 adminAuth.js
+----------------
+תפקיד: בדיקת הרשאות אדמין
+
+- בודקת ש-req.user.role === 'admin'
+- מחזירה 403 אם לא אדמין
+
+7.3 activityLogger.js
+---------------------
+תפקיד: רישום פעולות מנהלים
+
+- trackActivity(options) - middleware לרישום פעילות
+- משמש ב-routes של פעולות אדמין
+- יוצר רשומות ב-activities table
+
+7.4 error.js
+------------
+תפקיד: טיפול בשגיאות
+
+- לוכד שגיאות מכל הבקשות
+- מחזיר תגובות שגיאה אחידות
+
+7.5 logger.js
+-------------
+תפקיד: רישום בקשות
+
+- רושם כל בקשה לשרת
+- כולל: method, path, status, time
+
+7.6 upload.js
+-------------
+תפקיד: ניהול העלאת קבצים
+
+- productUpload - multer למוצרים
+- categoryUpload - multer לקטגוריות
+- שמירת קבצים ב-uploads/
+
+================================================================================
+8. מסד נתונים
+================================================================================
+
+טבלאות עיקריות:
+- users - משתמשים
+- products - מוצרים
+- categories - קטגוריות
+- orders - הזמנות
+- order_items - פריטי הזמנה
+- carts - עגלות קניות
+- cart_items - פריטי עגלה
+- contact_messages - הודעות קשר
+- settings - הגדרות (key-value)
+- activities - פעילויות מנהלים
+
+קשרים:
+- products.category_id -> categories.category_id
+- orders.user_id -> users.id
+- order_items.order_id -> orders.order_id
+- order_items.product_id -> products.id
+- cart_items.cart_id -> carts.cart_id
+- cart_items.product_id -> products.id
+- carts.user_id -> users.id
+- contact_messages.sender_user_id -> users.id (nullable)
+- contact_messages.order_id -> orders.order_id (nullable)
+- contact_messages.product_id -> products.id (nullable)
+- activities.user_id -> users.id (nullable)
+
+================================================================================
+סיכום
+================================================================================
+
+המערכת מספקת API מלא לניהול חנות נעליים עם:
+- ניהול משתמשים מלא (הרשמה, התחברות, פרופיל, רשימת משאלות)
+- ניהול מוצרים וקטגוריות (CRUD מלא)
+- ניהול הזמנות (יצירה, עדכון סטטוס, מעקב)
+- עגלת קניות
+- מערכת הודעות
+- אנליטיקס ודוחות
+- מעקב פעילות מנהלים
+- תשלומי PayPal
+- הגדרות מערכת
+
+כל הנתיבים מוגנים בהתאם (ציבורי, מאומת, אדמין) ומחוברים לרכיבי Frontend המתאימים.
+
+================================================================================
+

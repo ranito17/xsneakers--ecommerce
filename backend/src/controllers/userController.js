@@ -5,24 +5,33 @@ const User = require('../models/User');
 const config = require('../config/config');
 const emailService = require('../services/emailService');
 const jwt = require('jsonwebtoken');
-const cartService = require('../services/cartService');
+const isProduction = process.env.NODE_ENV === 'production';
+const {
+    validateSignupPayload,
+    validateLoginPayload,
+    validateForgotPasswordPayload,
+    validateResetPasswordPayload,
+    validateProfilePayload,
+    validateAddressPayload,
+    validateChangePasswordPayload
+} = require('../validation/userValidator');
 
-// התחברות משתמש למערכת
-// Check if user is authenticated (has valid JWT)
-// Returns user data from JWT payload
+const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000
+};
+// בדיקת אימות משתמש - מחזיר נתוני משתמש מ-JWT
 const me = async (req, res) => {
     try {
-        console.log('👤 /me endpoint called');
-        
-        // User data is already set by auth middleware
+        // נתוני משתמש כבר נקבעו על ידי auth middleware
         if (!req.user) {
             return res.status(401).json({
                 success: false,
                 message: 'Not authenticated'
             });
         }
-
-        console.log('✅ Returning user data:', req.user);
         
         res.status(200).json({
             success: true,
@@ -37,13 +46,13 @@ const me = async (req, res) => {
     }
 };  
 
+// התנתקות משתמש - מנקה JWT cookie
 const logout = async (req, res) => {
     try {
-        // Clear JWT cookie
         res.clearCookie('token', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax'
         });
         
         res.status(200).json({
@@ -61,9 +70,15 @@ const logout = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        
-        // מציאת משתמש ואימות סיסמה דרך המודל
+        const validation = validateLoginPayload(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid login data',
+                errors: validation.errors
+            });
+        }
+        const { email, password } = validation.sanitizedData;
         const user = await User.findUser(email, password);
         
         if (!user) {
@@ -73,7 +88,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Create JWT payload
+        // יצירת JWT payload ו-token
         const payload = {
             userId: user.id,
             email: user.email,
@@ -81,31 +96,12 @@ const login = async (req, res) => {
             name: user.full_name
         };
 
-        // Generate JWT token
         const token = jwt.sign(payload, config.jwtSecret, {
-            expiresIn: '24h' // Token expires in 24 hours
-        });
-
-        console.log('✅ JWT token created for user:', user.email);
-        
-        // Set JWT token as HTTP-only cookie
-        res.cookie('token', token, {
-            httpOnly: true, // Prevents XSS attacks
-            secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-            sameSite: 'strict', // CSRF protection
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            expiresIn: '24h'
         });
         
-        // Merge guest cart into user cart if user had items in guest cart
-        try {
-            await cartService.mergeGuestCart(req);
-            console.log('✅ Guest cart merged successfully');
-        } catch (mergeError) {
-            console.error('⚠️ Error merging guest cart:', mergeError);
-            // Don't fail login if cart merge fails
-        }
-        
-        // Return user data (token is in HTTP-only cookie)
+        // הגדרת JWT token כ-HTTP-only cookie
+        res.cookie('token', token, cookieOptions);
         res.json({
             success: true,
             message: 'Login successful',
@@ -128,10 +124,8 @@ const login = async (req, res) => {
 };
 
 // מציאת משתמש במסד הנתונים
-// השליטה מקבלת אימייל ושולחת אותו למודל לחיפוש
 const findUser = async (req, res) => {
     try {
-        // User data is already set by auth middleware
         if (!req.user) {
             return res.status(401).json({
                 success: false,
@@ -158,34 +152,35 @@ const findUser = async (req, res) => {
     }
 };
 
-// יצירת משתמש חדש במסד הנתונים
-// השליטה מקבלת נתוני משתמש חדש ושולחת אותם למודל ליצירה
+// יצירת משתמש חדש
 const createUser = async (req, res) => {
     try {
-        const { full_name, email, address, phone_number, password, role } = req.body;
-
-        console.log('👤 Creating new user:', { email, full_name, role });
-
-        // יצירת משתמש דרך המודל
-        const userId = await User.createUser({ full_name, email, address, phone_number, password, role });
-
-        console.log('✅ User created successfully with ID:', userId);
-
-        // Send welcome email
-        try {
-            console.log('📧 Sending welcome email to:', email);
-            await emailService.sendWelcomeEmail(email, full_name);
-            console.log('✅ Welcome email sent successfully to:', email);
-        } catch (emailError) {
-            console.error('❌ Error sending welcome email:', emailError);
-            console.error('❌ Email error details:', {
-                message: emailError.message,
-                stack: emailError.stack
+        const validation = validateSignupPayload(req.body);
+    
+            if (!validation.isValid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid signup data',
+                    errors: validation.errors
+                });
+            }
+    
+            const { full_name, email, address, phone_number, password } = validation.sanitizedData;
+    
+            const userId = await User.createUser({
+                full_name,
+                email,
+                address,
+                phone_number,
+                password,
+                role: 'customer'
             });
-            // Don't fail the signup if email fails - user is still created
+        // שליחת אימייל ברכה
+        try {
+            await emailService.sendWelcomeEmail(email, full_name);
+        } catch (emailError) {
+            // לא נכשל אם אימייל נכשל - המשתמש עדיין נוצר
         }
-
-        // החזרת תגובת הצלחה
         res.status(201).json({
             success: true,
             message: 'User created successfully',
@@ -194,7 +189,7 @@ const createUser = async (req, res) => {
     } catch (error) {
         console.error('❌ Error creating user:', error.message);
         
-        // Handle specific error types
+        // טיפול בסוגי שגיאות ספציפיים
         if (error.message.includes('already exists')) {
             res.status(400).json({
                 success: false,
@@ -209,7 +204,7 @@ const createUser = async (req, res) => {
     }
 };
 
-// Forgot password - send reset email
+// איפוס סיסמה - שליחת קוד איפוס באימייל
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -221,28 +216,23 @@ const forgotPassword = async (req, res) => {
             });
         }
 
-        // Check if user exists
+        // בדיקה אם המשתמש קיים
         const user = await User.findUserByEmail(email);
         if (!user) {
-            // Don't reveal if user exists or not for security
+            // לא חושף אם המשתמש קיים או לא מטעמי אבטחה
             return res.status(200).json({
                 success: true,
-                message: 'If an account with that email exists, a password reset link has been sent.'
+                message: 'If an account with that email exists, a password reset code has been sent.'
             });
         }
 
-        // Create reset token
-        const resetToken = await User.createPasswordResetToken(email);
-
-        // Create reset URL
-        const resetUrl = `${config.sendgrid.frontendUrl}/reset-password?token=${resetToken}`;
-
-        // Send email
-        await emailService.sendPasswordResetEmail(email, resetToken, resetUrl);
+        // יצירת קוד איפוס ושליחת אימייל
+        const resetCode = await User.createPasswordResetCode(email);
+        await emailService.sendPasswordResetCode(email, resetCode);
 
         res.status(200).json({
             success: true,
-            message: 'If an account with that email exists, a password reset link has been sent.'
+            message: 'If an account with that email exists, a password reset code has been sent.'
         });
 
     } catch (error) {
@@ -254,19 +244,30 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-// Reset password with token
+// איפוס סיסמה עם קוד
 const resetPassword = async (req, res) => {
     try {
-        const { token, newPassword } = req.body;
+            const validation = validateResetPasswordPayload(req.body);
+    
+            if (!validation.isValid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid reset password data',
+                    errors: validation.errors
+                });
+            }
+    
+            const { email, code, newPassword, confirmPassword } = validation.sanitizedData;
 
-        if (!token || !newPassword) {
+    // בדיקת התאמה בין סיסמאות
+        if (newPassword !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: 'Token and new password are required'
+                message: 'Passwords do not match'
             });
         }
 
-        // Validate password strength
+        // אימות חוזק סיסמה
         if (newPassword.length < 6) {
             return res.status(400).json({
                 success: false,
@@ -274,8 +275,8 @@ const resetPassword = async (req, res) => {
             });
         }
 
-        // Reset password
-        await User.resetPassword(token, newPassword);
+        // איפוס סיסמה דרך המודל
+        await User.resetPassword(email, code, newPassword);
 
         res.status(200).json({
             success: true,
@@ -288,7 +289,7 @@ const resetPassword = async (req, res) => {
         if (error.message.includes('Invalid or expired')) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid or expired reset token'
+                message: 'Invalid or expired reset code'
             });
         }
 
@@ -299,43 +300,8 @@ const resetPassword = async (req, res) => {
     }
 };
 
-// Verify reset token
-const verifyResetToken = async (req, res) => {
-    try {
-        const { token } = req.params;
 
-        if (!token) {
-            return res.status(400).json({
-                success: false,
-                message: 'Token is required'
-            });
-        }
-
-        // Check if token is valid
-        const user = await User.findUserByResetToken(token);
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid or expired reset token'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Token is valid'
-        });
-
-    } catch (error) {
-        console.error('Verify reset token error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'An error occurred while verifying the token'
-        });
-    }
-};
-
-// Get all users (admin only)
+// קבלת כל המשתמשים (אדמין בלבד)
 const getAllUsers = async (req, res) => {
     try {
         const users = await User.getAllUsers();
@@ -353,7 +319,268 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+// קבלת פרופיל משתמש
+const getProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findUserByEmail(req.user.email);
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
 
+        // פענוח כתובת JSON אם קיימת
+        let address = null;
+        if (user.address) {
+            try {
+                address = typeof user.address === 'string' ? JSON.parse(user.address) : user.address;
+            } catch (err) {
+                console.error('Error parsing address:', err);
+                address = null;
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                id: user.id,
+                full_name: user.full_name,
+                email: user.email,
+                phone_number: user.phone_number,
+                address: address,
+                role: user.role,
+                created_at: user.created_at
+            }
+        });
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while fetching profile'
+        });
+    }
+};
+
+// עדכון פרופיל (שם, טלפון)
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const validation = validateProfilePayload(req.body);
+
+        if (!validation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid profile data',
+                errors: validation.errors
+            });
+        }
+
+        const { full_name, phone_number } = validation.sanitizedData;
+        const updatedUser = await User.updateProfile(userId, {
+            full_name,
+            phone_number
+        });
+
+        // פענוח כתובת JSON אם קיימת
+        let address = null;
+        if (updatedUser.address) {
+            try {
+                address = typeof updatedUser.address === 'string' ? JSON.parse(updatedUser.address) : updatedUser.address;
+            } catch (err) {
+                console.error('Error parsing address:', err);
+                address = null;
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: {
+                ...updatedUser,
+                address: address
+            }
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'An error occurred while updating profile'
+        });
+    }
+};
+
+// עדכון כתובת
+const updateAddress = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const validation = validateAddressPayload(req.body);
+
+        if (!validation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid address data',
+                errors: validation.errors
+            });
+        }
+
+        const { house_number, street, city, zipcode } = validation.sanitizedData;
+
+        const updatedUser = await User.updateAddress(userId, {
+            house_number,
+            street,
+            city,
+            zipcode
+        });
+
+        // פענוח כתובת JSON
+        let address = null;
+        if (updatedUser.address) {
+            try {
+                address = typeof updatedUser.address === 'string' ? JSON.parse(updatedUser.address) : updatedUser.address;
+            } catch (err) {
+                console.error('Error parsing address:', err);
+                address = null;
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Address updated successfully',
+            data: {
+                ...updatedUser,
+                address: address
+            }
+        });
+    } catch (error) {
+        console.error('Update address error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'An error occurred while updating address'
+        });
+    }
+};
+
+// שינוי סיסמה
+const changePassword = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const validation = validateChangePasswordPayload(req.body);
+
+        if (!validation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid password data',
+                errors: validation.errors
+            });
+        }
+
+        const { currentPassword, newPassword } = validation.sanitizedData;
+
+        await User.changePassword(userId, currentPassword, newPassword);
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        console.error('Change password error:', error);
+        
+        if (error.message.includes('incorrect')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Current password is incorrect'
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            message: error.message || 'An error occurred while changing password'
+        });
+    }
+};
+
+// קבלת רשימת משאלות
+const getWishlist = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const wishlist = await User.getWishlist(userId);
+
+        res.status(200).json({
+            success: true,
+            wishlist
+        });
+    } catch (error) {
+        console.error('Get wishlist error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'An error occurred while getting wishlist'
+        });
+    }
+};
+
+// הוספה לרשימת משאלות
+const addToWishlist = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId } = req.body;
+
+        if (!productId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Product ID is required'
+            });
+        }
+
+        const wishlist = await User.addToWishlist(userId, parseInt(productId));
+
+        res.status(200).json({
+            success: true,
+            message: 'Product added to wishlist',
+            wishlist
+        });
+    } catch (error) {
+        console.error('Add to wishlist error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'An error occurred while adding to wishlist'
+        });
+    }
+};
+
+// הסרה מרשימת משאלות
+const removeFromWishlist = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId } = req.params;
+
+        if (!productId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Product ID is required'
+            });
+        }
+
+        const wishlist = await User.removeFromWishlist(userId, parseInt(productId));
+
+        res.status(200).json({
+            success: true,
+            message: 'Product removed from wishlist',
+            wishlist
+        });
+    } catch (error) {
+        console.error('Remove from wishlist error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'An error occurred while removing from wishlist'
+        });
+    }
+};
 
 // ייצוא כל הפונקציות
 module.exports = {
@@ -364,6 +591,12 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
-    verifyResetToken,
-    getAllUsers
+    getAllUsers,
+    getProfile,
+    updateProfile,
+    updateAddress,
+    changePassword,
+    getWishlist,
+    addToWishlist,
+    removeFromWishlist
 };

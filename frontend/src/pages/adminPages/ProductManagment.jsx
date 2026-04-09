@@ -1,141 +1,53 @@
+// ProductManagment.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuthentication';
+import { useSettings } from '../../context/SettingsProvider';
+import { useLocation } from 'react-router-dom';
+import { useToast } from '../../components/common/toast';
 
-import ProductModal from '../../components/productModal/ProductModal';
-import CategoryModal from '../../components/categoryModal/CategoryModal';
-import AdminProductList from '../../components/adminProductList/AdminProductList';
-import FilterModal from '../../components/filterModal/FilterModal';
+import { ImageModal, LoadingContainer, ErrorContainer } from '../../components/contactForm';
+import { AdminProductList, ProductSizesModal, ProductImagesModal, AdminFilterModal, AdminProductModal} from '../../components/admin/products';
+import { SearchBar } from '../../components/admin/common';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import LoadingContainer from '../../components/loading/LoadingContainer';
-import ErrorContainer from '../../components/error/ErrorContainer';
 import { productApi } from '../../services/productApi';
 import { categoryApi } from '../../services/categoryApi';
-
+import { uploadApi } from '../../services/uploadApi';
+import { parseImageUrls, getAbsoluteImageUrl } from '../../utils/image.utils';
 import styles from './adminPages.module.css';
 
 const ProductManagement = () => {
     const { isAuthenticated, user } = useAuth();
+    const { showError, showSuccess, showConfirmation } = useToast();
+    const location = useLocation();
+    const {
+        settings,
+        loading: settingsLoading,
+        error: settingsError,
+        getStockStatus,
+        formatPrice,
+        fetchSettings
+    } = useSettings();
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [showSizesModal, setShowSizesModal] = useState(false);
+    const [showImagesModal, setShowImagesModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isNewProduct, setIsNewProduct] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('all');
-    const [selectedCategoryToDelete, setSelectedCategoryToDelete] = useState('');
     const [categories, setCategories] = useState([]);
-    const [isCategoryLoading, setIsCategoryLoading] = useState(false);
     const [filterCriteria, setFilterCriteria] = useState(null);
     const [showFilterModal, setShowFilterModal] = useState(false);
+    const [stockFilter, setStockFilter] = useState('all');
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [selectedProductName, setSelectedProductName] = useState('');
 
-    // Check authentication on component mount
-    
-
-    // Load products and categories when authenticated
-    useEffect(() => {
-        // Only load data if user is authenticated
-        if (isAuthenticated && user) {
-            loadProducts();
-            loadCategories();
-        }
-    }, [isAuthenticated, user]);
-
-    // Filter products based on search, category, and advanced filters
-    useEffect(() => {
-        let filtered = products;
-
-        // Filter by search term
-        if (searchTerm) {
-            filtered = filtered.filter(product =>
-                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        // Filter by category
-        if (selectedCategory !== 'all') {
-            filtered = filtered.filter(product => 
-                product.category_id === parseInt(selectedCategory)
-            );
-        }
-
-        // Apply advanced filters
-        if (filterCriteria) {
-            // Filter by color
-            if (filterCriteria.color) {
-                filtered = filtered.filter(product =>
-                    product.color && product.color.toLowerCase().includes(filterCriteria.color.toLowerCase())
-                );
-            }
-
-            // Apply multiple filters
-            if (filterCriteria.filters && filterCriteria.filters.length > 0) {
-                filtered = filtered.filter(product => {
-                    return filterCriteria.filters.every(filter => {
-                        let productValue = product[filter.field];
-                        const filterValue = parseFloat(filter.value);
-                        const filterValue2 = filter.value2 ? parseFloat(filter.value2) : null;
-
-                        // Handle sizes array specially
-                        if (filter.field === 'sizes') {
-                            // Parse sizes if it's a string, or use as is if it's already an array
-                            let sizes = productValue;
-                            if (typeof sizes === 'string') {
-                                try {
-                                    sizes = JSON.parse(sizes);
-                                } catch (e) {
-                                    sizes = [];
-                                }
-                            }
-                            
-                            if (!Array.isArray(sizes)) {
-                                sizes = [];
-                            }
-
-                            // Check if any size in the array matches the filter criteria
-                            switch (filter.operator) {
-                                case 'gte':
-                                    return sizes.some(size => parseFloat(size) >= filterValue);
-                                case 'lte':
-                                    return sizes.some(size => parseFloat(size) <= filterValue);
-                                case 'eq':
-                                    return sizes.some(size => parseFloat(size) === filterValue);
-                                case 'range':
-                                    return sizes.some(size => {
-                                        const sizeNum = parseFloat(size);
-                                        return sizeNum >= filterValue && sizeNum <= filterValue2;
-                                    });
-                                default:
-                                    return true;
-                            }
-                        } else {
-                            // Handle other numeric fields (price, stock_quantity)
-                            productValue = parseFloat(productValue);
-                            
-                            switch (filter.operator) {
-                                case 'gte':
-                                    return productValue >= filterValue;
-                                case 'lte':
-                                    return productValue <= filterValue;
-                                case 'eq':
-                                    return productValue === filterValue;
-                                case 'range':
-                                    return productValue >= filterValue && productValue <= filterValue2;
-                                default:
-                                    return true;
-                            }
-                        }
-                    });
-                });
-            }
-        }
-
-        setFilteredProducts(filtered);
-    }, [products, searchTerm, selectedCategory, filterCriteria]);
-
+    // loadProducts - טוען את כל המוצרים מהשרת
+    // שליחה לשרת: getAllProducts()
+    // תגובה מהשרת: { data: [...] }
     const loadProducts = useCallback(async () => {
         setIsLoading(true);
         setError(null);
@@ -150,387 +62,658 @@ const ProductManagement = () => {
         }
     }, []);
 
+
+    const fetchProducts = loadProducts;
+    // loadCategories - טוען את כל הקטגוריות מהשרת
+    // שליחה לשרת: getCategories()
+    // תגובה מהשרת: { data: [...] }
     const loadCategories = useCallback(async () => {
         try {
-            console.log('Loading categories...');
             const response = await categoryApi.getCategories();
-            console.log('Categories response:', response);
             setCategories(response.data || []);
-            console.log('Categories set:', response.data || []);
         } catch (err) {
             console.error('Error loading categories:', err);
         }
     }, []);
 
+
+    // handleSaveProduct - יוצר או מעדכן מוצר
+    // שליחה לשרת: createProduct(productData) או updateProduct(id, productData)
+    // תגובה מהשרת: { success: true, productId } או { success: true }
+    const handleSaveProduct = async (productData) => {
+        try {
+            if (isNewProduct) {
+                const response = await productApi.createProduct(productData);
+                if (!response?.success) {
+                    const message = response?.message || 'Failed to create product.';
+                    showError(message);
+                    // Throw error so modal can catch it and display it
+                    throw new Error(message);
+                }
+                showSuccess(`Product "${productData.name}" created successfully!`);
+                // רענון אוטומטי של רשימת המוצרים
+                await fetchProducts();
+            } else {
+                const response = await productApi.updateProduct(selectedProduct.id, productData);
+                if (response?.success === false) {
+                    const message = response?.message || 'Failed to update product.';
+                    showError(message);
+                    // Throw error so modal can catch it and display it
+                    throw new Error(message);
+                }
+                showSuccess(`Product "${productData.name}" updated successfully!`);
+                // רענון אוטומטי של רשימת המוצרים
+                await fetchProducts();
+            }
+            setShowModal(false);
+        } catch (err) {
+            console.error('Error saving product:', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Failed to save product. Please try again.';
+            showError(errorMessage);
+            throw new Error(errorMessage);
+        }
+    };
+
+
+    // handleSaveSizes - מעדכן גדלי מוצר
+    // שליחה לשרת: updateProductSizes(productId, sizes)
+    // תגובה מהשרת: { success: true, data: { updatedSizes, totalStock } }
+    const handleSaveSizes = async (productId, sizes, totalStock) => {
+        try {
+            // וידוא ש-sizes הוא מערך (לא מחרוזת JSON)
+            const sizesArray = Array.isArray(sizes) ? sizes : (typeof sizes === 'string' ? JSON.parse(sizes) : []);
+            
+            // שימוש בפונקציה ייעודית לעדכון גדלים
+            const response = await productApi.updateProductSizes(productId, sizesArray);
+            
+            if (response.success) {
+                // רענון הנתונים
+                await fetchProducts();
+                // סגירת המודלים
+                setShowSizesModal(false);
+                setShowModal(false); // Close product modal if open
+                setSelectedProduct(null);
+                showSuccess('Product sizes updated successfully!');
+            } else {
+                showError(response.message || 'Failed to update product sizes');
+            }
+        } catch (error) {
+            console.error('Error updating sizes:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to update product sizes. Please try again.';
+            showError(errorMessage);
+        }
+    };
+
+
+    // handleImageUpload - מעלה תמונות למוצר
+    // שליחה לשרת: uploadProductImages(productId, files)
+    // תגובה מהשרת: { success: true }
+    const handleImageUpload = async (productId, files) => {
+        try {
+            const response = await uploadApi.uploadProductImages(productId, files);
+            if (response.success) {
+                await loadProducts();
+                // Don't close images modal - let user decide when to close
+                // Refresh product data if modal is open
+                if (selectedProduct && selectedProduct.id === productId) {
+                    try {
+                        const productDetails = await productApi.getProductById(productId);
+                        if (productDetails.success && productDetails.data) {
+                            setSelectedProduct(productDetails.data);
+                        }
+                    } catch (err) {
+                        console.error('Error refreshing product:', err);
+                    }
+                }
+                showSuccess('Images uploaded successfully!');
+            } else {
+                showError('Failed to upload images. Please try again.');
+            }
+        } catch (err) {
+            console.error('Error uploading images:', err);
+            showError('Failed to upload images. Please try again.');
+        }
+    };
+
+
+    // handleImageDelete - מוחק תמונות מוצר
+    // שליחה לשרת: deleteProductImage(productId, imageUrl) או deleteAllProductImages(productId)
+    // תגובה מהשרת: { success: true }
+    const handleImageDelete = async (productId, imageUrl) => {
+        try {
+            if (imageUrl === null) {
+                const response = await uploadApi.deleteAllProductImages(productId);
+                if (response.success) {
+                    await loadProducts();
+                    // Refresh product data if modal is open
+                    if (selectedProduct && selectedProduct.id === productId) {
+                        try {
+                            const productDetails = await productApi.getProductById(productId);
+                            if (productDetails.success && productDetails.data) {
+                                setSelectedProduct(productDetails.data);
+                            }
+                        } catch (err) {
+                            console.error('Error refreshing product:', err);
+                        }
+                    }
+                    showSuccess('All images deleted successfully!');
+                } else {
+                    showError('Failed to delete all images. Please try again.');
+                }
+            } else {
+                const response = await uploadApi.deleteProductImage(productId, imageUrl);
+                if (response.success) {
+                    await loadProducts();
+                    // Refresh product data if modal is open
+                    if (selectedProduct && selectedProduct.id === productId) {
+                        try {
+                            const productDetails = await productApi.getProductById(productId);
+                            if (productDetails.success && productDetails.data) {
+                                setSelectedProduct(productDetails.data);
+                            }
+                        } catch (err) {
+                            console.error('Error refreshing product:', err);
+                        }
+                    }
+                    showSuccess('Image deleted successfully!');
+                } else {
+                    showError('Failed to delete image. Please try again.');
+                }
+            }
+        } catch (err) {
+            console.error('Error deleting image:', err);
+            showError('Failed to delete image. Please try again.');
+        }
+    };
+
+
+    // handleAddProduct - פותח מודל יצירת מוצר חדש
     const handleAddProduct = () => {
         setSelectedProduct(null);
         setIsNewProduct(true);
         setShowModal(true);
     };
 
+
+    // handleEditProduct - פותח מודל עריכת מוצר
     const handleEditProduct = (product) => {
         setSelectedProduct(product);
         setIsNewProduct(false);
         setShowModal(true);
     };
 
-    const handleDeleteProduct = async (productId) => {
-        if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-            return;
-        }
 
-        try {
-            await productApi.deleteProduct(productId);
-            setProducts(prev => prev.filter(p => p.id !== productId));
-        } catch (err) {
-            console.error('Error deleting product:', err);
-            setError('Failed to delete product. Please try again.');
-        }
-    };
-
-    const handleSaveProduct = async (productData) => {
-        try {
-            if (isNewProduct) {
-                const response = await productApi.createProduct(productData);
-                const newProduct = { ...productData, id: response.productId };
-                setProducts(prev => [...prev, newProduct]);
-            } else {
-                await productApi.updateProduct(selectedProduct.id, productData);
-                setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, ...productData } : p));
-            }
-            setShowModal(false);
-        } catch (err) {
-            console.error('Error saving product:', err);
-            throw new Error('Failed to save product. Please try again.');
-        }
-    };
-
+    // handleCloseModal - סוגר את מודל המוצר
     const handleCloseModal = () => {
         setShowModal(false);
+        setShowSizesModal(false);
+        setShowImagesModal(false);
         setSelectedProduct(null);
         setIsNewProduct(false);
     };
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
+
+    // handleOpenSizesModal - פותח מודל ניהול גדלים
+    const handleOpenSizesModal = (product) => {
+        setSelectedProduct(product);
+        setShowSizesModal(true);
     };
 
-    const handleCategoryChange = (e) => {
-        setSelectedCategory(e.target.value);
+
+    // handleOpenImagesModal - פותח מודל ניהול תמונות
+    const handleOpenImagesModal = (product) => {
+        setSelectedProduct(product);
+        setShowImagesModal(true);
     };
 
+
+    // handleOpenImageModal - פותח מודל תצוגת תמונות
+    const handleOpenImageModal = (images, productName) => {
+        const imageArray = parseImageUrls(images).map(img => getAbsoluteImageUrl(img));
+        setSelectedImages(imageArray);
+        setSelectedProductName(productName);
+        setImageModalOpen(true);
+    };
+
+
+    // handleCloseImageModal - סוגר מודל תצוגת תמונות
+    const handleCloseImageModal = () => {
+        setImageModalOpen(false);
+        setSelectedImages([]);
+        setSelectedProductName('');
+    };
+
+
+    // handleFilter - מגדיר קריטריוני סינון
     const handleFilter = (criteria) => {
         setFilterCriteria(criteria);
     };
 
+
+    // handleClearFilters - מנקה את כל הפילטרים
+    const handleClearFilters = () => {
+        setFilterCriteria(null);
+        setStockFilter('all');
+    };
+
+
+    // handleSearchChange - מעדכן את מילת החיפוש
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+
+    // handleClearSearch - מנקה את מילת החיפוש
+    const handleClearSearch = () => {
+        setSearchTerm('');
+    };
+
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            fetchSettings();
+            loadProducts();
+            loadCategories();
+        }
+    }, [isAuthenticated, user, fetchSettings, loadProducts, loadCategories]);
+
+
+    useEffect(() => {
+        if (location.state?.filter) {
+            setStockFilter(location.state.filter);
+        }
+    }, [location]);
+
+
+    useEffect(() => {
+        let filtered = products;
+        if (searchTerm) {
+            filtered = filtered.filter(product =>
+                product.name.toLowerCase().startsWith(searchTerm.toLowerCase())
+            );
+        }
+        if (filterCriteria && filterCriteria.category_id && filterCriteria.category_id !== 'all') {
+            const categoryId = typeof filterCriteria.category_id === 'string'
+                ? parseInt(filterCriteria.category_id)
+                : filterCriteria.category_id;
+            filtered = filtered.filter(product =>
+                product.category_id === categoryId
+            );
+        }
+        if (filterCriteria && filterCriteria.stockStatus && filterCriteria.stockStatus !== 'all') {
+            if (filterCriteria.stockStatus === 'in-stock') {
+                filtered = filtered.filter(p => p.stock_quantity > 0);
+            } else if (filterCriteria.stockStatus === 'out-of-stock') {
+                filtered = filtered.filter(p => p.stock_quantity === 0);
+            }
+        }
+        if (filterCriteria && filterCriteria.sizeRange) {
+            const minSize = filterCriteria.sizeRange.min;
+            const maxSize = filterCriteria.sizeRange.max;
+            const defaultSizeRange = { min: 3, max: 15 };
+            if (minSize !== defaultSizeRange.min || maxSize !== defaultSizeRange.max) {
+                filtered = filtered.filter(product => {
+                    if (!product.sizes || !Array.isArray(product.sizes)) return false;
+                    return product.sizes.some(sizeObj => {
+                        const sizeValue = typeof sizeObj === 'object' ? parseFloat(sizeObj.size) : parseFloat(sizeObj);
+                        return !isNaN(sizeValue) && sizeValue >= minSize && sizeValue <= maxSize;
+                    });
+                });
+            }
+        }
+        if (stockFilter !== 'all') {
+            const lowStockThreshold = settings?.low_stock_threshold || 10;
+            const lowStockPerSizeThreshold = settings?.low_stock_threshold_per_size || 5;
+            switch (stockFilter) {
+                case 'low-stock':
+                    filtered = filtered.filter(p => {
+                        return p.stock_quantity > 0 && p.stock_quantity <= lowStockThreshold;
+                    });
+                    break;
+                case 'low-stock-size':
+                    filtered = filtered.filter(p => {
+                        if (!p.sizes || !Array.isArray(p.sizes)) return false;
+                        return p.sizes.some(sizeObj => {
+                            const qty = sizeObj.quantity || 0;
+                            return qty > 0 && qty <= lowStockPerSizeThreshold;
+                        });
+                    });
+                    break;
+                case 'active':
+                    filtered = filtered.filter(p => {
+                        const isActive = p.is_active !== 0 && p.is_active !== false;
+                        return isActive;
+                    });
+                    break;
+                case 'inactive':
+                    filtered = filtered.filter(p => {
+                        const isActive = p.is_active !== 0 && p.is_active !== false;
+                        return !isActive;
+                    });
+                    break;
+                default:
+                    break;
+            }
+        }
+        const sortBy = (filterCriteria && filterCriteria.sortBy) || 'newest';
+        switch (sortBy) {
+            case 'newest':
+                filtered = [...filtered].sort((a, b) => {
+                    const dateA = new Date(a.created_at || a.createdAt || 0);
+                    const dateB = new Date(b.created_at || b.createdAt || 0);
+                    return dateB - dateA;
+                });
+                break;
+            case 'oldest':
+                filtered = [...filtered].sort((a, b) => {
+                    const dateA = new Date(a.created_at || a.createdAt || 0);
+                    const dateB = new Date(b.created_at || b.createdAt || 0);
+                    return dateA - dateB;
+                });
+                break;
+            case 'name':
+                filtered = [...filtered].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                break;
+            default:
+                filtered = [...filtered].sort((a, b) => {
+                    const dateA = new Date(a.created_at || a.createdAt || 0);
+                    const dateB = new Date(b.created_at || b.createdAt || 0);
+                    return dateB - dateA;
+                });
+                break;
+        }
+        setFilteredProducts(filtered);
+    }, [products, searchTerm, stockFilter, filterCriteria, settings]);
     const getAppliedFiltersText = () => {
         if (!filterCriteria) return '';
-        
         const filters = [];
-        
-        if (filterCriteria.color) {
-            filters.push(`Color: ${filterCriteria.color}`);
+        if (filterCriteria.category_id && filterCriteria.category_id !== 'all') {
+            const category = categories.find(c => c.category_id === parseInt(filterCriteria.category_id));
+            if (category) {
+                filters.push(`Category: ${category.category_name}`);
+            }
         }
-        
-        if (filterCriteria.filters && filterCriteria.filters.length > 0) {
-            filterCriteria.filters.forEach(filter => {
-                const operatorText = {
-                    'gte': '≥',
-                    'lte': '≤',
-                    'eq': '=',
-                    'range': 'between'
-                }[filter.operator] || filter.operator;
-                
-                // Format field name for display
-                const fieldDisplayName = {
-                    'price': 'Price',
-                    'stock_quantity': 'Stock Quantity',
-                    'sizes': 'Sizes'
-                }[filter.field] || filter.field;
-                
-                if (filter.operator === 'range' && filter.value2) {
-                    filters.push(`${fieldDisplayName} ${operatorText} ${filter.value}-${filter.value2}`);
-                } else {
-                    filters.push(`${fieldDisplayName} ${operatorText} ${filter.value}`);
-                }
-            });
+        if (filterCriteria.stockStatus && filterCriteria.stockStatus !== 'all') {
+            filters.push(`Stock: ${filterCriteria.stockStatus === 'in-stock' ? 'In Stock' : 'Out of Stock'}`);
         }
-        
+        if (filterCriteria.sizeRange) {
+            const defaultSizeRange = { min: 3, max: 15 };
+            if (filterCriteria.sizeRange.min !== defaultSizeRange.min ||
+                filterCriteria.sizeRange.max !== defaultSizeRange.max) {
+                filters.push(`Size: US ${filterCriteria.sizeRange.min} - ${filterCriteria.sizeRange.max}`);
+            }
+        }
+        if (filterCriteria.sortBy && filterCriteria.sortBy !== 'newest') {
+            const sortLabels = {
+                'oldest': 'Oldest First',
+                'name': 'Name (A-Z)'
+            };
+            if (sortLabels[filterCriteria.sortBy]) {
+                filters.push(`Sort: ${sortLabels[filterCriteria.sortBy]}`);
+            }
+        }
         return filters.join(', ');
     };
 
-    const handleAddCategory = () => {
-        setShowCategoryModal(true);
-    };
-    const handleDeleteCategory = async (categoryId) => {
-        if (!categoryId) return;
-        
-        const category = categories.find(c => c.category_id === parseInt(categoryId));
-        if (!category) return;
-        
-        // Get products count for this category
-        const productsInCategory = products.filter(p => p.category_id === parseInt(categoryId));
-        const productCount = productsInCategory.length;
-        
-        let confirmMessage = `Are you sure you want to delete the category "${category.category_name}"?`;
-        if (productCount > 0) {
-            confirmMessage += `\n\n⚠️ WARNING: This will also delete ${productCount} product${productCount === 1 ? '' : 's'} in this category. This action cannot be undone.`;
-        } else {
-            confirmMessage += '\n\nThis action cannot be undone.';
+
+    // getActiveFiltersCount - מחזיר את מספר הפילטרים הפעילים
+    const getActiveFiltersCount = () => {
+        if (!filterCriteria) return 0;
+        let count = 0;
+        if (filterCriteria.category_id && filterCriteria.category_id !== 'all') {
+            count++;
         }
-        
-        const confirmed = window.confirm(confirmMessage);
-        if (!confirmed) return;
-        
-        try {
-            const response = await categoryApi.deleteCategory(categoryId);
-            
-            // Show success message with product count
-            if (response.success) {
-                const deletedProducts = response.data?.deletedProducts || 0;
-                let successMessage = `Category "${category.category_name}" deleted successfully.`;
-                if (deletedProducts > 0) {
-                    successMessage += `\n${deletedProducts} product${deletedProducts === 1 ? '' : 's'} also deleted.`;
-                }
-                alert(successMessage);
+        if (filterCriteria.stockStatus && filterCriteria.stockStatus !== 'all') {
+            count++;
+        }
+        if (filterCriteria.sizeRange) {
+            const defaultSizeRange = { min: 3, max: 15 };
+            if (filterCriteria.sizeRange.min !== defaultSizeRange.min ||
+                filterCriteria.sizeRange.max !== defaultSizeRange.max) {
+                count++;
             }
-            
-            // Update categories list
-            setCategories(prev => prev.filter(c => c.category_id !== parseInt(categoryId)));
-            
-            // Update products list - remove products from deleted category
-            setProducts(prev => prev.filter(p => p.category_id !== parseInt(categoryId)));
-            
-            // Reset the delete selection
-            setSelectedCategoryToDelete('');
-            
-            // If the deleted category was selected in filter, reset to "all"
-            if (selectedCategory === categoryId) {
-                setSelectedCategory('all');
-            }
-        } catch (err) {
-            console.error('Error deleting category:', err);
-            setError('Failed to delete category. Please try again.');
         }
-    };
-
-    const handleSaveCategory = async (categoryData) => {
-        setIsCategoryLoading(true);
-        try {
-            const response = await categoryApi.addCategory(categoryData);
-            const newCategory = response.data;
-            
-            // Add the new category to the list
-            setCategories(prev => [...prev, newCategory]);
-            
-            // Close the modal
-            setShowCategoryModal(false);
-            
-            // Show success message (you can add a toast notification here)
-            console.log('Category added successfully:', newCategory);
-        } catch (err) {
-            console.error('Error adding category:', err);
-            throw new Error(err.response?.data?.message || 'Failed to add category');
-        } finally {
-            setIsCategoryLoading(false);
+        if (filterCriteria.sortBy && filterCriteria.sortBy !== 'newest') {
+            count++;
         }
+        return count;
     };
-
-    const handleCloseCategoryModal = () => {
-        setShowCategoryModal(false);
-    };
-
-    const handleImageUpload = async (productId, files) => {
-        try {
-            // Refresh the products list to get updated image URLs
-            await loadProducts();
-        } catch (err) {
-            console.error('Error refreshing products after image upload:', err);
-        }
-    };
-
-    const handleImageDelete = async (productId, imageUrl) => {
-        try {
-            // Refresh the products list to get updated image URLs
-            await loadProducts();
-        } catch (err) {
-            console.error('Error refreshing products after image deletion:', err);
-        }
-    };
-
-    // Note: Authentication is now handled by ProtectedRoute component
-
+    if (settingsLoading) {
+        return (
+            <ProtectedRoute requiredRole="admin">
+                <LoadingContainer message="Loading settings..." size="medium" />
+            </ProtectedRoute>
+        );
+    }
+    if (error || settingsError) {
+        return (
+            <ProtectedRoute requiredRole="admin">
+                <ErrorContainer
+                    message={error || settingsError}
+                    onRetry={() => {
+                        setError(null);
+                        loadProducts();
+                        loadCategories();
+                    }}
+                />
+            </ProtectedRoute>
+        );
+    }
     return (
         <ProtectedRoute requiredRole="admin">
             <div className={styles.productManagement}>
-                
-                <main className={styles.productMainContent}>
-              
-
-                <div className={styles.categoryManagementSection}>
-                    <div className={styles.productHeaderContent}>
-                        <div className={styles.productTitleSection}>
-                            <h1>Category Management</h1>
-                        </div>
-                        <p>Add, edit, and manage product categories</p>
-                    </div>
-                    <div className={styles.productCategoryActions}>
-                        <button 
-                            className={styles.addCategoryButton}
-                            onClick={handleAddCategory}
-                            disabled={isLoading}
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 5v14M5 12h14"/>
-                            </svg>
-                            Add Category
-                        </button>
-                        
-                        <button 
-                            className={styles.addProductButton}
-                            onClick={handleAddProduct}
-                            title="Add new product"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 5v14M5 12h14"/>
-                            </svg>
-                            Add Product
-                        </button>
-                        
-                        <div className={styles.deleteCategorySection}>
-                            <select 
-                                value={selectedCategoryToDelete || ''} 
-                                onChange={(e) => setSelectedCategoryToDelete(e.target.value)}
-                                className={styles.deleteCategorySelect}
-                            >
-                                <option value="">Select Category to Delete</option>
-                                {categories.map(category => (
-                                    <option key={category.category_id} value={category.category_id}>
-                                        {category.category_name}
-                                    </option>
-                                ))}
-                            </select>
-                            <button 
-                                className={styles.deleteCategoryButton}
-                                onClick={() => handleDeleteCategory(selectedCategoryToDelete)}
-                                disabled={!selectedCategoryToDelete || isLoading}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/>
-                                </svg>
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={styles.productFiltersSection}>
-                    <div className={styles.productSearchContainer}>
-                        <div className={styles.productSearchInput}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Search products..."
-                                value={searchTerm}
-                                onChange={handleSearchChange}
-                                className={styles.productSearchField}
-                            />
-                        </div>
-                    </div>
-
-                    <div className={styles.productFilterControls}>
-                        <div className={styles.productCategorySection}>
-                            <select 
-                                value={selectedCategory} 
-                                onChange={handleCategoryChange}
-                                className={styles.productCategoryFilter}
-                            >
-                                <option value="all">All Categories</option>
-                                {categories.map(category => (
-                                    <option key={category.category_id} value={category.category_id}>
-                                        {category.category_name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        
-                        <button 
-                            className={styles.filterButton}
-                            onClick={() => setShowFilterModal(true)}
-                            title="Open filter options"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M3 4h18M7 8h10M9 12h6M11 16h2"/>
-                            </svg>
-                            Filter
-                        </button>
-                    </div>
-                </div>
-
-                <div className={styles.productContentArea}>
-                    {error && (
-                        <div className={styles.productErrorMessage}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M10.29 3.86L1.82 18a2 2 0 002.18 2.18L20.14 9.71a2 2 0 00-2.18-2.18z"/>
-                                <path d="M12 9v4M12 17h.01"/>
-                            </svg>
-                            {error}
-                            <button onClick={() => setError(null)} className={styles.productDismissError}>
-                                ×
-                            </button>
-                        </div>
-                    )}
-
-                    {isLoading ? (
-                        <LoadingContainer message="Loading products..." size="medium" />
-                    ) : (
-                        <AdminProductList
-                            products={filteredProducts}
-                            onEdit={handleEditProduct}
-                            onDelete={handleDeleteProduct}
-                            onImageUpload={handleImageUpload}
-                            onImageDelete={handleImageDelete}
-                            isLoading={isLoading}
-                            appliedFilters={getAppliedFiltersText()}
+                <div className={styles.productMainContent}>
+                    <div className={styles.productFilterInfo}>
+                        <SearchBar
+                            count={filteredProducts.length}
+                            itemName="product"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            onClear={handleClearSearch}
                         />
+                        <div className={styles.productControlsRight}>
+                            <div className={styles.filterSection}>
+                                <button
+                                    className={styles.filterButton}
+                                    onClick={() => setShowFilterModal(true)}
+                                    title="Advanced filters"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M3 4h18M7 8h10M9 12h6M11 16h2"/>
+                                    </svg>
+                                    <span>
+                                        {getActiveFiltersCount() > 0 
+                                            ? `${getActiveFiltersCount()} filter${getActiveFiltersCount() > 1 ? 's' : ''}`
+                                            : 'Filters'
+                                        }
+                                    </span>
+                                </button>
+                                <button
+                                    className={styles.addProductBtn}
+                                    onClick={handleAddProduct}
+                                    title="Add new product"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M12 5v14M5 12h14"/>
+                                    </svg>
+                                    Add Product
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {!isLoading && products.length > 0 && (
+                        <div className={styles.filterTabsSection}>
+                            <div className={styles.stockFilterTabs}>
+                                {/* Check if any filters are applied (category, search, etc) */}
+                                {(() => {
+                                    const hasFilters = searchTerm || (filterCriteria && (
+                                        (filterCriteria.category_id && filterCriteria.category_id !== 'all') ||
+                                        (filterCriteria.stockStatus && filterCriteria.stockStatus !== 'all') ||
+                                        (filterCriteria.sizeRange && (
+                                            filterCriteria.sizeRange.min !== 3 || 
+                                            filterCriteria.sizeRange.max !== 15
+                                        ))
+                                    ));
+                                    const productsToCount = hasFilters ? filteredProducts : products;
+                                    
+                                    return (
+                                        <>
+                                <button
+                                    className={`${styles.filterTab} ${stockFilter === 'all' ? styles.activeTab : ''}`}
+                                    onClick={() => setStockFilter('all')}
+                                >
+                                    All Products
+                                                <span className={styles.tabCount}>
+                                                    {productsToCount.length}
+                                                </span>
+                                </button>
+                                <button
+                                    className={`${styles.filterTab} ${stockFilter === 'low-stock' ? styles.activeTab : ''}`}
+                                    onClick={() => setStockFilter('low-stock')}
+                                >
+                                    ⚠ Low Stock
+                                    <span className={styles.tabCount}>
+                                                    {productsToCount.filter(p => {
+                                            const qty = p.stock_quantity || 0;
+                                            const threshold = settings?.low_stock_threshold || 10;
+                                            return qty > 0 && qty <= threshold;
+                                        }).length}
+                                    </span>
+                                </button>
+                                <button
+                                    className={`${styles.filterTab} ${stockFilter === 'low-stock-size' ? styles.activeTab : ''}`}
+                                    onClick={() => setStockFilter('low-stock-size')}
+                                >
+                                    📏 Low Stock by Size
+                                    <span className={styles.tabCount}>
+                                                    {productsToCount.filter(p => {
+                                            if (!p.sizes || !Array.isArray(p.sizes)) return false;
+                                            const threshold = settings?.low_stock_threshold_per_size || 5;
+                                            return p.sizes.some(sizeObj => {
+                                                const qty = sizeObj.quantity || 0;
+                                                return qty > 0 && qty <= threshold;
+                                            });
+                                        }).length}
+                                    </span>
+                                </button>
+                                <button
+                                    className={`${styles.filterTab} ${stockFilter === 'active' ? styles.activeTab : ''}`}
+                                    onClick={() => setStockFilter('active')}
+                                >
+                                    ✓ Active
+                                    <span className={styles.tabCount}>
+                                                    {productsToCount.filter(p => {
+                                            const isActive = p.is_active !== 0 && p.is_active !== false;
+                                            return isActive;
+                                        }).length}
+                                    </span>
+                                </button>
+                                        </>
+                                    );
+                                })()}
+                                {(() => {
+                                    const hasFilters = searchTerm || (filterCriteria && (
+                                        (filterCriteria.category_id && filterCriteria.category_id !== 'all') ||
+                                        (filterCriteria.stockStatus && filterCriteria.stockStatus !== 'all') ||
+                                        (filterCriteria.sizeRange && (
+                                            filterCriteria.sizeRange.min !== 3 || 
+                                            filterCriteria.sizeRange.max !== 15
+                                        ))
+                                    ));
+                                    const productsToCount = hasFilters ? filteredProducts : products;
+                                    
+                                    return (
+                                <button
+                                    className={`${styles.filterTab} ${stockFilter === 'inactive' ? styles.activeTab : ''}`}
+                                    onClick={() => setStockFilter('inactive')}
+                                >
+                                    ✕ Inactive
+                                    <span className={styles.tabCount}>
+                                                {productsToCount.filter(p => {
+                                            const isActive = p.is_active !== 0 && p.is_active !== false;
+                                            return !isActive;
+                                        }).length}
+                                    </span>
+                                </button>
+                                    );
+                                })()}
+                            </div>
+                        </div>
                     )}
+                    <div className={styles.contentSection}>
+                        {isLoading ? (
+                            <LoadingContainer message="Loading products..." size="medium" />
+                        ) : (
+                            <AdminProductList
+                                products={filteredProducts}
+                                allProducts={products}
+                                onEdit={handleEditProduct}
+                                onImageClick={handleOpenImageModal}
+                                onOpenSizesModal={handleOpenSizesModal}
+                                onOpenImagesModal={handleOpenImagesModal}
+                                isLoading={isLoading}
+                                appliedFilters={getAppliedFiltersText()}
+                                currency={settings.currency}
+                                lowStockThreshold={settings.low_stock_threshold}
+                                lowStockPerSizeThreshold={settings.low_stock_threshold_per_size}
+                                getStockStatus={getStockStatus}
+                                formatPrice={formatPrice}
+                            />
+                        )}
+                    </div>
                 </div>
-            </main>
-
-           
-
-            {showModal && (
-                <ProductModal
-                    product={selectedProduct}
-                    categories={categories}
-                    onSave={handleSaveProduct}
-                    onClose={handleCloseModal}
-                    isNewProduct={isNewProduct}
-                    onDelete={selectedProduct ? () => handleDeleteProduct(selectedProduct.id) : null}
+                {showModal && (
+                    <AdminProductModal
+                        product={selectedProduct}
+                        categories={categories}
+                        onSave={handleSaveProduct}
+                        onClose={handleCloseModal}
+                        isNewProduct={isNewProduct}
+                        viewMode={false}
+                        onOpenSizesModal={handleOpenSizesModal}
+                        onOpenImagesModal={handleOpenImagesModal}
+                        currency={settings.currency}
+                        taxRate={settings.tax_rate}
+                        defaultDeliveryCost={settings.default_delivery_cost}
+                        freeDeliveryThreshold={settings.free_delivery_threshold}
+                    />
+                )}
+                {showSizesModal && selectedProduct && (
+                    <ProductSizesModal
+                        product={selectedProduct}
+                        onClose={() => setShowSizesModal(false)}
+                        onSave={handleSaveSizes}
+                        mode="edit"
+                    />
+                )}
+                {showImagesModal && selectedProduct && (
+                    <ProductImagesModal
+                        product={selectedProduct}
+                        onClose={() => setShowImagesModal(false)}
+                        onUpload={handleImageUpload}
+                        onDelete={handleImageDelete}
+                        viewMode={false}
+                    />
+                )}
+                {showFilterModal && (
+                    <AdminFilterModal
+                        isOpen={showFilterModal}
+                        onClose={() => setShowFilterModal(false)}
+                        onApplyFilter={handleFilter}
+                        initialFilters={filterCriteria}
+                        categories={categories}
+                        sizeRange={{ min: 3, max: 15 }}
+                    />
+                )}
+                <ImageModal
+                    open={imageModalOpen}
+                    images={selectedImages}
+                    alt={selectedProductName}
+                    onClose={handleCloseImageModal}
                 />
-            )}
-
-            {showCategoryModal && (
-                <CategoryModal
-                    onSave={handleSaveCategory}
-                    onClose={handleCloseCategoryModal}
-                    isLoading={isCategoryLoading}
-                />
-            )}
-
-            {showFilterModal && (
-                <FilterModal
-                    isOpen={showFilterModal}
-                    onClose={() => setShowFilterModal(false)}
-                    onApplyFilter={handleFilter}
-                    initialFilters={filterCriteria}
-                />
-            )}
-                </div>
-            </ProtectedRoute>
-        );
-    };
+            </div>
+        </ProtectedRoute>
+    );
+};
 
 export default ProductManagement;

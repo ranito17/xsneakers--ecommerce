@@ -1,9 +1,17 @@
-const cartService = require('../services/cartService');
+const Cart = require('../models/Cart');
+const { normalizeString, toPositiveInt, toInt } = require('../validation/commonValidator');
 
-// Get user's cart with all items (works for both guests and logged-in users)
+// קבלת עגלת משתמש עם כל הפריטים (רק משתמשים מחוברים)
 const getUserCart = async (req, res) => {
     try {
-        const cart = await cartService.getCart(req);
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+        
+        const cart = await Cart.getUserCart(req.user.id);
         res.status(200).json({
             success: true,
             data: cart
@@ -17,25 +25,62 @@ const getUserCart = async (req, res) => {
     }
 };
 
-// Add item to cart (from product page) - works for both guests and logged-in users
+// הוספת פריט לעגלה (רק משתמשים מחוברים)
 const addToCart = async (req, res) => {
     try {
-        const { productId, quantity = 1, selected_size, selected_color } = req.body;
+        console.log('🛒 Controller: ===== ADD TO CART CONTROLLER CALL =====');
+        console.log('🛒 Controller: Request body:', req.body);
+        console.log('🛒 Controller: User:', req.user);
         
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+        
+        const productId = toPositiveInt(req.body?.productId);
         if (!productId) {
             return res.status(400).json({
                 success: false,
-                message: 'Product ID is required'
+                message: 'Validation failed',
+                errors: { productId: 'productId must be a positive integer' }
             });
         }
 
-        const result = await cartService.addToCart(req, productId, quantity, selected_size, selected_color);
+        const quantityRaw = req.body?.quantity === undefined ? 1 : req.body.quantity;
+        const quantity = toInt(quantityRaw);
+        if (!quantity || quantity < 1) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: { quantity: 'quantity must be an integer >= 1' }
+            });
+        }
+
+        const selected_size = req.body?.selected_size === undefined || req.body?.selected_size === null
+            ? undefined
+            : normalizeString(req.body.selected_size);
+        if (selected_size !== undefined && !selected_size) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: { selected_size: 'selected_size must be a non-empty string' }
+            });
+        }
+
+        console.log('🛒 Controller: Calling Cart.addToCart with:', { productId, quantity, selected_size });
+        const result = await Cart.addToCart(req.user.id, productId, quantity, selected_size);
+        
+        console.log('🛒 Controller: Cart result:', result);
+        console.log('🛒 Controller: ===== ADD TO CART CONTROLLER COMPLETE =====');
+        
         res.status(200).json({
             success: true,
             data: result
         });
     } catch (err) {
-        console.error('Controller error in addToCart:', err);
+        console.error('🛒 Controller: ERROR in addToCart controller:', err);
         res.status(500).json({
             success: false,
             message: err.message,
@@ -43,20 +88,35 @@ const addToCart = async (req, res) => {
     }
 };
 
-// Update item quantity (from cart page) - works for both guests and logged-in users
+// עדכון כמות פריט (רק משתמשים מחוברים)
 const updateQuantity = async (req, res) => {
     try {
-        const { cartItemId } = req.params;
-        const { quantity } = req.body;
-
-        if (!quantity || quantity < 1) {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+        
+        const cartItemId = toPositiveInt(req.params.cartItemId);
+        if (!cartItemId) {
             return res.status(400).json({
                 success: false,
-                message: 'Valid quantity is required'
+                message: 'Validation failed',
+                errors: { cartItemId: 'cartItemId must be a positive integer' }
             });
         }
 
-        const result = await cartService.updateQuantity(req, cartItemId, quantity);
+        const quantity = toInt(req.body?.quantity);
+        if (!quantity || quantity < 1) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: { quantity: 'quantity must be an integer >= 1' }
+            });
+        }
+
+        const result = await Cart.updateQuantity(req.user.id, cartItemId, quantity);
         res.status(200).json({
             success: true,
             data: result
@@ -70,12 +130,26 @@ const updateQuantity = async (req, res) => {
     }
 };
 
-// Remove item from cart - works for both guests and logged-in users
+// הסרת פריט מעגלה (רק משתמשים מחוברים)
 const removeFromCart = async (req, res) => {
     try {
-        const { cartItemId } = req.params;
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+        
+        const cartItemId = toPositiveInt(req.params.cartItemId);
+        if (!cartItemId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: { cartItemId: 'cartItemId must be a positive integer' }
+            });
+        }
 
-        const result = await cartService.removeFromCart(req, cartItemId);
+        const result = await Cart.removeFromCart(req.user.id, cartItemId);
         res.status(200).json({
             success: true,
             data: result
@@ -89,10 +163,17 @@ const removeFromCart = async (req, res) => {
     }
 };
 
-// Clear entire cart - works for both guests and logged-in users
+// ניקוי עגלה מלאה (רק משתמשים מחוברים)
 const clearCart = async (req, res) => {
     try {
-        const result = await cartService.clearCart(req);
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+        
+        const result = await Cart.clearCart(req.user.id);
         res.status(200).json({
             success: true,
             data: result
@@ -106,10 +187,37 @@ const clearCart = async (req, res) => {
     }
 };
 
+// קבלת עגלת משתמש ספציפי (אדמין בלבד)
+const getUserCartByAdmin = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID is required'
+            });
+        }
+        
+        const cart = await Cart.getUserCart(userId);
+        res.status(200).json({
+            success: true,
+            data: cart
+        });
+    } catch (err) {
+        console.error('Controller error in getUserCartByAdmin:', err);
+        res.status(500).json({
+            success: false,
+            message: err.message,
+        });
+    }
+};
+
 module.exports = {
     getUserCart,
     addToCart,
     updateQuantity,
     removeFromCart,
-    clearCart
+    clearCart,
+    getUserCartByAdmin
 };

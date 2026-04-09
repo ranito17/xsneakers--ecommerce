@@ -8,4 +8,6 @@ export { uploadApi } from './uploadApi';
 export { orderApi } from './orderApi';
 export { settingsApi } from './settingsApi';
 export { emailApi } from './emailApi';
+export { messageApi } from './messageApi';
 export { default as analyticsApi } from './analyticsApi';
+export { default as activityApi } from './activityApi';

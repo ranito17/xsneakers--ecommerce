@@ -1,15 +1,8 @@
-// backend/src/middleware/adminAuth.js
 
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-
-/**
- * Middleware to check if user is authenticated and has admin role
- * This middleware should be used after the regular auth middleware
- */
+// בודק שהמשתמש הוא אדמין (האימות כבר בוצע ב-middleware הקודם)
 const adminAuth = async (req, res, next) => {
     try {
-        // Check if user has admin role (authentication already verified by previous middleware)
+        // בדיקה אם למשתמש יש תפקיד אדמין
         if (req.user.role !== 'admin') {
             return res.status(403).json({
                 success: false,
@@ -17,10 +10,9 @@ const adminAuth = async (req, res, next) => {
             });
         }
 
-        // User is authenticated and has admin role
+        // המשתמש מאומת ויש לו תפקיד אדמין
         next();
     } catch (error) {
-        console.error('Admin auth middleware error:', error);
         return res.status(500).json({
             success: false,
             message: 'Internal server error during authorization'
@@ -28,10 +20,8 @@ const adminAuth = async (req, res, next) => {
     }
 };
 
-/**
- * Optional: Middleware to check for specific admin permissions
- * You can extend this for different admin levels (super admin, moderator, etc.)
- */
+// middleware אופציונלי לבדיקת הרשאות ספציפיות לאדמין
+// ניתן להרחיב עבור רמות אדמין שונות (super admin, moderator וכו')
 const adminPermission = (requiredPermission) => {
     return async (req, res, next) => {
         try {
@@ -49,7 +39,7 @@ const adminPermission = (requiredPermission) => {
                 });
             }
 
-            // Check for specific permissions if user has them
+            // בדיקת הרשאות ספציפיות אם למשתמש יש הרשאות
             if (req.user.permissions && !req.user.permissions.includes(requiredPermission)) {
                 return res.status(403).json({
                     success: false,
@@ -59,7 +49,6 @@ const adminPermission = (requiredPermission) => {
 
             next();
         } catch (error) {
-            console.error('Admin permission middleware error:', error);
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error during permission check'

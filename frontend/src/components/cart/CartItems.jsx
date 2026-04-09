@@ -2,7 +2,7 @@ import React from 'react';
 import CartItem from './CartItem';
 import styles from './cartItems.module.css';
 
-const CartItems = ({ cartItems, updateQuantity, removeFromCart, isLoading }) => {
+const CartItems = ({ cartItems, updateQuantity, removeFromCart, isLoading, currency, onImageClick }) => {
     return (
         <div className={styles.cartItemsContainer}>
             <div className={styles.cartItemsHeader}>
@@ -18,6 +18,8 @@ const CartItems = ({ cartItems, updateQuantity, removeFromCart, isLoading }) => 
                         updateQuantity={updateQuantity}
                         removeFromCart={removeFromCart}
                         isLoading={isLoading}
+                        currency={currency}
+                        onImageClick={onImageClick}
                     />
                 ))}
             </div>

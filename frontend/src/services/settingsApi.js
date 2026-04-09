@@ -1,8 +1,8 @@
 import api from './api';
 
-// Settings API functions
+// פונקציות API להגדרות מערכת
 export const settingsApi = {
-    // Get current settings (requires authentication)
+    // קבלת כלל ההגדרות (דורש התחברות)
     getSettings: async () => {
         try {
             const response = await api.get('/api/settingsRoutes');
@@ -17,7 +17,7 @@ export const settingsApi = {
         }
     },
 
-    // Get public settings (no authentication required)
+    // קבלת הגדרות ציבוריות (ללא התחברות)
     getPublicSettings: async () => {
         try {
             const response = await api.get('/api/settingsRoutes/public');
@@ -28,7 +28,7 @@ export const settingsApi = {
         }
     },
 
-    // Update settings
+    // עדכון הגדרות
     updateSettings: async (settingsData) => {
         try {
             const response = await api.put('/api/settingsRoutes', settingsData);

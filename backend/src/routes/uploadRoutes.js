@@ -1,13 +1,13 @@
-// routes/uploadRoutes.js
+// נתיבי העלאה - מגדירים את הנתיבים לכל הפעולות הקשורות להעלאת קבצים
 const express = require('express');
 const router = express.Router();
 const uploadController = require('../controllers/uploadController');
 const isAuthenticated = require('../middleware/auth');
 const { adminAuth } = require('../middleware/adminAuth');
-const upload = require('../middleware/upload');
+const { productUpload } = require('../middleware/upload');
 const multer = require('multer');
 
-// Error handling middleware for multer
+// middleware לטיפול בשגיאות multer
 const handleUploadError = (error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
@@ -40,11 +40,11 @@ const handleUploadError = (error, req, res, next) => {
   next(error);
 };
 
-// Upload operations (admin only)
+// פעולות העלאה (אדמין בלבד)
 router.post('/product-images', 
   isAuthenticated, 
   adminAuth,
-  upload.array('images', 10), // max 10 files
+  productUpload.array('images', 10), // מקסימום 10 קבצים
   handleUploadError,
   uploadController.uploadProductImages
 );
@@ -53,6 +53,12 @@ router.delete('/product-images/:productId',
   isAuthenticated, 
   adminAuth,
   uploadController.deleteProductImage
+);
+
+router.delete('/product-images/:productId/all', 
+  isAuthenticated, 
+  adminAuth,
+  uploadController.deleteAllProductImages
 );
 
 module.exports = router;

@@ -2,11 +2,11 @@ import api from './api';
 
 export const uploadApi = {
     /**
-     * Upload multiple images for a product
-     * @param {number} productId - The ID of the product
-     * @param {File[]} files - Array of image files to upload
-     * @param {Function} onProgress - Optional progress callback
-     * @returns {Promise} - Response with uploaded image URLs
+     * העלאת מספר תמונות למוצר
+     * @param {number} productId - מזהה המוצר
+     * @param {File[]} files - מערך קבצי תמונה להעלאה
+     * @param {Function} onProgress - 콜בק אופציונלי למעקב התקדמות
+     * @returns {Promise} תגובת שרת עם כתובות התמונות
      */
     uploadProductImages: async (productId, files, onProgress = null) => {
         try {
@@ -47,10 +47,10 @@ export const uploadApi = {
     },
 
     /**
-     * Delete a specific image from a product
-     * @param {number} productId - The ID of the product
-     * @param {string} imageUrl - The URL of the image to delete
-     * @returns {Promise} - Response indicating success/failure
+     * מחיקת תמונה ספציפית ממוצר
+     * @param {number} productId - מזהה המוצר
+     * @param {string} imageUrl - כתובת התמונה למחיקה
+     * @returns {Promise} תגובה עם הצלחה/כשלון
      */
     deleteProductImage: async (productId, imageUrl) => {
         try {
@@ -71,9 +71,30 @@ export const uploadApi = {
     },
 
     /**
-     * Validate file before upload
-     * @param {File} file - The file to validate
-     * @returns {Object} - Validation result with isValid and error message
+     * מחיקת כל התמונות של מוצר
+     * @param {number} productId - מזהה המוצר
+     * @returns {Promise} תגובה עם הצלחה/כשלון
+     */
+    deleteAllProductImages: async (productId) => {
+        try {
+            const response = await api.delete(`/api/upload/product-images/${productId}/all`);
+
+            return response.data;
+        } catch (error) {
+            // Handle authorization errors
+            if (error.response?.status === 403) {
+                window.location.href = '/unauthorized';
+                return;
+            }
+            console.error('Error deleting all product images:', error);
+            throw new Error(error.response?.data?.message || 'Failed to delete all images');
+        }
+    },
+
+    /**
+     * ולידציה לקובץ לפני העלאה
+     * @param {File} file - הקובץ לבדיקה
+     * @returns {Object} תוצאה עם isValid והודעת שגיאה
      */
     validateFile: (file) => {
         const maxSize = 5 * 1024 * 1024; // 5MB
@@ -89,9 +110,9 @@ export const uploadApi = {
     },
 
     /**
-     * Get file size in human readable format
-     * @param {number} bytes - File size in bytes
-     * @returns {string} - Formatted file size
+     * המרת גודל קובץ לפורמט קריא
+     * @param {number} bytes - גודל בבייטים
+     * @returns {string} גודל מעוצב
      */
     formatFileSize: (bytes) => {
         if (bytes === 0) return '0 Bytes';

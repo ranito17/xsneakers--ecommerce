@@ -1,16 +1,14 @@
+// נתיבי קשר - מגדירים את הנתיבים לשליחת הודעות קשר
 const express = require('express');
 const router = express.Router();
 const emailService = require('../services/emailService');
 
-/**
- * POST /api/contact
- * Send customer contact email
- */
+// POST /api/contact - שליחת אימייל קשר מלקוח
 router.post('/', async (req, res) => {
     try {
         const { name, email, subject, message } = req.body;
 
-        // Send the contact email
+        // שליחת אימייל קשר
         await emailService.sendCustomerContactEmail({
             name,
             email,

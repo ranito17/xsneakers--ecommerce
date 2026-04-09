@@ -1,0 +1,250 @@
+/* Payment Form Styles */
+.paymentForm {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.paymentMethods {
+    margin-bottom: 32px;
+    background: #dddde0;
+    border: 1px solid #c8cbce;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.paymentMethods h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--neutral-dark);
+    margin: 0 0 16px 0;
+}
+
+.methodOptions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.methodOption {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--neutral-light);
+}
+
+.methodOption:hover {
+    border-color: var(--primary-color);
+    background: #eff6ff;
+}
+
+.methodOption.active {
+    border-color: var(--primary-color);
+    background: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.methodOption input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.methodOption svg {
+    color: var(--primary-color);
+}
+
+.methodOption span {
+    font-weight: 600;
+    color: var(--neutral-dark);
+}
+
+/* Test Mode Notice */
+.testModeNotice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #dbeafe;
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    color: #1e40af;
+    font-size: 0.95rem;
+}
+
+.testModeNotice svg {
+    flex-shrink: 0;
+    color: var(--primary-color);
+}
+
+/* Form Styles */
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--neutral-dark);
+}
+
+.optional {
+    font-weight: 400;
+    color: var(--neutral-medium);
+    font-size: 0.85rem;
+}
+
+.required {
+    color: var(--error-color);
+}
+
+.formGroup input {
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.formGroup input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.formRow {
+    display: flex;
+    gap: 16px;
+}
+
+.formRow .formGroup {
+    flex: 1;
+}
+
+.divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 24px 0;
+}
+
+/* PayPal Info */
+.paypalInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px;
+    background: var(--neutral-light);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.paypalInfo svg {
+    color: var(--primary-color);
+}
+
+.paypalInfo p {
+    font-size: 1rem;
+    color: var(--neutral-medium);
+    margin: 0;
+}
+
+/* Address Form Styles */
+.addressFormSection {
+    background: #dddde0;
+    border: 1px solid #c8cbce;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.useSavedButtonContainer {
+    margin-bottom: 1rem;
+}
+
+.useSavedButton {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.useSavedButton:hover {
+    background: var(--secondary-color);
+}
+
+.savedAddressDisplay {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.savedAddressBox {
+    padding: 1rem;
+    background: var(--neutral-light);
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.savedAddressLabel {
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+    color: var(--neutral-dark);
+}
+
+.savedAddressText {
+    margin: 0;
+    color: var(--neutral-medium);
+}
+
+.changeAddressButton {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: var(--neutral-medium);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.changeAddressButton:hover {
+    background: var(--neutral-light);
+    border-color: var(--neutral-medium);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .formRow {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .methodOptions {
+        flex-direction: column;
+    }
+
+    .methodOption {
+        min-width: 100%;
+    }
+}
+

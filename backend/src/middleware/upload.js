@@ -3,19 +3,36 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'uploads', 'products');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Ensure uploads directories exist
+const productsDir = path.join(__dirname, '..', 'uploads', 'products');
+const categoryDir = path.join(__dirname, '..', 'uploads', 'category');
+
+if (!fs.existsSync(productsDir)) {
+  fs.mkdirSync(productsDir, { recursive: true });
+}
+if (!fs.existsSync(categoryDir)) {
+  fs.mkdirSync(categoryDir, { recursive: true });
 }
 
-const storage = multer.diskStorage({
+// Storage for products
+const productStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+    cb(null, productsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+// Storage for categories
+const categoryStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, categoryDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'category-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
@@ -31,8 +48,9 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
-  storage: storage,
+// Product upload
+const productUpload = multer({ 
+  storage: productStorage,
   fileFilter: fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
@@ -40,4 +58,17 @@ const upload = multer({
   }
 });
 
-module.exports = upload;
+// Category upload (single file only)
+const categoryUpload = multer({ 
+  storage: categoryStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 1 // Maximum 1 file for categories
+  }
+});
+
+module.exports = {
+  productUpload,
+  categoryUpload
+};

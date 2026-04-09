@@ -1,100 +1,67 @@
 import React from 'react';
-import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuthentication';
-
+import { useCart } from '../hooks/useCart';
+import { useSettings } from '../context/SettingsProvider';
+import { useToast } from '../components/common/toast';
+import { calculateOrderSummary } from '../utils/price.utils';
 import CartItems from '../components/cart/CartItems';
 import CartSummary from '../components/cart/CartSummary';
 import CartActions from '../components/cart/CartActions';
-import LoadingContainer from '../components/loading/LoadingContainer';
-import ErrorContainer from '../components/error/ErrorContainer';
+import { LoadingContainer, ErrorContainer } from '../components/contactForm';
+import EmptyCart from '../components/cart/EmptyCart';
 import styles from './pages.module.css';
-import EmptyCart from '../components/emptyCart/EmptyCart';
-import { orderApi } from '../services/orderApi';
-    
+
 const CartPage = () => {
-    // Get cart data and functions from context
+    const { isAuthenticated, user, loading: authLoading } = useAuth();
     const { 
         cartItems, 
-        cartCount, 
         cartTotal, 
-        isLoading: cartLoading, 
+        cartCount, 
+        updateQuantity, 
+        removeFromCart, 
+        clearCart, 
+        loading: cartLoading, 
         error: cartError,
-        updateQuantity,
-        removeFromCart,
-        clearCart
     } = useCart();
-    
-    // Auth state
-    const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-    
-    console.log('CartPage rendered with:', { 
-        cartItems, 
-        cartCount, 
-        cartTotal, 
-        isAuthenticated, 
-        authLoading,
-        cartLoading,
-        cartError,
-        user 
-    });
-    
-    // Show loading state while checking authentication or loading cart
-    const isPageLoading = authLoading || cartLoading;
-
-    const handlePlaceOrder = async () => {
-        if (!isAuthenticated) {
-            // Redirect to login with return URL
-            window.location.href = '/login?redirect=/cart';
-            return;
-        }
-
-        try {
-            const orderData = {
-                user_id: user.id,
-                total_amount: cartTotal,
-                payment_status: 'paid',
-                items: cartItems.map(item => ({
-                    product_id: item.id,
-                    quantity: item.quantity,
-                    selected_size: item.selected_size,
-                    selected_color: item.selected_color
-                }))
-            };
-            console.log('Order data:', orderData);
-            const result = await orderApi.placeOrder(orderData);
-            
-            // Show success message with order number
-            alert(`Order placed successfully! Your order number is: ${result.orderNumber}`);
-            
-            // Clear the cart after successful order
-            clearCart();
-            
-        } catch (error) {
-            console.error('Error placing order:', error);
-            alert('Failed to place order. Please try again.');
-        }
+    const { settings } = useSettings();
+    const { showWarning } = useToast();
+    const taxRate = (settings.tax_rate || 0) / 100;
+    const deliverySettings = {
+        freeDeliveryThreshold: settings.free_delivery_threshold || 100,
+        flatDeliveryCost: settings.default_delivery_cost || 10,
+        deliveryEnabled: true
     };
+    const orderSummary = calculateOrderSummary(cartItems, taxRate, deliverySettings);
+    const { subtotal, deliveryCost, taxAmount, total: totalWithTaxAndDelivery } = orderSummary;
 
+
+    // handleCheckout - בודק תקינות עגלה ומעביר לדף התשלום
+    // שליחה לשרת: אין - מעבר לדף אחר
+    // תגובה מהשרת: אין - מעבר לדף אחר
     const handleCheckout = () => {
         if (!isAuthenticated) {
-            // Redirect to login with return URL
             window.location.href = '/login?redirect=/cart';
             return;
         }
-        
-        // Proceed with checkout for authenticated users
-        handlePlaceOrder();
+        const itemsWithoutSize = cartItems.filter(item => {
+            const hasSizes = item.sizes && (
+                (Array.isArray(item.sizes) && item.sizes.length > 0) ||
+                (typeof item.sizes === 'string' && item.sizes.trim() !== '[]' && item.sizes.trim() !== '')
+            );
+            return hasSizes && !item.selected_size;
+        });
+        if (itemsWithoutSize.length > 0) {
+            showWarning('Please select a size for all products before checkout.');
+            return;
+        }
+        window.location.href = '/payment';
     };
 
+
+    const isPageLoading = authLoading || cartLoading;
+    const shouldShowCartContent = !isPageLoading && !cartError;
     return (
         <div className={styles.cartPage}>
-            {/* Page Header */}
-            <div className={styles.pageHeader}>
-                <h1>Shopping Cart</h1>
-                <p>{cartCount} {cartCount === 1 ? 'item' : 'items'} in your cart</p>
-            </div>
-
-            {/* Main Content */}
             <div className={styles.cartContent}>
                 {isPageLoading ? (
                     <LoadingContainer 
@@ -106,26 +73,23 @@ const CartPage = () => {
                         message={cartError}
                         onRetry={() => window.location.reload()}
                     />
-                ) : cartCount > 0 ? (
+                ) : shouldShowCartContent && cartCount > 0 ? (
                     <>
-                        {/* Cart Items Section */}
                         <div className={styles.cartSection}>
                             <CartItems 
                                 cartItems={cartItems}
                                 updateQuantity={updateQuantity}
                                 removeFromCart={removeFromCart}
                                 isLoading={cartLoading}
+                                currency={settings?.currency || 'ILS'}
                             />
                         </div>
-
-                        {/* Cart Summary Section */}
                         <div className={styles.summarySection}>
                             <CartSummary 
                                 cartItems={cartItems}
-                                cartTotal={cartTotal}
+                                cartTotal={subtotal}
+                                totalWithTaxAndDelivery={totalWithTaxAndDelivery}
                             />
-                            
-                            {/* Guest User Notice */}
                             {!isAuthenticated && (
                                 <div className={styles.guestNotice}>
                                     <div className={styles.guestNoticeContent}>
@@ -136,24 +100,23 @@ const CartPage = () => {
                                         </svg>
                                         <div className={styles.guestText}>
                                             <h3>Ready to Checkout?</h3>
-                                            <p>Please log in to complete your purchase and save your cart for future visits.</p>
+                                            <p>Please log in to complete your purchase. Your cart items will be saved and transferred to your account.</p>
                                         </div>
                                     </div>
                                 </div>
                             )}
-                            
                             <CartActions 
                                 cartTotal={cartTotal}
                                 clearCart={clearCart}
                                 isLoading={cartLoading}
-                                handlePlaceOrder={handleCheckout}
+                                handleCheckout={handleCheckout}
                                 isAuthenticated={isAuthenticated}
                             />
                         </div>
                     </>
-                ) : (
+                ) : shouldShowCartContent && cartCount === 0 ? (
                     <EmptyCart />
-                )}
+                ) : null}
             </div>
         </div>
     );

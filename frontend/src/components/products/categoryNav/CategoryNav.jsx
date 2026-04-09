@@ -1,0 +1,103 @@
+import React from 'react';
+import styles from './categoryNav.module.css';
+
+const CategoryNav = ({ categories = [], onCategoryChange, activeCategory = 'all', loading = false, error = null, onRetry = null, productCount = 0 }) => {
+    console.log('🔍 CategoryNav props:', { categories, activeCategory, loading, error, productCount });
+
+    const handleCategoryClick = (categoryId) => {
+        console.log('🎯 Category clicked:', categoryId);
+        onCategoryChange(categoryId);
+    };
+
+ 
+
+    if (loading) {
+        return (
+            <div className={styles.categoryNavContainer}>
+                <div className={styles.categoryNav}>
+                    <div className={styles.loadingMessage}>Loading categories...</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        console.log('🚨 CategoryNav showing error:', error);
+        return (
+            <div className={styles.categoryNavContainer}>
+                <div className={styles.categoryNav}>
+                    <div className={styles.errorMessage}>
+                        {error}
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className={styles.retryButton}
+                            style={{
+                                marginLeft: '10px',
+                                padding: '5px 10px',
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '5px',
+                                color: '#fff',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className={styles.categoryNavContainer}>
+            <div className={styles.categoryNav}>
+                <div className={styles.categoryButtons}>
+                    {/* All Categories Button */}
+                    <button
+                        className={`${styles.categoryButton} ${activeCategory === 'all' ? styles.active : ''}`}
+                        onClick={() => handleCategoryClick('all')}
+                        type="button"
+                        aria-label="Show all products"
+                        aria-pressed={activeCategory === 'all'}
+                        data-category="all"
+                    >
+                        <span className={styles.categoryName}>All Products</span>
+                    </button>
+                    
+                    {/* Category Buttons */}
+                    {categories.map((category) => {
+                        // Normalize comparison - convert both to strings for consistent comparison
+                        const categoryIdStr = String(category.category_id);
+                        const activeCategoryStr = String(activeCategory);
+                        const isActive = activeCategoryStr === categoryIdStr;
+                        
+                        return (
+                            <button
+                                key={category.category_id}
+                                className={`${styles.categoryButton} ${isActive ? styles.active : ''}`}
+                                onClick={() => handleCategoryClick(category.category_id)}
+                                type="button"
+                                aria-label={`Filter by ${category.category_name}`}
+                                aria-pressed={isActive}
+                                data-category={category.category_id}
+                            >
+                                <span className={styles.categoryName}>{category.category_name}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+                
+                {/* Product Count */}
+                <div className={styles.productCount}>
+                    <span className={styles.countText}>{productCount} products</span>
+                </div>
+            </div>
+            
+            {/* Category Description */}
+            
+        </div>
+    );
+};
+
+export default CategoryNav; 

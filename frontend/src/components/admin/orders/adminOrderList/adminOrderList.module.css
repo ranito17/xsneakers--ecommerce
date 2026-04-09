@@ -1,0 +1,210 @@
+/* Admin Order List - Grid Layout like Product List */
+.orderListContainer {
+    width: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+/* Results Info */
+.resultsInfo {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Orders Grid - Like Product List */
+.ordersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Loading Container */
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.loading {
+    font-size: 1.1rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Error Container */
+.errorContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+}
+
+.error p {
+    color: #ef4444;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.retryButton {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+/* Empty State */
+.emptyContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 2rem;
+}
+
+.emptyState h3 {
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.emptyState p {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem 0;
+}
+
+.paginationButton {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.paginationButton:hover:not(:disabled) {
+    border-color: #3b82f6;
+    background: #f8fafc;
+}
+
+.paginationButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pageNumbers {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.pageButton {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 40px;
+}
+
+.pageButton:hover {
+    border-color: #3b82f6;
+    background: #f8fafc;
+}
+
+.pageButton.active {
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.ellipsis {
+    color: #64748b;
+    font-weight: 500;
+    padding: 0 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .ordersGrid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .ordersGrid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .pagination {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .pageNumbers {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .ordersGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .resultsInfo {
+        font-size: 0.8rem;
+    }
+} 

@@ -3,6 +3,7 @@
 const Upload = require('../models/Upload');
 const fs = require('fs').promises;
 const path = require('path');
+const UPLOADS_ROOT = path.join(__dirname, '..', 'uploads');
 
 // העלאת תמונות מוצר למסד הנתונים
 // השליטה מקבלת קבצים מהלקוח ושולחת אותם למודל
@@ -44,21 +45,22 @@ const deleteProductImage = async (req, res) => {
 
         // Extract filename from the full URL
         let filename;
-        if (imageUrl.includes('http://localhost:3001/uploads/products/')) {
-            // Full URL format: http://localhost:3001/uploads/products/filename.png
-            filename = imageUrl.replace('http://localhost:3001/uploads/products/', '');
-        } else if (imageUrl.startsWith('/uploads/products/')) {
+        if (imageUrl.startsWith('/uploads/products/')) {
             // Relative URL format: /uploads/products/filename.png
             filename = imageUrl.replace('/uploads/products/', '');
         } else {
             // Assume it's already just the filename
-            filename = imageUrl;
+            try {
+                filename = new URL(imageUrl).pathname.replace('/uploads/products/', '');
+            } catch {
+                filename = imageUrl;
+            }
         }
 
         console.log('🗑️ Deleting image:', { originalUrl: imageUrl, extractedFilename: filename });
 
         // Delete the file from disk
-        const filePath = path.join('uploads', 'products', filename);
+        const filePath = path.join(UPLOADS_ROOT, 'products', filename);
         try {
             await fs.unlink(filePath);
             console.log('✅ File deleted from disk:', filePath);
@@ -83,7 +85,58 @@ const deleteProductImage = async (req, res) => {
     }
 };
 
+// Delete all images for a product
+const deleteAllProductImages = async (req, res) => {
+    try {
+        const { productId } = req.params;
+
+        console.log('🗑️ Deleting all images for product:', productId);
+
+        // Get current product images from database
+        const currentImages = await Upload.getProductImages(productId);
+        
+        if (currentImages && currentImages.length > 0) {
+            // Delete all files from disk
+            for (const imageUrl of currentImages) {
+                let filename;
+                if (imageUrl.startsWith('/uploads/products/')) {
+                    filename = imageUrl.replace('/uploads/products/', '');
+                } else {
+                    try {
+                        filename = new URL(imageUrl).pathname.replace('/uploads/products/', '');
+                    } catch {
+                        filename = imageUrl;
+                    }
+                }
+
+                const filePath = path.join(UPLOADS_ROOT, 'products', filename);
+                try {
+                    await fs.unlink(filePath);
+                    console.log('✅ File deleted from disk:', filePath);
+                } catch (fileError) {
+                    console.warn('⚠️ File not found for deletion:', filePath);
+                }
+            }
+        }
+
+        // Remove all images from database
+        await Upload.removeAllProductImages(productId);
+
+        res.json({
+            success: true,
+            message: 'All images deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting all images:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete all images'
+        });
+    }
+};
+
 module.exports = {
     uploadProductImages,
-    deleteProductImage
+    deleteProductImage,
+    deleteAllProductImages
 };

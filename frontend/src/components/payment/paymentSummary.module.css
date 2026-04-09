@@ -1,0 +1,159 @@
+/* Payment Summary Styles */
+.summarySection {
+    width: 400px;
+    background: #dddde0;
+    border: 1px solid #c8cbce;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    align-self: flex-start;
+    position: sticky;
+    top: 20px;
+}
+
+.summaryTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neutral-dark);
+    margin: 0 0 24px 0;
+}
+
+/* Summary Items */
+.summaryItems {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.summaryItem {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.itemImage {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background: #f8fafc;
+    padding: 4px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.itemImage:hover {
+    transform: scale(1.1);
+}
+
+.itemDetails {
+    flex: 1;
+    min-width: 0;
+}
+
+.itemDetails h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--neutral-dark);
+    margin: 0 0 4px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.itemSize,
+.itemQuantity {
+    font-size: 0.8rem;
+    color: var(--neutral-medium);
+    margin: 0;
+}
+
+.itemPrice {
+    font-weight: 700;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.summaryDivider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 16px 0;
+}
+
+/* Summary Totals */
+.summaryTotals {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: var(--neutral-medium);
+}
+
+.summaryRowDetail {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--neutral-medium);
+}
+
+.summaryRow.total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--neutral-dark);
+    padding-top: 12px;
+    border-top: 2px solid #e2e8f0;
+    margin-top: 8px;
+}
+
+/* Free Delivery Note */
+.freeDeliveryNote {
+    margin-top: 16px;
+    padding: 12px;
+    background: #fef3c7;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #92400e;
+}
+
+.freeDeliveryNote svg {
+    flex-shrink: 0;
+    color: #f59e0b;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .summarySection {
+        width: 100%;
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .summarySection {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .summarySection {
+        padding: 20px;
+    }
+
+    .summaryTitle {
+        font-size: 1.3rem;
+    }
+}
+

@@ -1,42 +1,144 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
+import ForgotPasswordForm from './ForgotPasswordForm';
+import ResetPasswordForm from './ResetPasswordForm';
 import styles from './auth.module.css';
 
-const AuthContainer = () => {
-    const location = useLocation();
-    
-    // Determine if we're on signup page
-    const isSignup = location.pathname === '/signup';
-    
+const AuthContainer = ({
+    isSignup,
+    isForgotPassword,
+    isResetPassword,
+    // Login props
+    loginFormData,
+    loginError,
+    showLoginPassword,
+    onLoginChange,
+    onLoginSubmit,
+    onToggleLoginPassword,
+    // Signup props
+    signupFormData,
+    signupError,
+    showSignupPassword,
+    showSignupConfirmPassword,
+    onSignupChange,
+    onSignupSubmit,
+    onToggleSignupPassword,
+    onToggleSignupConfirmPassword,
+    // Forgot password props
+    forgotPasswordEmail,
+    forgotPasswordEmailError,
+    onForgotPasswordEmailChange,
+    onForgotPasswordSubmit,
+    // Reset password props
+    resetPasswordEmail,
+    resetPasswordCode,
+    resetPasswordNewPassword,
+    resetPasswordConfirmPassword,
+    resetPasswordError,
+    resetPasswordPasswordError,
+    resetPasswordConfirmError,
+    showResetPassword,
+    showResetConfirmPassword,
+    resetPasswordTimeRemaining,
+    resetPasswordCountdownStarted,
+    onResetPasswordEmailChange,
+    onResetPasswordCodeChange,
+    onResetPasswordPasswordChange,
+    onResetPasswordConfirmChange,
+    onResetPasswordSubmit,
+    onToggleResetPassword,
+    onToggleResetConfirmPassword,
+    formatTime,
+    // Navigation
+    onNavigateToSignup,
+    onNavigateToLogin,
+    onNavigateToForgotPassword,
+    onRequestNewCode,
+    onBackToLogin,
+    // Loading state
+    isLoading
+}) => {
+    // Determine which form to show based on route
+    if (isResetPassword) {
+        return (
+            <ResetPasswordForm
+                email={resetPasswordEmail}
+                code={resetPasswordCode}
+                newPassword={resetPasswordNewPassword}
+                confirmPassword={resetPasswordConfirmPassword}
+                error={resetPasswordError}
+                passwordError={resetPasswordPasswordError}
+                confirmError={resetPasswordConfirmError}
+                isLoading={isLoading}
+                showPassword={showResetPassword}
+                showConfirmPassword={showResetConfirmPassword}
+                timeRemaining={resetPasswordTimeRemaining}
+                countdownStarted={resetPasswordCountdownStarted}
+                onChange={onResetPasswordEmailChange}
+                onCodeChange={onResetPasswordCodeChange}
+                onPasswordChange={onResetPasswordPasswordChange}
+                onConfirmPasswordChange={onResetPasswordConfirmChange}
+                onSubmit={onResetPasswordSubmit}
+                onTogglePassword={onToggleResetPassword}
+                onToggleConfirmPassword={onToggleResetConfirmPassword}
+                onRequestNewCode={onRequestNewCode}
+                onBackToLogin={onNavigateToLogin}
+                formatTime={formatTime}
+            />
+        );
+    }
+
+    if (isForgotPassword) {
+        return (
+            <div className={styles.authContainer}>
+                <div className={styles.authWrapper}>
+                    <div className={styles.formSection}>
+                        <ForgotPasswordForm
+                            email={forgotPasswordEmail}
+                            emailError={forgotPasswordEmailError}
+                            isLoading={isLoading}
+                            onChange={onForgotPasswordEmailChange}
+                            onSubmit={onForgotPasswordSubmit}
+                            onBackToLogin={onNavigateToLogin}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.authContainer}>
             <div className={styles.authWrapper}>
-                {/* Logo/Brand Section */}
-                <div className={styles.brandSection}>
-                    <h1 className={styles.brandTitle}>Xsneakers</h1>
-                    <p className={styles.brandSubtitle}>
-                        {isSignup 
-                            ? 'Join the ultimate sneaker community' 
-                            : 'Welcome back to your sneaker paradise'
-                        }
-                    </p>
-                </div>
-                
                 {/* Form Section */}
                 <div className={styles.formSection}>
-                    {isSignup ? <SignupForm /> : <LoginForm />}
-                </div>
-                
-                {/* Footer */}
-                <div className={styles.authFooter}>
-                    <p>&copy; 2024 Xsneakers. All rights reserved.</p>
-                    <div className={styles.footerLinks}>
-                        <a href="/privacy">Privacy Policy</a>
-                        <a href="/terms">Terms of Service</a>
-                        <a href="/help">Help & Support</a>
-                    </div>
+                    {isSignup ? (
+                        <SignupForm
+                            formData={signupFormData}
+                            error={signupError}
+                            isLoading={isLoading}
+                            showPassword={showSignupPassword}
+                            showConfirmPassword={showSignupConfirmPassword}
+                            onChange={onSignupChange}
+                            onSubmit={onSignupSubmit}
+                            onTogglePassword={onToggleSignupPassword}
+                            onToggleConfirmPassword={onToggleSignupConfirmPassword}
+                            onNavigateToLogin={onNavigateToLogin}
+                        />
+                    ) : (
+                        <LoginForm
+                            formData={loginFormData}
+                            error={loginError}
+                            isLoading={isLoading}
+                            showPassword={showLoginPassword}
+                            onChange={onLoginChange}
+                            onSubmit={onLoginSubmit}
+                            onTogglePassword={onToggleLoginPassword}
+                            onNavigateToSignup={onNavigateToSignup}
+                            onNavigateToForgotPassword={onNavigateToForgotPassword}
+                        />
+                    )}
                 </div>
             </div>
         </div>

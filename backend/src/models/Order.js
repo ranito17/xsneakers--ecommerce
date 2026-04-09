@@ -1,72 +1,166 @@
 const dbSingleton = require('../config/database');
+const Activity = require('./Activity');
+const { ACTION_TYPES, ENTITY_TYPES } = require('../middleware/activityLogger');
+const { normalizeImageUrls, imageUrlsToString } = require('../utils/image');
+// פונקציית לקוח: יצירת הזמנה חדשה (כולל בדיקות מלאי)
 async function placeOrder(orderData) {
-    try {
-        const db = await dbSingleton.getConnection();
-        const { user_id, total_amount, payment_status, items } = orderData;
+    const db = await dbSingleton.getDedicatedConnection();
+    const Product = require('./Product');
 
-        // Generate order number (ORD-YYYY-XXX format)
-        const currentYear = new Date().getFullYear();
-        
-        // Get the highest order number for this year
-        const [lastOrder] = await db.query(
-            'SELECT order_number FROM orders WHERE order_number LIKE ? ORDER BY order_number DESC LIMIT 1',
-            [`ORD-${currentYear}-%`]
-        );
-        
-        let orderNumber;
-        if (lastOrder.length > 0) {
-            // Extract the number from the last order number and increment
-            const lastOrderNumber = lastOrder[0].order_number;
-            const parts = lastOrderNumber.split('-');
-            if (parts.length === 3) {
-                const lastNumber = parseInt(parts[2]);
-                if (!isNaN(lastNumber)) {
-                    orderNumber = `ORD-${currentYear}-${String(lastNumber + 1).padStart(3, '0')}`;
-                } else {
-                    // Fallback if parsing fails
-                    orderNumber = `ORD-${currentYear}-001`;
-                }
-            } else {
-                // Fallback if format is wrong
-                orderNumber = `ORD-${currentYear}-001`;
-            }
-        } else {
-            // First order of the year
-            orderNumber = `ORD-${currentYear}-001`;
+    try {
+        const {
+            user_id,
+            items,
+            address,
+            delivery_cost = 0,
+            payment_status = 'pending'
+        } = orderData;
+
+        if (!user_id) {
+            throw new Error('User ID is required');
         }
 
-        // Calculate estimated delivery date (1 month from today)
-        const estimatedDelivery = new Date();
-        estimatedDelivery.setMonth(estimatedDelivery.getMonth() + 1);
+        if (!Array.isArray(items) || items.length === 0) {
+            throw new Error('Order must include at least one item');
+        }
 
-        // Insert order with new columns including estimated delivery
+        if (!address || typeof address !== 'object') {
+            throw new Error('Valid address is required');
+        }
+
+        await db.beginTransaction();
+
+        let calculatedSubtotal = 0;
+
+        // Validate items, stock, and calculate total from DB prices
+        for (const item of items) {
+            const { product_id, quantity, selected_size } = item;
+
+            if (!product_id) {
+                throw new Error('Product ID is required for each item');
+            }
+
+            const qty = Number(quantity);
+            if (!Number.isInteger(qty) || qty <= 0) {
+                throw new Error(`Invalid quantity for product ${product_id}`);
+            }
+
+            if (!selected_size) {
+                throw new Error(`Selected size is required for product ${product_id}`);
+            }
+
+            const product = await Product.getProductById(product_id, db);
+
+            if (!product) {
+                throw new Error(`Product not found: ${product_id}`);
+            }
+
+            const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
+            const sizeData = productSizes.find(
+                (size) => String(size.size) === String(selected_size)
+            );
+
+            if (!sizeData) {
+                throw new Error(`Selected size not available for product ${product.name}`);
+            }
+
+            if (Number(sizeData.quantity) < qty) {
+                throw new Error(
+                    `Insufficient stock for product ${product.name}, size ${selected_size}`
+                );
+            }
+
+            calculatedSubtotal += Number(product.price) * qty;
+        }
+
+        const safeDeliveryCost = Number(delivery_cost) || 0;
+        const total_amount = calculatedSubtotal + safeDeliveryCost;
+
+        // Generate order number
+        const order_number = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        // Insert order
         const [orderResult] = await db.query(
-            'INSERT INTO orders (user_id, total_amount, payment_status, order_number, status, arrival_date_estimated) VALUES (?, ?, ?, ?, ?, ?)',
-            [user_id, total_amount, payment_status, orderNumber, 'pending', estimatedDelivery]
+            `INSERT INTO orders 
+            (user_id, total_amount, payment_status, order_number, status, address, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+            [
+                user_id,
+                total_amount,
+                payment_status,
+                order_number,
+                'pending',
+                JSON.stringify(address)
+            ]
         );
+
         const orderId = orderResult.insertId;
 
-        // Insert order items
+        // Insert order items + reduce stock
         for (const item of items) {
-            const { product_id, quantity, selected_color, selected_size } = item;
+            const { product_id, quantity, selected_size } = item;
+
+            const product = await Product.getProductById(product_id, db);
+            const qty = Number(quantity);
+
             await db.query(
-                'INSERT INTO order_items (order_id, product_id, quantity, selected_color, selected_size) VALUES (?, ?, ?, ?, ?)',
-                [orderId, product_id, quantity, selected_color, selected_size]
+                `INSERT INTO order_items
+                (order_id, product_id, quantity, selected_size)
+                VALUES (?, ?, ?, ?)`,
+                [
+                    orderId,
+                    product_id,
+                    qty,
+                    selected_size
+                ]
             );
+
+            const stockReduced = await Product.decreaseStockForSize(
+                product_id,
+                selected_size,
+                qty,
+                db
+            );
+
+            if (!stockReduced) {
+                throw new Error(
+                    `Failed to reduce stock for product ${product.name}, size ${selected_size}`
+                );
+            }
         }
-        
-        // Return the order with the generated order number
-        return { ...orderResult, orderNumber };
+
+        await db.commit();
+
+        return {
+            success: true,
+            orderId,
+            order_number,
+            total_amount,
+            subtotal: calculatedSubtotal,
+            delivery_cost: safeDeliveryCost
+        };
     } catch (err) {
-        console.error('Database error in placeOrder:', err);
-        throw new Error('Failed to place order');
+        try {
+            await db.rollback();
+        } catch (rollbackError) {
+            console.error('Rollback error:', rollbackError);
+        }
+
+        throw err;
+    } finally {
+        try {
+            await db.release();
+        } catch (closeError) {
+            // Swallow close errors to preserve existing behavior
+        }
     }
 }
-async function getAllOrders() {
+async function getAllOrders(sizeFilter = null) {
     try {
         const db = await dbSingleton.getConnection();
-        const [rows] = await db.query(`
-            SELECT 
+        
+        let query = `
+            SELECT DISTINCT
                 o.order_id,
                 o.user_id,
                 o.total_amount,
@@ -76,19 +170,48 @@ async function getAllOrders() {
                 o.arrival_date_estimated,
                 o.created_at,
                 o.updated_at,
+                o.address as shipping_address,
                 u.full_name as customer_name,
                 u.email as customer_email,
-                u.address as shipping_address
+                COALESCE(SUM(oi.quantity), 0) as total_items
             FROM orders o
             JOIN users u ON o.user_id = u.id
-            ORDER BY o.created_at DESC
-        `);
-        return rows;
+            LEFT JOIN order_items oi ON o.order_id = oi.order_id
+        `;
+        
+        const params = [];
+        
+        // הוספת סינון גדל אם סופק
+        if (sizeFilter && sizeFilter !== 'all') {
+            query += ` WHERE oi.selected_size = ?`;
+            params.push(sizeFilter);
+        }
+        
+        query += ` GROUP BY o.order_id, o.user_id, o.total_amount, o.payment_status, o.order_number, o.status, o.arrival_date_estimated, o.created_at, o.updated_at, o.address, u.full_name, u.email ORDER BY o.created_at DESC`;
+        
+        const [rows] = await db.query(query, params);
+        
+        // פענוח כתובת JSON לכל הזמנה
+        return rows.map(order => {
+            if (order.shipping_address) {
+                try {
+                    order.shipping_address = typeof order.shipping_address === 'string' 
+                        ? JSON.parse(order.shipping_address) 
+                        : order.shipping_address;
+                } catch (e) {
+                    console.error('Error parsing address:', e);
+                }
+            }
+            return order;
+        });
     } catch (err) {
-        console.error('Database error in getAllOrders:', err);
         throw new Error('Failed to fetch orders');
     }
 }
+
+// קבלת כל הגדלים הייחודיים מפריטי הזמנות
+// פונקציה זו הוסרה - לא בשימוש
+// async function getOrderSizes() { ... }
 async function getOrderById(orderId) {
     try {
         const db = await dbSingleton.getConnection();
@@ -103,16 +226,27 @@ async function getOrderById(orderId) {
                 o.arrival_date_estimated,
                 o.created_at,
                 o.updated_at,
+                o.address as shipping_address,
                 u.full_name as customer_name,
-                u.email as customer_email,
-                u.address as shipping_address
+                u.email as customer_email
             FROM orders o
             JOIN users u ON o.user_id = u.id
             WHERE o.order_id = ?
         `, [orderId]);
-        return rows[0];
+        
+        // פענוח כתובת JSON אם קיימת
+        const order = rows[0];
+        if (order && order.shipping_address) {
+            try {
+                order.shipping_address = typeof order.shipping_address === 'string' 
+                    ? JSON.parse(order.shipping_address) 
+                    : order.shipping_address;
+            } catch (e) {
+                console.error('Error parsing address:', e);
+            }
+        }
+        return order;
     } catch (err) {
-        console.error('Database error in getOrderById:', err);
         throw new Error('Failed to fetch order by ID');
     }
 }
@@ -130,75 +264,184 @@ async function getUserOrderById(orderId, userId) {
                 o.status,
                 o.arrival_date_estimated,
                 o.created_at,
+                o.address as shipping_address,
                 u.full_name as customer_name,
-                u.email as customer_email,
-                u.address as shipping_address
+                u.email as customer_email
             FROM orders o
             JOIN users u ON o.user_id = u.id
             WHERE o.order_id = ? AND o.user_id = ?
         `, [orderId, userId]);
-        return rows[0];
+        
+        // פענוח כתובת JSON אם קיימת
+        const order = rows[0];
+        if (order && order.shipping_address) {
+            try {
+                order.shipping_address = typeof order.shipping_address === 'string' 
+                    ? JSON.parse(order.shipping_address) 
+                    : order.shipping_address;
+            } catch (e) {
+                console.error('Error parsing address:', e);
+            }
+        }
+        return order;
     } catch (err) {
-        console.error('Database error in getUserOrderById:', err);
         throw new Error('Failed to fetch user order by ID');
     }
 }
-async function updateOrder(orderId, orderData) {
-    try {
-        const db = await dbSingleton.getConnection();
-        const { total_amount, status, tracking_number } = orderData;
-        const [result] = await db.query(
-            'UPDATE orders SET total_amount = ?, status = ?, tracking_number = ?, updated_at = CURRENT_TIMESTAMP WHERE order_id = ?',
-            [total_amount, status, tracking_number, orderId]
-        );
-        return result;
-    } catch (err) {
-        console.error('Database error in updateOrder:', err);
-        throw new Error('Failed to update order');
-    }
-}
+// פונקציה זו הוסרה - לא בשימוש
+// async function updateOrder(orderId, orderData) { ... }
 
+/**
+ * מעדכן את סטטוס ההזמנה
+ * אם הסטטוס משתנה ל-"cancelled", מחזיר את המלאי של כל הפריטים בהזמנה
+ * 
+ * @param {number} orderId - ID של ההזמנה
+ * @param {string} status - הסטטוס החדש
+ * @returns {Promise<Object>} תוצאת ה-update
+ */
 async function updateOrderStatus(orderId, status) {
+    let db;
     try {
-        const db = await dbSingleton.getConnection();
+        db = await dbSingleton.getDedicatedConnection();
+        const Product = require('./Product');
+        await db.beginTransaction();
+        
+        // קבלת הסטטוס הקודם
+        const [currentOrder] = await db.query(
+            'SELECT status FROM orders WHERE order_id = ?',
+            [orderId]
+        );
+        
+        if (currentOrder.length === 0) {
+            throw new Error('Order not found');
+        }
+        
+        const previousStatus = currentOrder[0].status;
+        const isCancelling = status === 'cancelled' && previousStatus !== 'cancelled';
+        const isUncancelling = previousStatus === 'cancelled' && status !== 'cancelled';
+        
+        // אם מבטלים הזמנה - החזרת מלאי
+        if (isCancelling) {
+            // קבלת כל פריטי ההזמנה
+            const [orderItems] = await db.query(
+                'SELECT product_id, quantity, selected_size FROM order_items WHERE order_id = ?',
+                [orderId]
+            );
+            
+            // קבלת פרטי ההזמנה לרישום פעילות
+            const [orderInfo] = await db.query(
+                'SELECT order_number, user_id FROM orders WHERE order_id = ?',
+                [orderId]
+            );
+            const orderNumber = orderInfo[0]?.order_number || orderId;
+            const userId = orderInfo[0]?.user_id || null;
+            
+            // החזרת המלאי לכל פריט
+            for (const item of orderItems) {
+                const { product_id, quantity, selected_size } = item;
+                if (selected_size) {
+                    await Product.increaseStockForSize(product_id, selected_size, quantity, db);
+                    
+                    // רישום פעילות הגדלת מלאי
+                    try {
+                        const product = await Product.getProductById(product_id, db);
+                        const productName = product ? product.name : `Product ID ${product_id}`;
+                        await Activity.create({
+                            user_id: userId,
+                            action_type: ACTION_TYPES.STOCK_INCREASED,
+                            entity_type: ENTITY_TYPES.PRODUCT,
+                            entity_id: product_id,
+                            description: `Stock increased: ${productName}, Size ${selected_size}, Quantity: ${quantity} (Order #${orderNumber} cancelled)`
+                        }, db);
+                    } catch (logError) {
+                        console.error('Error logging stock increase activity:', logError);
+                    }
+                }
+            }
+
+            // רישום פעילות ביטול הזמנה
+            try {
+                await Activity.create({
+                    user_id: userId,
+                    action_type: ACTION_TYPES.ORDER_CANCELLED,
+                    entity_type: ENTITY_TYPES.ORDER,
+                    entity_id: orderId,
+                    description: `Order #${orderNumber} cancelled`
+                }, db);
+            } catch (logError) {
+                console.error('Error logging order cancellation activity:', logError);
+            }
+        }
+        
+        // אם מבטלים את הביטול - הפחתת מלאי שוב
+        if (isUncancelling) {
+            // קבלת כל פריטי ההזמנה
+            const [orderItems] = await db.query(
+                'SELECT product_id, quantity, selected_size FROM order_items WHERE order_id = ?',
+                [orderId]
+            );
+            
+            // קבלת פרטי ההזמנה לרישום פעילות
+            const [orderInfo] = await db.query(
+                'SELECT order_number, user_id FROM orders WHERE order_id = ?',
+                [orderId]
+            );
+            const orderNumber = orderInfo[0]?.order_number || orderId;
+            const userId = orderInfo[0]?.user_id || null;
+            
+            // הפחתת המלאי לכל פריט
+            for (const item of orderItems) {
+                const { product_id, quantity, selected_size } = item;
+                if (selected_size) {
+                    await Product.decreaseStockForSize(product_id, selected_size, quantity, db);
+                    
+                    // רישום פעילות הפחתת מלאי
+                    try {
+                        const product = await Product.getProductById(product_id, db);
+                        const productName = product ? product.name : `Product ID ${product_id}`;
+                        await Activity.create({
+                            user_id: userId,
+                            action_type: ACTION_TYPES.STOCK_DECREASED,
+                            entity_type: ENTITY_TYPES.PRODUCT,
+                            entity_id: product_id,
+                            description: `Stock decreased: ${productName}, Size ${selected_size}, Quantity: ${quantity} (Order #${orderNumber} uncancelled)`
+                        }, db);
+                    } catch (logError) {
+                        console.error('Error logging stock decrease activity:', logError);
+                    }
+                }
+            }
+        }
+        
+        // עדכון הסטטוס
         const [result] = await db.query(
             'UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE order_id = ?',
             [status, orderId]
         );
+        await db.commit();
         return result;
     } catch (err) {
-        console.error('Database error in updateOrderStatus:', err);
+        if (db) {
+            try {
+                await db.rollback();
+            } catch (rollbackError) {
+                // preserve existing behavior
+            }
+        }
         throw new Error('Failed to update order status');
+    } finally {
+        if (db) {
+            try {
+                await db.release();
+            } catch (closeError) {
+                // preserve existing behavior
+            }
+        }
     }
 }
-// Order deletion is not allowed for financial data protection
-// Orders must be preserved for accounting, legal, and audit purposes
-async function deleteOrder(orderId) {
-    throw new Error('Order deletion is not allowed. Financial data must be preserved.');
-}
-async function getUserOrders(userId) {
-    try {
-        const db = await dbSingleton.getConnection();
-        const [rows] = await db.query(`
-            SELECT 
-                order_id,
-                user_id,
-                total_amount,
-                payment_status,
-                order_number,
-                status,
-                arrival_date_estimated,
-                created_at
-            FROM orders 
-            WHERE user_id = ?
-            ORDER BY created_at DESC
-        `, [userId]);
-        return rows;
-    } catch (err) {
-        console.error('Database error in getUserOrders:', err);
-        throw new Error('Failed to fetch user orders');
-    }
-}
+// מחיקת הזמנות אסורה להגנת נתונים פיננסיים
+// הזמנות חייבות להישמר למטרות חשבונאות, משפט וביקורת
+
 async function getOrderItems(orderId) {
     try {
         const db = await dbSingleton.getConnection();
@@ -208,121 +451,66 @@ async function getOrderItems(orderId) {
                 p.name as product_name,
                 p.price as product_price,
                 p.image_urls as product_images,
-                p.description as product_description
+                p.description as product_description,
+                CAST(o.address AS CHAR) as shipping_address
             FROM order_items oi
             JOIN products p ON oi.product_id = p.id
+            JOIN orders o ON oi.order_id = o.order_id
             WHERE oi.order_id = ?
         `, [orderId]);
         
-        // Process image URLs to convert to full URLs
+        // עיבוד כתובות תמונות להמרה לכתובות מלאות ופענוח כתובת
         const processedRows = rows.map(item => {
             let images = [];
             
-            // Check if product_images exists and has content
+            // בדיקה אם product_images קיים ויש לו תוכן
             if (item.product_images && item.product_images.trim()) {
                 images = item.product_images.split(',').map(url => url.trim()).filter(Boolean);
             }
             
-            // Convert to full URLs
-            const fullImageUrls = images.map(url => {
-                if (url.startsWith('http')) {
-                    return url; // Already a full URL
-                } else if (url.startsWith('/uploads/')) {
-                    return `http://localhost:3001${url}`; // Add base URL
-                } else {
-                    return `http://localhost:3001/uploads/products/${url}`; // Add full path
+            // המרה לכתובות מלאות
+            const normalizedImageUrls = normalizeImageUrls(images, 'products');
+            
+            // פענוח כתובת משלוח JSON אם קיימת
+            let shippingAddress = item.shipping_address;
+            
+            // טיפול בפורמטים שונים של כתובת
+            if (shippingAddress) {
+                // אם זה Buffer (לפעמים MySQL מחזיר JSON כ-Buffer), המרה למחרוזת
+                if (Buffer.isBuffer(shippingAddress)) {
+                    shippingAddress = shippingAddress.toString('utf8');
                 }
-            });
+                
+                // אם זה מחרוזת, ניסיון לפרסר כ-JSON
+                if (typeof shippingAddress === 'string' && shippingAddress.trim()) {
+                    try {
+                        const parsed = JSON.parse(shippingAddress);
+                        shippingAddress = parsed;
+                    } catch (e) {
+                        // אם הפרסור נכשל, יכול להיות שזה כבר מחרוזת מעוצבת - להשאיר כפי שהיא
+                    }
+                }
+                // אם זה כבר אובייקט, להשתמש ישירות
+            }
+            
+            // הסרת shipping_address מה-spread כדי למנוע התנגשויות
+            const { shipping_address: _, ...itemWithoutAddress } = item;
             
             return {
-                ...item,
-                product_images: fullImageUrls.join(',')
+                ...itemWithoutAddress,
+                product_images: imageUrlsToString(normalizedImageUrls,'products'),
+                shipping_address: shippingAddress || null
             };
         });
         
         return processedRows;
     } catch (err) {
-        console.error('Database error in getOrderItems:', err);
         throw new Error('Failed to fetch order items');
     }
 }
 
-// Dashboard Analytics Functions
-async function getDashboardStats() {
-    try {
-        const db = await dbSingleton.getConnection();
-        
-        // Total orders and revenue
-        const [orderStats] = await db.query(`
-            SELECT 
-                COUNT(*) as total_orders,
-                SUM(total_amount) as total_revenue,
-                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_orders,
-                COUNT(CASE WHEN status = 'processing' THEN 1 END) as processing_orders,
-                COUNT(CASE WHEN status = 'shipped' THEN 1 END) as shipped_orders,
-                COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
-                COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_orders
-            FROM orders
-        `);
 
-        // Recent orders with customer info
-        const [recentOrders] = await db.query(`
-            SELECT 
-                o.order_id,
-                o.order_number,
-                o.total_amount,
-                o.status,
-                o.created_at,
-                u.full_name as customer_name,
-                u.address as customer_address,
-                u.email as customer_email
-            FROM orders o
-            JOIN users u ON o.user_id = u.id
-            ORDER BY o.created_at DESC
-            LIMIT 5
-        `);
 
-        // Top selling products
-        const [topProducts] = await db.query(`
-            SELECT 
-                p.id,
-                p.name,
-                p.price,
-                COUNT(oi.order_id) as order_count,
-                SUM(oi.quantity) as total_quantity_sold
-            FROM products p
-            LEFT JOIN order_items oi ON p.id = oi.product_id
-            LEFT JOIN orders o ON oi.order_id = o.order_id
-            WHERE o.status != 'cancelled' OR o.status IS NULL
-            GROUP BY p.id
-            ORDER BY total_quantity_sold DESC
-            LIMIT 5
-        `);
-
-        // Monthly revenue for the last 6 months
-        const [monthlyRevenue] = await db.query(`
-            SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as month,
-                SUM(total_amount) as revenue,
-                COUNT(*) as order_count
-            FROM orders
-            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-            AND status != 'cancelled'
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-            ORDER BY month DESC
-        `);
-
-        return {
-            orderStats: orderStats[0],
-            recentOrders,
-            topProducts,
-            monthlyRevenue
-        };
-    } catch (err) {
-        console.error('Database error in getDashboardStats:', err);
-        throw new Error('Failed to fetch dashboard statistics');
-    }
-}
 
 async function getOrdersByStatus(status) {
     try {
@@ -343,274 +531,17 @@ async function getOrdersByStatus(status) {
         `, [status]);
         return rows;
     } catch (err) {
-        console.error('Database error in getOrdersByStatus:', err);
         throw new Error('Failed to fetch orders by status');
     }
 }
 
-// Enhanced Analytics Functions
-async function getRevenueAnalytics(startDate, endDate, groupBy = 'day') {
-    try {
-        const db = await dbSingleton.getConnection();
-        
-        let dateFormat, groupByClause;
-        
-        switch (groupBy) {
-            case 'day':
-                dateFormat = '%Y-%m-%d';
-                groupByClause = 'DATE(created_at)';
-                break;
-            case 'week':
-                dateFormat = '%Y-%u';
-                groupByClause = 'YEARWEEK(created_at)';
-                break;
-            case 'month':
-                dateFormat = '%Y-%m';
-                groupByClause = 'DATE_FORMAT(created_at, "%Y-%m")';
-                break;
-            case 'year':
-                dateFormat = '%Y';
-                groupByClause = 'YEAR(created_at)';
-                break;
-            default:
-                dateFormat = '%Y-%m-%d';
-                groupByClause = 'DATE(created_at)';
-        }
-
-        const [revenueData] = await db.query(`
-            SELECT 
-                DATE_FORMAT(created_at, ?) as period,
-                SUM(total_amount) as revenue,
-                COUNT(*) as order_count,
-                AVG(total_amount) as avg_order_value
-            FROM orders
-            WHERE created_at BETWEEN ? AND ?
-            AND status != 'cancelled'
-            GROUP BY ${groupByClause}
-            ORDER BY period ASC
-        `, [dateFormat, startDate, endDate]);
-
-        return revenueData;
-    } catch (err) {
-        console.error('Database error in getRevenueAnalytics:', err);
-        throw new Error('Failed to fetch revenue analytics');
-    }
-}
-
-async function getProductAnalytics(startDate, endDate) {
-    try {
-        const db = await dbSingleton.getConnection();
-        
-        // Product performance analytics
-        const [productPerformance] = await db.query(`
-            SELECT 
-                p.id,
-                p.name,
-                p.price,
-                p.stock_quantity,
-                COUNT(oi.order_id) as total_orders,
-                SUM(oi.quantity) as total_quantity_sold,
-                SUM(oi.quantity * p.price) as total_revenue,
-                AVG(oi.quantity) as avg_quantity_per_order,
-                (p.stock_quantity - COALESCE(SUM(oi.quantity), 0)) as remaining_stock
-            FROM products p
-            LEFT JOIN order_items oi ON p.id = oi.product_id
-            LEFT JOIN orders o ON oi.order_id = o.order_id
-            AND o.created_at BETWEEN ? AND ?
-            AND o.status != 'cancelled'
-            GROUP BY p.id
-            ORDER BY total_revenue DESC
-        `, [startDate, endDate]);
-
-        // Product category performance
-        const [categoryPerformance] = await db.query(`
-            SELECT 
-                c.category_name,
-                COUNT(DISTINCT o.order_id) as total_orders,
-                SUM(oi.quantity) as total_quantity_sold,
-                SUM(oi.quantity * p.price) as total_revenue
-            FROM categories c
-            LEFT JOIN products p ON c.category_id = p.category_id
-            LEFT JOIN order_items oi ON p.id = oi.product_id
-            LEFT JOIN orders o ON oi.order_id = o.order_id
-            AND o.created_at BETWEEN ? AND ?
-            AND o.status != 'cancelled'
-            GROUP BY c.category_id
-            ORDER BY total_revenue DESC
-        `, [startDate, endDate]);
-
-        return {
-            productPerformance,
-            categoryPerformance
-        };
-    } catch (err) {
-        console.error('Database error in getProductAnalytics:', err);
-        throw new Error('Failed to fetch product analytics');
-    }
-}
-
-async function getUserAnalytics(startDate, endDate) {
-    try {
-        const db = await dbSingleton.getConnection();
-        
-        // User registration trends
-        const [userGrowth] = await db.query(`
-            SELECT 
-                DATE_FORMAT(created_at, '%Y-%m-%d') as date,
-                COUNT(*) as new_users
-            FROM users
-            WHERE created_at BETWEEN ? AND ?
-            AND role = 'customer'
-            GROUP BY DATE(created_at)
-            ORDER BY date ASC
-        `, [startDate, endDate]);
-
-        // Customer order frequency
-        const [customerSegments] = await db.query(`
-            SELECT 
-                u.id,
-                u.full_name,
-                u.email,
-                COUNT(o.order_id) as total_orders,
-                SUM(o.total_amount) as total_spent,
-                AVG(o.total_amount) as avg_order_value,
-                MAX(o.created_at) as last_order_date
-            FROM users u
-            LEFT JOIN orders o ON u.id = o.user_id
-            AND o.created_at BETWEEN ? AND ?
-            AND o.status != 'cancelled'
-            WHERE u.role = 'customer'
-            GROUP BY u.id
-            ORDER BY total_spent DESC
-            LIMIT 20
-        `, [startDate, endDate]);
-
-        // Top customers by revenue
-        const [topCustomers] = await db.query(`
-            SELECT 
-                u.full_name,
-                u.email,
-                COUNT(o.order_id) as order_count,
-                SUM(o.total_amount) as total_revenue
-            FROM users u
-            JOIN orders o ON u.id = o.user_id
-            WHERE o.created_at BETWEEN ? AND ?
-            AND o.status != 'cancelled'
-            AND u.role = 'customer'
-            GROUP BY u.id
-            ORDER BY total_revenue DESC
-            LIMIT 10
-        `, [startDate, endDate]);
-
-        return {
-            userGrowth,
-            customerSegments,
-            topCustomers
-        };
-    } catch (err) {
-        console.error('Database error in getUserAnalytics:', err);
-        throw new Error('Failed to fetch user analytics');
-    }
-}
-
-async function getProfitAnalytics(startDate, endDate) {
-    try {
-        const db = await dbSingleton.getConnection();
-        
-        // Assuming we have cost data in products table (cost_price field)
-        // If not, we'll calculate based on estimated margins
-        const [profitData] = await db.query(`
-            SELECT 
-                DATE_FORMAT(o.created_at, '%Y-%m-%d') as date,
-                SUM(o.total_amount) as revenue,
-                COUNT(o.order_id) as order_count,
-                AVG(o.total_amount) as avg_order_value
-            FROM orders o
-            WHERE o.created_at BETWEEN ? AND ?
-            AND o.status != 'cancelled'
-            GROUP BY DATE(o.created_at)
-            ORDER BY date ASC
-        `, [startDate, endDate]);
-
-        // Calculate estimated profit (assuming 30% margin for demonstration)
-        const profitDataWithMargin = profitData.map(item => ({
-            ...item,
-            estimated_profit: item.revenue * 0.3,
-            profit_margin_percentage: 30
-        }));
-
-        return profitDataWithMargin;
-    } catch (err) {
-        console.error('Database error in getProfitAnalytics:', err);
-        throw new Error('Failed to fetch profit analytics');
-    }
-}
-
-async function getOrderStatusAnalytics(startDate, endDate) {
-    try {
-        const db = await dbSingleton.getConnection();
-        
-        const [statusDistribution] = await db.query(`
-            SELECT 
-                status,
-                COUNT(*) as count,
-                SUM(total_amount) as total_revenue
-            FROM orders
-            WHERE created_at BETWEEN ? AND ?
-            GROUP BY status
-            ORDER BY count DESC
-        `, [startDate, endDate]);
-
-        return statusDistribution;
-    } catch (err) {
-        console.error('Database error in getOrderStatusAnalytics:', err);
-        throw new Error('Failed to fetch order status analytics');
-    }
-}
-
-async function getGeographicAnalytics(startDate, endDate) {
-    try {
-        const db = await dbSingleton.getConnection();
-        
-        // Analyze orders by customer location (using address field)
-        const [locationData] = await db.query(`
-            SELECT 
-                u.address,
-                COUNT(o.order_id) as order_count,
-                SUM(o.total_amount) as total_revenue
-            FROM orders o
-            JOIN users u ON o.user_id = u.id
-            WHERE o.created_at BETWEEN ? AND ?
-            AND o.status != 'cancelled'
-            AND u.address IS NOT NULL
-            GROUP BY u.address
-            ORDER BY total_revenue DESC
-            LIMIT 10
-        `, [startDate, endDate]);
-
-        return locationData;
-    } catch (err) {
-        console.error('Database error in getGeographicAnalytics:', err);
-        throw new Error('Failed to fetch geographic analytics');
-    }
-}
 
 module.exports = {  
     placeOrder,
     getAllOrders,
     getOrderById,
     getUserOrderById,
-    updateOrder,
     updateOrderStatus,
-    deleteOrder,
-    getUserOrders,
     getOrderItems,
-    getDashboardStats,
-    getOrdersByStatus,
-    getRevenueAnalytics,
-    getProductAnalytics,
-    getUserAnalytics,
-    getProfitAnalytics,
-    getOrderStatusAnalytics,
-    getGeographicAnalytics
+    getOrdersByStatus
 };

@@ -5,21 +5,40 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const isAuthenticated = require('../middleware/auth');
 const {adminAuth} = require('../middleware/adminAuth');
-
+const { trackActivity, ACTION_TYPES, ENTITY_TYPES } = require('../middleware/activityLogger');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 // התחברות משתמש - POST /userRoutes/login
-router.post('/login', userController.login);
+
+router.post('/login', authLimiter, userController.login);
 router.get('/me', isAuthenticated, userController.me);
-router.post('/logout', userController.logout);
+router.post('/logout', authLimiter, userController.logout);
 // יצירת משתמש חדש - POST /userRoutes/signup
-router.post('/signup', userController.createUser);
+router.post('/signup', authLimiter,
+    trackActivity({
+        action_type: ACTION_TYPES.USER_CREATED,
+        entity_type: ENTITY_TYPES.USER,
+        description: 'New user account created'
+    }),
+    userController.createUser
+);
 
-// Password reset routes
-router.post('/forgot-password', userController.forgotPassword);
-router.post('/reset-password', userController.resetPassword);
-router.get('/verify-reset-token/:token', userController.verifyResetToken);
+// נתיבי איפוס סיסמה
+router.post('/forgot-password', authLimiter, userController.forgotPassword);
+router.post('/reset-password', authLimiter, userController.resetPassword);
 
-// Admin routes - get all users
+// נתיבי אדמין - קבלת כל המשתמשים
 router.get('/all', isAuthenticated, adminAuth, userController.getAllUsers);
+
+// נתיבי פרופיל
+router.get('/profile', isAuthenticated, userController.getProfile);
+router.put('/profile', isAuthenticated, userController.updateProfile);
+router.put('/address', isAuthenticated, userController.updateAddress);
+router.put('/change-password', isAuthenticated, userController.changePassword);
+
+// נתיבי רשימת משאלות
+router.get('/wishlist', isAuthenticated, userController.getWishlist);
+router.post('/wishlist', isAuthenticated, userController.addToWishlist);
+router.delete('/wishlist/:productId', isAuthenticated, userController.removeFromWishlist);
 
 module.exports = router;

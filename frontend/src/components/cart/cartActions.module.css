@@ -1,3 +1,9 @@
+/* CSS Variables */
+:root {
+    --primary-color: #3b82f6;
+    --secondary-color: #2563eb;
+}
+
 /* Cart Actions */
 .cartActions {
     display: flex;
@@ -51,23 +57,22 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 14px 24px;
-    background: transparent;
-    color: var(--neutral-black);
-    border: 2px solid var(--neutral-black);
+    padding: 0.75rem 1rem;
+    background: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    color: white;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     text-decoration: none;
 }
 
 .continueShoppingButton:hover {
-    background: var(--neutral-black);
-    color: white;
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .continueShoppingButton:focus {

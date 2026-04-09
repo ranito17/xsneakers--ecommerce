@@ -1,8 +1,8 @@
 import api from './api';
 
-// Order API functions with authentication
+// פונקציות API להזמנות (דורש התחברות לאדמין/משתמש רלוונטי)
 export const orderApi = {
-    // Place a new order
+    // יצירת הזמנה חדשה
     placeOrder: async (orderData) => {
         try {   
             const response = await api.post('/api/orderRoutes/place', orderData);
@@ -37,19 +37,6 @@ export const orderApi = {
             throw error;
         }
     },
-    updateOrder: async (orderId, orderData) => {
-        try {
-            const response = await api.put(`/api/orderRoutes/${orderId}`, orderData);
-            return response.data;
-        } catch (error) {
-            // Handle authorization errors
-            if (error.response?.status === 403) {
-                window.location.href = '/unauthorized';
-                return;
-            }
-            throw error;
-        }
-    },
     updateOrderStatus: async (orderId, status) => {
         try {
             const response = await api.patch(`/api/orderRoutes/${orderId}/status`, { status });
@@ -63,11 +50,18 @@ export const orderApi = {
             throw error;
         }
     },
-    // Order deletion removed - financial data must be preserved
-    // deleteOrder function removed for compliance with financial data protection
-    getUserOrders: async (userId) => {
+    // Orders for the currently authenticated user
+    getUserOrders: async () => {
         try {
-            const response = await api.get(`/api/orderRoutes/user/${userId}`);
+            const response = await api.get('/api/orderRoutes/my-orders');
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    getUserOrderCount: async () => {
+        try {
+            const response = await api.get('/api/orderRoutes/my-orders/count');
             return response.data;
         } catch (error) {
             throw error;
@@ -84,7 +78,7 @@ export const orderApi = {
         }
     },
     
-    // Dashboard Analytics
+    // אנליטיקות דשבורד
     getDashboardStats: async () => {
         try {
             const response = await api.get('/api/orderRoutes/dashboard/stats');
@@ -105,75 +99,39 @@ export const orderApi = {
         }
     },
 
-    // Enhanced Analytics API Functions
-    getRevenueAnalytics: async (startDate, endDate, groupBy = 'day') => {
+    getFilteredRecentOrders: async (queryParams = '') => {
         try {
-            const response = await api.get('/api/orderRoutes/analytics/revenue', {
-                params: { startDate, endDate, groupBy }
-            });
+            const response = await api.get(`/api/orderRoutes/filtered/recent?${queryParams}`);
             return response.data;
         } catch (error) {
-            console.error('Error fetching revenue analytics:', error);
+            console.error('Error fetching filtered recent orders:', error);
             throw error;
         }
     },
 
-    getProductAnalytics: async (startDate, endDate) => {
+    // הורדת קובץ PDF קבלה להזמנה
+    // שליחה לשרת: GET /api/orderRoutes/:orderId/receipt
+    // תגובה מהשרת: PDF כ-blob להורדה
+    downloadOrderReceiptPDF: async (orderId) => {
         try {
-            const response = await api.get('/api/orderRoutes/analytics/products', {
-                params: { startDate, endDate }
+            const response = await api.get(`/api/orderRoutes/${orderId}/receipt`, {
+                responseType: 'blob'
             });
-            return response.data;
+            
+            // יצירת URL מה-blob והורדה
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `receipt-${orderId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            
+            return { success: true };
         } catch (error) {
-            console.error('Error fetching product analytics:', error);
-            throw error;
-        }
-    },
-
-    getUserAnalytics: async (startDate, endDate) => {
-        try {
-            const response = await api.get('/api/orderRoutes/analytics/users', {
-                params: { startDate, endDate }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching user analytics:', error);
-            throw error;
-        }
-    },
-
-    getProfitAnalytics: async (startDate, endDate) => {
-        try {
-            const response = await api.get('/api/orderRoutes/analytics/profit', {
-                params: { startDate, endDate }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching profit analytics:', error);
-            throw error;
-        }
-    },
-
-    getOrderStatusAnalytics: async (startDate, endDate) => {
-        try {
-            const response = await api.get('/api/orderRoutes/analytics/status', {
-                params: { startDate, endDate }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching order status analytics:', error);
-            throw error;
-        }
-    },
-
-    getGeographicAnalytics: async (startDate, endDate) => {
-        try {
-            const response = await api.get('/api/orderRoutes/analytics/geographic', {
-                params: { startDate, endDate }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching geographic analytics:', error);
+            console.error('Error downloading PDF receipt:', error);
             throw error;
         }
     }

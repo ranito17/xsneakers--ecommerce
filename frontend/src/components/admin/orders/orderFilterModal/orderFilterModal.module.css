@@ -1,0 +1,432 @@
+/* Order Filter Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    border: 1px solid #e2e8f0;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border-radius: 16px 16px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modalHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+}
+
+.modalHeader .closeButton {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    font-size: 24px;
+}
+
+.modalHeader .closeButton:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.modalContent {
+    padding: 24px 32px;
+}
+
+/* Filter Sections */
+.filterSection {
+    margin-bottom: 10px;
+    background: #dddde0;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.filterSection:last-child {
+    margin-bottom: 0;
+}
+
+.filterLabel {
+    display: block;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.select,
+.input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    color: #374151;
+}
+
+.select:focus,
+.input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.inputError {
+    border-color: #ef4444 !important;
+}
+
+.inputError:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.errorMessage {
+    margin-top: 8px;
+    color: #ef4444;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.errorMessage::before {
+    content: '⚠';
+    font-size: 1rem;
+}
+
+/* Size Grid */
+.sizeGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+}
+
+.sizeButton {
+    padding: 10px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sizeButton:hover {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+}
+
+.sizeButtonActive {
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+/* Range Inputs */
+.rangeInputs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.rangeSeparator {
+    color: #64748b;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Sort Controls */
+.sortControls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Date Input Wrapper */
+.dateInputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.dateInput {
+    flex: 1;
+    padding-right: 2.5rem;
+}
+
+.calendarButton {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendarButton:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+/* Date Modal */
+.dateModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.dateModal {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dateModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.dateModalHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.dateModalCloseButton {
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: none;
+    background-color: #f3f4f6;
+    color: #374151;
+    font-size: 1.25rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.dateModalCloseButton:hover {
+    background-color: #e5e7eb;
+}
+
+/* Modal Actions */
+.modalActions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 0 0 16px 16px;
+    position: sticky;
+    bottom: 0;
+}
+
+.resetButton,
+.cancelButton,
+.applyButton {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.resetButton {
+    background: #ffffff;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+
+.resetButton:hover {
+    background: #fef2f2;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 12px;
+}
+
+.cancelButton {
+    background: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.cancelButton:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.applyButton {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.applyButton:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modal {
+        margin: 1rem;
+        max-width: calc(100vw - 2rem);
+    }
+    
+    .modalHeader,
+    .modalContent,
+    .modalActions {
+        padding: 20px;
+    }
+    
+    .modalHeader h2 {
+        font-size: 1.25rem;
+    }
+    
+    .sizeGrid {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        gap: 6px;
+    }
+    
+    .rangeInputs {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .rangeSeparator {
+        display: none;
+    }
+    
+    .sortControls {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .modalActions {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .actionButtons {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .resetButton,
+    .cancelButton,
+    .applyButton {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal {
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+        border-radius: 12px;
+    }
+    
+    .modalHeader,
+    .modalContent,
+    .modalActions {
+        padding: 16px;
+    }
+    
+    .modalHeader h2 {
+        font-size: 1.1rem;
+    }
+    
+    .filterLabel {
+        font-size: 0.85rem;
+    }
+    
+    .select,
+    .input {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .sizeButton {
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+}
+
