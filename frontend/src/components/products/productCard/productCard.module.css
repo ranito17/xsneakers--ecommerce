@@ -379,33 +379,55 @@
 
 @media (max-width: 480px) {
     .imageSection {
-        height: 100px;
+        height: 130px;
     }
-    
+
     .productInfo {
-        padding: 12px 12px 8px 12px;
+        padding: 8px 10px 6px 10px;
     }
-    
+
     .optionsSection {
-        padding: 0 12px 8px 12px;
+        padding: 0 10px 6px 10px;
+        gap: 8px;
     }
-    
+
     .actionSection {
-        padding: 0 12px 12px 12px;
+        padding: 0 10px 10px 10px;
     }
-    
+
     .productName {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        -webkit-line-clamp: 2;
     }
-    
+
+    .productDescription {
+        display: none;
+    }
+
     .price {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
-    
+
+    .sizeSelect {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+
+    .quantityButton {
+        min-width: 26px;
+        height: 26px;
+    }
+
+    .quantityDisplay {
+        font-size: 0.8rem;
+        min-width: 28px;
+        padding: 6px 4px;
+    }
+
     .addToCartButton {
-        padding: 8px 12px;
+        padding: 8px 10px;
         font-size: 0.75rem;
-        min-height: 36px;
+        min-height: 34px;
     }
 }
 

@@ -634,7 +634,7 @@
     margin: 0.5rem 0;
 }
 
-/* Mobile Menu Button */
+/* Mobile Menu Button — always the first grid child, hidden on desktop */
 .mobileMenuButton {
     display: none;
     background: transparent;
@@ -644,6 +644,9 @@
     padding: 0.5rem;
     border-radius: 8px;
     transition: all 0.3s ease;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .mobileMenuButton:hover {
@@ -652,7 +655,7 @@
 
 @media (max-width: 1024px) {
     .mobileMenuButton {
-        display: block;
+        display: flex;
     }
 }
 
@@ -670,12 +673,18 @@
     transition: all 0.3s ease;
 }
 
-/* Mobile Navigation */
+/* Mobile Navigation — rendered by JS when open; visible only on mobile/tablet */
 .mobileNav {
     display: none;
     background: rgba(26, 26, 46, 0.98);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
+}
+
+@media (max-width: 1024px) {
+    .mobileNav {
+        display: block;
+    }
 }
 
 .mobileNavContent {
@@ -855,24 +864,15 @@
     }
     
     .logoSection {
-        grid-column: auto;
         justify-self: center;
-        order: 2;
-        flex: 1;
         min-width: 0;
     }
-    
+
     .userName {
         display: none;
     }
-    
-    .mobileNav {
-        display: block;
-    }
-    
+
     .userSection {
-        grid-column: auto;
-        order: 3;
         justify-content: flex-end;
         margin-left: 0;
         gap: 0.5rem;
@@ -895,10 +895,7 @@
     }
     
     .mobileMenuButton {
-        display: flex;
-        order: 1;
         padding: 0.4rem;
-        margin-right: 0;
     }
     
     .mobileNavContent {

@@ -1628,63 +1628,130 @@
     .pageContainer {
         padding: 1rem;
     }
-    
+
     .dashboardMainContent,
     .orderMainContent {
         padding: 1rem;
     }
-    
+
     .settingsForm {
         padding: 16px;
         margin: 0 16px;
     }
-    
+
     .settingsFormRow {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    
+
     .settingsActions {
         flex-direction: column;
     }
-    
+
     .settingsResetButton,
     .settingsSaveButton {
         width: 100%;
     }
-    
+
     .productFilterInfo {
         padding: 1.5rem;
         gap: 1rem;
     }
-    
+
     .productSearchInput {
         padding: 1rem 1rem 1rem 3rem;
         font-size: 1rem;
     }
-    
+
     .filterSection {
         justify-content: flex-start;
     }
-    
+
     .adminFilterSelect {
         min-width: 150px;
     }
-    
+
     .orderSearchContainer {
-        min-width: 300px;
+        min-width: 0;
+        width: 100%;
         max-width: 100%;
     }
-    
+
+    .orderFilterInfo {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .orderControlsRight {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
     .userSearchContainer {
-        min-width: 250px;
+        min-width: 0;
+        width: 100%;
         max-width: 100%;
     }
-    
+
+    .userFilterInfo {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .userControlsRight {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .sortSection {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .sortButtons {
+        width: 100%;
+    }
+
+    .sortButton {
+        flex: 1;
+        text-align: center;
+    }
+
+    .productControlsRight {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .filterButton,
+    .addProductBtn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .quickActionsBar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .actionButtonsCompact {
+        width: 100%;
+    }
+
     .chartGrid {
         grid-template-columns: 1fr;
     }
-    
+
     .chartGridHalf {
         grid-column: 1;
     }
@@ -1727,25 +1794,36 @@
     }
     
     .orderSearchContainer {
-        min-width: 250px;
+        min-width: 0;
+        width: 100%;
     }
-    
+
     .userSearchContainer {
-        min-width: 200px;
+        min-width: 0;
+        width: 100%;
     }
-    
+
+    .actionButtonsCompact {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .actionBtnCompact {
+        justify-content: center;
+    }
+
     .adminFilterSelect {
         min-width: 120px;
         padding: 0.875rem 2rem 0.875rem 1rem;
         font-size: 0.95rem;
     }
-    
+
     .filterSection {
         flex-direction: column;
         align-items: center;
         gap: 0.75rem;
     }
-    
+
     .adminFilterSelect {
         width: 100%;
         max-width: 280px;
@@ -1863,70 +1941,6 @@
     font-size: 1.1rem;
 }
 
-
-
-@media (max-width: 480px) {
-    .pageContainer {
-        padding: 0.75rem;
-    }
-    
-    .dashboardMainContent,
-    .orderMainContent {
-        padding: 0.75rem;
-    }
-    
-    .settingsForm {
-        padding: 16px;
-        margin: 0 16px;
-    }
-    
-    .settingsFormRow {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .settingsFormGroup input,
-    .settingsFormGroup select {
-        font-size: 0.8rem;
-        padding: 0.5rem 0.75rem;
-    }
-    
-    .productFilterInfo {
-        padding: 1rem;
-        gap: 0.75rem;
-    }
-    
-    .productSearchInput {
-        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-        font-size: 0.9rem;
-    }
-    
-    .orderSearchContainer {
-        min-width: 250px;
-    }
-    
-    .userSearchContainer {
-        min-width: 200px;
-    }
-    
-    .adminFilterSelect {
-        min-width: 120px;
-        padding: 0.875rem 2rem 0.875rem 1rem;
-        font-size: 0.95rem;
-    }
-    
-    .filterSection {
-        flex-direction: column;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .adminFilterSelect {
-        width: 100%;
-        max-width: 280px;
-        min-width: auto;
-    }
-}
 
 
 /* ===== ACTIVITY PAGE STRUCTURE & COLORS ===== */

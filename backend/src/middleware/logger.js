@@ -25,7 +25,7 @@ const logger = (req, res, next) => {
         if (Object.keys(req.query || {}).length > 0) {
             console.log('  🔍 Query:', req.query);
         }
-        if (req.body && Object.keys(req.body).length > 0) {
+        if (process.env.NODE_ENV !== 'production' && req.body && Object.keys(req.body).length > 0) {
             // הסרת נתונים רגישים
             const sanitizedBody = { ...req.body };
             if (sanitizedBody.password) sanitizedBody.password = '***';

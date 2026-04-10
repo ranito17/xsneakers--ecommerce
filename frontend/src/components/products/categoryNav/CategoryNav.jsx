@@ -88,10 +88,6 @@ const CategoryNav = ({ categories = [], onCategoryChange, activeCategory = 'all'
                     })}
                 </div>
                 
-                {/* Product Count */}
-                <div className={styles.productCount}>
-                    <span className={styles.countText}>{productCount} products</span>
-                </div>
             </div>
             
             {/* Category Description */}

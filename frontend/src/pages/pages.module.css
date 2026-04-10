@@ -744,6 +744,7 @@
 .cartPage {
     min-height: 100vh;
     background: var(--neutral-light);
+    overflow-x: hidden;
 }
 
 .cartContent {

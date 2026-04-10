@@ -70,9 +70,7 @@ export const orderApi = {
     getOrderItems: async (orderId) => {
         try {
             const response = await api.get(`/api/orderRoutes/${orderId}/items`);
-            console.log('Order items:', response.data);
             return response.data;
-            
         } catch (error) {
             throw error;
         }

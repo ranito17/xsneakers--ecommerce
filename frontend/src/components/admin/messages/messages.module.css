@@ -896,3 +896,69 @@
     border: 1px solid #c8cbce;
 }
 
+@media (max-width: 768px) {
+    .topSection {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .actionButtonsSection {
+        width: 100%;
+    }
+
+    .actionButton {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filtersContainer {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    .searchInput {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .statusSelect {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .tabNavigation {
+        flex-wrap: wrap;
+    }
+
+    .tabButton {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+    }
+
+    .contentContainer {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .topSection {
+        padding: 0.75rem;
+    }
+
+    .filtersContainer {
+        padding: 0.75rem;
+    }
+
+    .contentContainer {
+        padding: 0.75rem;
+    }
+
+    .tabButton {
+        padding: 0.625rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+

@@ -287,7 +287,7 @@
         align-items: flex-start;
         gap: 16px;
     }
-    
+
     .itemContent {
         width: 100%;
         flex-direction: column;
@@ -295,19 +295,31 @@
         gap: 16px;
         margin-top: 16px;
     }
-    
+
     .itemActions {
         width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
         min-width: auto;
+        padding-right: 0;
     }
-    
+
+    .itemTotal {
+        justify-content: flex-start;
+    }
+
+    .sizeRow {
+        align-items: flex-start;
+    }
+
+    .quantityRow {
+        justify-content: flex-start;
+    }
+
     .itemSpecs {
         flex-wrap: wrap;
     }
-    
+
     .itemImageContainer {
         margin-top: 16px;
     }

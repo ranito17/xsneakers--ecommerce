@@ -89,7 +89,22 @@ const Header = () => {
         <>
             <header className={styles.header}>
                 <div className={styles.headerContent}>
-                {/* Left: Navigation Links */}
+
+                {/* Mobile Nav Toggle — left side on mobile */}
+                <button
+                    className={styles.mobileMenuButton}
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-label="Toggle mobile menu"
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        {isMobileMenuOpen
+                            ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                            : <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>
+                        }
+                    </svg>
+                </button>
+
+                {/* Left: Navigation Links (desktop only) */}
                 <nav className={styles.desktopNav}>
                     {navItems.map((item) => (
                         <a
@@ -254,22 +269,10 @@ const Header = () => {
                         </>
                     )}
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        className={styles.mobileMenuButton}
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        aria-label="Toggle mobile menu"
-                    >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
                 </div>
             </div>
 
-            {/* Mobile Navigation */}
+            {/* Mobile Navigation — nav links only */}
             {isMobileMenuOpen && (
                 <div className={styles.mobileNav}>
                     <div className={styles.mobileNavContent}>
@@ -287,30 +290,6 @@ const Header = () => {
                                 )}
                             </a>
                         ))}
-                        
-                        {isAuthenticated && (
-                            <div className={styles.mobileUserSection}>
-                                <hr className={styles.mobileDivider} />
-                                {getUserMenuItems().map((item, index) => (
-                                    <div key={index}>
-                                        {item.type === 'divider' ? (
-                                            <hr className={styles.mobileDivider} />
-                                        ) : (
-                                            <button
-                                                className={styles.mobileMenuItem}
-                                                onClick={() => {
-                                                    item.action();
-                                                    setIsMobileMenuOpen(false);
-                                                }}
-                                            >
-                                                <span className={styles.mobileMenuIcon}>{item.icon}</span>
-                                                <span className={styles.mobileMenuLabel}>{item.label}</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </div>
             )}

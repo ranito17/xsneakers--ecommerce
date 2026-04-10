@@ -19,7 +19,7 @@ const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const Cart = lazy(() => import('./pages/CartPage'));
 const AuthPage = lazy(() => import('./pages/authPage'));
 const ProductManagement = lazy(() => import('./pages/adminPages/ProductManagment'));
-const OrderPage = lazy(() => import('./pages/OrderPage')); // Added OrderPage import
+const OrderPage = lazy(() => import('./pages/OrderPage'));
 const OrderManagmentPage = lazy(() => import('./pages/adminPages/OrderManagmentPage'));
 const SettingsPage = lazy(() => import('./pages/adminPages/SettingsPage'));
 const DashboardPage = lazy(() => import('./pages/adminPages/DashboardPage'));
