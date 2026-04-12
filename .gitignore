@@ -7,13 +7,14 @@ node_modules/
 .env.local
 .env.production
 .env.development
-
+*.zip
 # Build files
 build/
 dist/
 */build/
 */dist/
-
+.claude/
+CLAUDE.md
 # Logs
 *.log
 npm-debug.log*
