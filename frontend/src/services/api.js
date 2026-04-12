@@ -4,7 +4,7 @@ import axios from 'axios';
 const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001',
     withCredentials: true, // Sends cookies automatically
-    timeout: 10000, // Request times out after 10 seconds
+    timeout: 30000, // Request times out after 10 seconds
     headers: {
         'Content-Type': 'application/json', // Tells server we're sending JSON
         'Accept': 'application/json', // Tells server we want JSON back
