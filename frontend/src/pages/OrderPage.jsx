@@ -11,8 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import styles from './pages.module.css';
 
 function OrderPage() {
-    const { user,isAuthenticated } = useAuth();
-    const navagate = useNavigate();
+    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+    const navigate = useNavigate();
     const location = useLocation();
     const { showSuccess, showError } = useToast();
     const [orders, setOrders] = useState([]);
@@ -136,8 +136,9 @@ function OrderPage() {
 
 
     useEffect(() => {
-        if(!isAuthenticated) {
-            navagate('/login');
+        if (authLoading) return;
+        if (!isAuthenticated) {
+            navigate('/login');
             return;
         }
         fetchOrders();
@@ -159,7 +160,7 @@ function OrderPage() {
                 }
             }, 500);
         }
-    }, [user?.id, location.search]);
+    }, [authLoading, isAuthenticated, user?.id, location.search]);
         if (loading) {
         return (
                 <LoadingContainer message="Loading your orders..." size="medium" />

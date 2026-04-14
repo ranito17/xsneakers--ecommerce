@@ -101,7 +101,7 @@ async function getAll(filters = {}, dbConnection = null) {
             query += ` ORDER BY a.created_at DESC LIMIT ? OFFSET ?`;
             params.push(parseInt(limit), parseInt(offset));
 
-            const [activities] = await connection.execute(query, params);
+            const [activities] = await connection.query(query, params);
 
             return activities;
         } catch (error) {

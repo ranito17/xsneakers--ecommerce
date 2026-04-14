@@ -62,3 +62,40 @@ Before making any change:
 - `@docs/api-routes.md` — all existing API routes
 - `@docs/db-schema.md` — current database schema
 - `@docs/plan.md` — current implementation plan / checklist
+
+## Session Change Log
+
+### Auth — Cross-Origin Production Fix
+- **Root cause**: Browsers block third-party cookies for cross-domain requests (Vercel → Railway)
+- `backend/src/app.js`: Added `app.set('trust proxy', 1)` for Railway proxy
+- `backend/src/middleware/auth.js`: Reads token from `Authorization: Bearer` header first, cookie as fallback
+- `backend/src/controllers/userController.js`: Login response now includes `token` in body
+- `frontend/src/services/api.js`: Request interceptor attaches `Authorization: Bearer <token>` from localStorage
+- `frontend/src/context/AuthProvider.jsx`: Stores token to localStorage on login, removes on logout
+
+### Auth Redirect on Refresh — Bug Fix
+- **Root cause**: `isAuthenticated` starts `false`, async `checkAuth()` completes after initial render, causing premature redirect
+- `frontend/src/pages/ProfilePage.jsx`: Added `authLoading` from `useAuth()`, useEffect guards with `if (authLoading) return` before checking `isAuthenticated`
+- `frontend/src/pages/OrderPage.jsx`: Same fix + corrected `navagate` typo → `navigate`
+
+### Analytics 500 — Bug Fix
+- **Root cause 1**: MySQL 8.0 `ONLY_FULL_GROUP_BY` — SELECT used `DATE_FORMAT(created_at, ?)` but GROUP BY used `DATE()`, `YEARWEEK()`, etc.
+- `backend/src/models/Analytics.js` `getRevenueAnalytics`: GROUP BY now uses identical `DATE_FORMAT(created_at, ?)` expression; dateFormat param passed twice
+- **Root cause 2**: All catch blocks in Analytics.js swallowed original MySQL errors by throwing `new Error('Failed to...')` — real error was lost
+- Fixed all catch blocks to `console.error(fn, err); throw err;` to surface actual DB errors
+
+### Activity Log 500 — Bug Fix
+- **Root cause**: `Activity.js` `getAll()` used `connection.execute()` (binary prepared statements) for a dynamically built query with `LIMIT ? OFFSET ?`. MySQL2 binary protocol has known compatibility issues with dynamic queries in MySQL 8.x production.
+- `backend/src/models/Activity.js` `getAll()`: Changed `connection.execute(query, params)` → `connection.query(query, params)`
+
+### Mobile UI Fixes
+- Hero: shorter on mobile, text breathing room, hero image hidden
+- Category dropdown: 100% width on mobile
+- Product grid: 1 column on mobile (both 768px and 480px)
+- Empty cart: override desktop `min-width: 1150px` to `width: 100%` on mobile
+- Contact form: 100% width on mobile
+- Removed IN STOCK / OUT OF STOCK badge from all product cards
+- About Us: removed fake statistics (500+/1000+/5+ numbers)
+- About Us: replaced "Our Team" with founder section (Ranit, Israel, sole owner)
+- Removed all international shipping mentions across Contact, About Us pages
+- Dashboard card headers: stack vertically on mobile (768px breakpoint in `dashboard.module.css`)

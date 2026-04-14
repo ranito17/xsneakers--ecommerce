@@ -16,7 +16,7 @@ import { formatDate } from '../utils/date.utils';
 import styles from './pages.module.css';
 
 const ProfilePage = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
     const { showError, showSuccess } = useToast();
     const [userData, setUserData] = useState(null);
@@ -178,13 +178,13 @@ const ProfilePage = () => {
   
     
     useEffect(() => {
-           if (!isAuthenticated) {
-                navigate('/login');
-                return;
-            }
+        if (authLoading) return;
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
         fetchProfile();
-        
-    }, []);
+    }, [authLoading, isAuthenticated]);
     if (loading) {
         return (
             <ProtectedRoute redirectToLogin={true}>

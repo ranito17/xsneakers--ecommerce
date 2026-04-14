@@ -10,39 +10,35 @@ const dbSingleton = require('../config/database');
 async function getRevenueAnalytics(startDate, endDate, groupBy = 'day') {
     try {
         const db = await dbSingleton.getConnection();
-        
-        let dateFormat, groupByClause;
-        
+
+        // Use the same DATE_FORMAT expression in both SELECT and GROUP BY so MySQL 8.0
+        // ONLY_FULL_GROUP_BY mode accepts the query. Previously, SELECT used DATE_FORMAT(...)
+        // while GROUP BY used DATE(), YEARWEEK(), etc. — different expressions that MySQL 8.0
+        // rejects because it can't confirm functional equivalence.
+        let dateFormat;
+
         switch (groupBy) {
             case 'day':
+            case '4weeks':
                 dateFormat = '%Y-%m-%d';
-                groupByClause = 'DATE(created_at)';
                 break;
             case 'week':
                 dateFormat = '%Y-%u';
-                groupByClause = 'YEARWEEK(created_at)';
-                break;
-            case '4weeks':
-                // קיבוץ מיוחד: מחזיר נתונים יומיים כדי שה-frontend יוכל לקבץ ל-4 שבועות
-                // ה-frontend יאגרג ל-4 שבועות: שבוע 1 (1-7), שבוע 2 (8-14), שבוע 3 (15-22), שבוע 4 (23-30)
-                dateFormat = '%Y-%m-%d';
-                groupByClause = 'DATE(created_at)';
                 break;
             case 'month':
                 dateFormat = '%Y-%m';
-                groupByClause = 'DATE_FORMAT(created_at, "%Y-%m")';
                 break;
             case 'year':
                 dateFormat = '%Y';
-                groupByClause = 'YEAR(created_at)';
                 break;
             default:
                 dateFormat = '%Y-%m-%d';
-                groupByClause = 'DATE(created_at)';
         }
 
+        // Pass dateFormat twice: once for SELECT DATE_FORMAT, once for GROUP BY DATE_FORMAT.
+        // Using the same expression in both clauses satisfies ONLY_FULL_GROUP_BY.
         const [revenueData] = await db.query(`
-            SELECT 
+            SELECT
                 DATE_FORMAT(created_at, ?) as period,
                 SUM(total_amount) as revenue,
                 COUNT(*) as order_count,
@@ -50,13 +46,14 @@ async function getRevenueAnalytics(startDate, endDate, groupBy = 'day') {
             FROM orders
             WHERE created_at BETWEEN ? AND ?
             AND status != 'cancelled'
-            GROUP BY ${groupByClause}
+            GROUP BY DATE_FORMAT(created_at, ?)
             ORDER BY period ASC
-        `, [dateFormat, startDate, endDate]);
+        `, [dateFormat, startDate, endDate, dateFormat]);
 
         return revenueData;
     } catch (err) {
-        throw new Error('Failed to fetch revenue analytics');
+        console.error('Error in getRevenueAnalytics:', err);
+        throw err;
     }
 }
 
@@ -120,7 +117,8 @@ async function getProductAnalytics(startDate, endDate) {
             categoryPerformance
         };
     } catch (err) {
-        throw new Error('Failed to fetch product analytics');
+        console.error('Error in getProductAnalytics:', err);
+        throw err;
     }
 }
 
@@ -188,7 +186,7 @@ async function getProductMetrics(startDate, endDate) {
         };
     } catch (err) {
         console.error('Error in getProductMetrics:', err);
-        throw new Error('Failed to fetch product metrics');
+        throw err;
     }
 }
 
@@ -219,7 +217,8 @@ async function getOrderStatusAnalytics(startDate, endDate) {
 
         return statusDistribution;
     } catch (err) {
-        throw new Error('Failed to fetch order status analytics');
+        console.error('Error in getOrderStatusAnalytics:', err);
+        throw err;
     }
 }
 
@@ -298,7 +297,8 @@ async function getBestSellers(limit = undefined) {
         };
 
     } catch (err) {
-        throw new Error('Failed to fetch best sellers');
+        console.error('Error in getBestSellers:', err);
+        throw err;
     }
 }
 
@@ -410,7 +410,8 @@ async function getUserListAnalytics(startDate, endDate) {
         
         return userList;
     } catch (err) {
-        throw new Error('Failed to fetch user list analytics');
+        console.error('Error in getUserListAnalytics:', err);
+        throw err;
     }
 }
 
@@ -445,7 +446,8 @@ async function getProductSizeAnalytics(productId, startDate, endDate) {
 
         return sizeAnalytics;
     } catch (err) {
-        throw new Error('Failed to fetch product size analytics');
+        console.error('Error in getProductSizeAnalytics:', err);
+        throw err;
     }
 }
 
@@ -478,7 +480,7 @@ async function getOverallSizeAnalytics(startDate, endDate) {
         return sizeAnalytics;
     } catch (err) {
         console.error('Error in getOverallSizeAnalytics:', err);
-        throw new Error('Failed to fetch overall size analytics');
+        throw err;
     }
 }
 
@@ -513,7 +515,8 @@ async function getProductStats() {
             productsByCategory
         };
     } catch (err) {
-        throw new Error('Failed to fetch product statistics');
+        console.error('Error in getProductStats:', err);
+        throw err;
     }
 }
 
