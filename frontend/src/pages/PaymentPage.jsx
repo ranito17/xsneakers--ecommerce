@@ -82,14 +82,6 @@ const PaymentPage = () => {
 
     const savedAddress = getUserAddress();
 
-    // Debug: Log address info
-    useEffect(() => {
-        console.log('📍 PaymentPage - User from auth:', user);
-        console.log('📍 PaymentPage - User profile:', userProfile);
-        console.log('📍 PaymentPage - Saved address:', savedAddress);
-        console.log('📍 PaymentPage - Use saved address:', useSavedAddress);
-    }, [user, userProfile, savedAddress, useSavedAddress]);
-
     // Handle "Use Saved Address" button click
     const handleUseSavedAddress = () => {
         if (savedAddress) {
@@ -317,8 +309,6 @@ const PaymentPage = () => {
                 payment_status: 'paid' // For credit card test orders
             };
 
-            console.log('🛒 Payment Page: Placing order with data:', orderData);
-            
             const result = await orderApi.placeOrder(orderData);
             
             if (result.success && result.data && result.data.orderNumber) {

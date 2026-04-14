@@ -425,7 +425,6 @@ async function getLowStockProducts(threshold = 10) {
             ORDER BY p.stock_quantity ASC
         `, [threshold]);
         
-        console.log(`Found ${rows.length} products with stock <= ${threshold}`);
         
         const processedRows = rows.map(product => {
             let sizes = [];
@@ -470,7 +469,6 @@ async function getLowStockProducts(threshold = 10) {
             };
         });
         
-        console.log(`Returning ${processedRows.length} low stock products`);
         return processedRows;
     } catch (err) {
         console.error('Error in getLowStockProducts:', err);

@@ -44,7 +44,6 @@ export const loadCartFromStorage = () => {
         
         // Check if cart has expired
         if (timestamp && (Date.now() - parseInt(timestamp)) > CART_EXPIRATION_TIME) {
-            console.log('🛒 Cart expired, clearing old cart data');
             clearCartFromStorage();
             return [];
         }

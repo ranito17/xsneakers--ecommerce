@@ -327,8 +327,6 @@ const getRevenueAnalytics = async (req, res) => {
     try {
         const { startDate, endDate, groupBy = 'day' } = req.query;
         
-        console.log('🔍 Revenue Analytics Request:', { startDate, endDate, groupBy });
-        
         if (!startDate || !endDate) {
             return res.status(400).json({
                 success: false,
@@ -338,10 +336,7 @@ const getRevenueAnalytics = async (req, res) => {
         }
 
         const revenueData = await Analytics.getRevenueAnalytics(startDate, endDate, groupBy);
-        
-        console.log('📊 Revenue Data Points:', revenueData.length);
-        console.log('📊 Sample Data:', revenueData.slice(0, 3));
-        
+
         res.status(200).json({
             success: true,
             message: 'Revenue analytics retrieved successfully',

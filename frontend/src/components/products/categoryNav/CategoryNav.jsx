@@ -2,10 +2,7 @@ import React from 'react';
 import styles from './categoryNav.module.css';
 
 const CategoryNav = ({ categories = [], onCategoryChange, activeCategory = 'all', loading = false, error = null, onRetry = null, productCount = 0 }) => {
-    console.log('🔍 CategoryNav props:', { categories, activeCategory, loading, error, productCount });
-
     const handleCategoryClick = (categoryId) => {
-        console.log('🎯 Category clicked:', categoryId);
         onCategoryChange(categoryId);
     };
 
@@ -22,7 +19,6 @@ const CategoryNav = ({ categories = [], onCategoryChange, activeCategory = 'all'
     }
 
     if (error) {
-        console.log('🚨 CategoryNav showing error:', error);
         return (
             <div className={styles.categoryNavContainer}>
                 <div className={styles.categoryNav}>

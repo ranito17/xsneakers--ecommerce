@@ -130,7 +130,6 @@ const sendMessageEmail = async (messageData, messageType) => {
         case 'customer_to_admin':
         case 'customer_to_admin_urgent':
             // שימוש בפונקציית אימייל קשר לקוח ספציפית
-            console.log('messageData', messageData);
             await emailService.sendCustomerContactEmail({
                 name: messageData.senderName,
                 email: messageData.senderEmail,

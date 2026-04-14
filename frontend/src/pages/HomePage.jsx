@@ -258,18 +258,14 @@ function Home() {
             // Check for both undefined and null
             if (settings?.homepage_display_limit !== undefined && settings?.homepage_display_limit !== null) {
                 const displayLimit = Number(settings.homepage_display_limit);
-                console.log('Updating newArrivals with displayLimit:', displayLimit);
                 if (displayLimit > 0) {
                     setFeaturedProducts(allProducts.slice(0, displayLimit));
                     const sortedByDate = [...allProducts].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
                     setNewArrivals(sortedByDate.slice(0, displayLimit));
                 } else {
-                    console.log('Setting newArrivals to empty array because displayLimit is 0');
                     setFeaturedProducts([]);
                     setNewArrivals([]);
                 }
-            } else {
-                console.log('Settings not loaded yet, homepage_display_limit:', settings?.homepage_display_limit);
             }
         }
     }, [allProducts, settings?.homepage_display_limit]);

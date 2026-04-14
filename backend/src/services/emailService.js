@@ -23,8 +23,7 @@ class EmailService {
             if (error) {
                 console.error('SMTP connection error:', error);
             } else {
-                console.log('SMTP server is ready to send emails');
-            }
+                }
         });
     }
 
@@ -45,15 +44,7 @@ class EmailService {
                 html: html || text
             };
 
-            console.log('Sending email with config:', {
-                to: to,
-                from: fromEmail || this.fromEmail,
-                fromName: fromName || this.fromName,
-                subject: subject
-            });
-
             const info = await this.transporter.sendMail(mailOptions);
-            console.log('Email sent successfully:', info.messageId);
             return { success: true, messageId: info.messageId };
         } catch (error) {
             console.error('Email sending failed:', error);

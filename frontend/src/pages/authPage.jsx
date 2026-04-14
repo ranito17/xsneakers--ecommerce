@@ -92,14 +92,11 @@ const AuthPage = () => {
             // Use AuthProvider's login function
             const result = await login(email, password);
 
-            if (result.success) {   
-                console.log('Login successful:', result);
+            if (result.success) {
                 // Redirect based on user role and redirect parameter
                 if (result.user.role === 'admin') {
-                    console.log('Redirecting to admin dashboard');
                     navigate('/admin/dashboard');
                 } else {
-                    console.log('Redirecting to:', redirectTo);
                     navigate(redirectTo);
                 }
                 return { success: true };
@@ -158,8 +155,6 @@ const AuthPage = () => {
             const response = await authApi.signup(apiData);
 
             if (response.success) {
-                console.log('Signup successful:', response);
-                
                 // Show success message with welcome email info
                 showSuccess(`Account created successfully! Welcome to Xsneakers, ${signupData.full_name}! 🎉\n\nWe've sent a welcome email to ${signupData.email} with more information about your new account.`);
                 

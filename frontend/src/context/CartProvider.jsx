@@ -69,11 +69,9 @@ export const CartProvider = ({ children }) => {
     const loadCart = async () => {
         // Prevent multiple simultaneous loads
         if (isLoadingCart.current) {
-            console.log('🛒 CartProvider: Cart load already in progress, skipping');
             return;
         }
-        
-        console.log('🛒 CartProvider: Loading cart - auth state:', { isAuthenticated, userId: user?.id });
+
         isLoadingCart.current = true;
         setIsLoading(true);
         setError(null);
@@ -81,7 +79,6 @@ export const CartProvider = ({ children }) => {
         try {
             if (isAuthenticated && user?.id) {
                 // Logged-in user: load from backend
-                console.log('🛒 CartProvider: Loading cart from backend for user:', user.id);
                 try {
                     const response = await cartApi.getUserCart();
                     
@@ -118,23 +115,19 @@ export const CartProvider = ({ children }) => {
                             }
                         }).filter(Boolean); // Remove any null items
                         
-                        console.log('🛒 CartProvider: Loaded cart from backend:', items);
                         setCartItems(items);
-                        
+
                         // Save to localStorage for consistency
                         saveCartToStorage(items);
                     } else {
-                        console.log('🛒 CartProvider: No cart data from backend, setting empty cart');
                         setCartItems([]);
                     }
                 } catch (apiError) {
                     console.error('🛒 CartProvider: Error loading cart from backend:', apiError);
                     // Check if it's an authentication error
                     if (apiError.response?.status === 401 || apiError.response?.status === 403) {
-                        console.log('🛒 CartProvider: Auth error, falling back to localStorage');
                         // Treat as guest: load from localStorage
                         const items = loadCartFromStorage();
-                        console.log('🛒 CartProvider: Loaded cart from localStorage as fallback:', items);
                         setCartItems(items);
                     } else {
                         // Other error: set error
@@ -144,9 +137,7 @@ export const CartProvider = ({ children }) => {
                 }
             } else {
                 // Guest user: load from localStorage
-                console.log('🛒 CartProvider: Loading cart from localStorage for guest');
                 const items = loadCartFromStorage();
-                console.log('🛒 CartProvider: Loaded cart from localStorage:', items);
                 setCartItems(items);
             }
         } catch (err) {
@@ -187,43 +178,33 @@ export const CartProvider = ({ children }) => {
         try {
             const guestCart = loadCartFromStorage();
             if (guestCart.length > 0) {
-                console.log('🛒 CartProvider: Syncing guest cart to backend:', guestCart);
-                
                 // Mark as synced to prevent duplicate syncs
                 hasSyncedGuestCart.current = true;
-                
+
                 // First, load the current logged-in user's cart to check for existing items
                 const currentCartResponse = await cartApi.getUserCart();
                 const currentCartItems = currentCartResponse.success ? currentCartResponse.data.items : [];
-                
-                console.log('🛒 CartProvider: Current logged-in cart items:', currentCartItems);
-                
+
                 // Add each guest cart item to backend, but check for duplicates first
                 for (const guestItem of guestCart) {
                     if (validateCartItem(guestItem)) {
                         // Check if this item already exists in the logged-in cart
-                        const existingItem = currentCartItems.find(item => 
-                            item.id === guestItem.id && 
+                        const existingItem = currentCartItems.find(item =>
+                            item.id === guestItem.id &&
                             item.selected_size === guestItem.selected_size
                         );
-                        
+
                         if (existingItem) {
-                            console.log('🛒 CartProvider: Item already exists in logged-in cart, skipping sync for:', guestItem);
                             // Item already exists, skip adding it again to prevent quantity doubling
                             continue;
                         }
-                        
-                        console.log('🛒 CartProvider: Adding guest item to logged-in cart:', guestItem);
+
                         await cartApi.addToCart(guestItem.id, guestItem.quantity, guestItem.selected_size);
-                    } else {
-                        console.warn('🛒 CartProvider: Invalid cart item found:', guestItem);
                     }
                 }
-                
+
                 // Clear guest cart from localStorage
                 clearCartFromStorage();
-                
-                console.log('🛒 CartProvider: Guest cart synced successfully');
             }
         } catch (error) {
             console.error('🛒 CartProvider: Error syncing guest cart:', error);
@@ -236,46 +217,32 @@ export const CartProvider = ({ children }) => {
     useEffect(() => {
         const wasAuthenticated = prevAuthState.current.isAuthenticated;
         const wasUserId = prevAuthState.current.userId;
-        
-        console.log('🛒 CartProvider: Auth state changed:', {
-            wasAuthenticated,
-            wasUserId,
-            isAuthenticated,
-            userId: user?.id
-        });
-        
+
         // User logged out
         if (wasAuthenticated && !isAuthenticated) {
-            console.log('🛒 CartProvider: User logged out, clearing cart state');
             setCartItems([]);
             clearCartFromStorage();
             hasSyncedGuestCart.current = false; // Reset sync flag
         }
         // User logged in (first time or after logout)
         else if (!wasAuthenticated && isAuthenticated && user?.id) {
-            console.log('🛒 CartProvider: User logged in, checking for guest cart sync');
-            
             // Check if there's a guest cart to sync
             const guestCart = loadCartFromStorage();
             if (guestCart.length > 0 && !hasSyncedGuestCart.current) {
-                console.log('🛒 CartProvider: Found guest cart, will sync');
                 // Sync guest cart first, then load cart
                 syncGuestCartToBackend().then(() => {
                     loadCart();
                 });
             } else {
-                console.log('🛒 CartProvider: No guest cart or already synced, loading cart directly');
                 loadCart();
             }
         }
         // User ID changed (same user, different session)
         else if (wasAuthenticated && isAuthenticated && wasUserId !== user?.id) {
-            console.log('🛒 CartProvider: User ID changed, loading cart');
             loadCart();
         }
         // Initial load or other auth state changes
         else if (!wasAuthenticated && !isAuthenticated) {
-            console.log('🛒 CartProvider: Initial load as guest, loading cart');
             loadCart();
         }
         
@@ -305,12 +272,9 @@ export const CartProvider = ({ children }) => {
     const addToCart = async (product, quantity = 1) => {
         // Block cart operations if admin is viewing store
         if (isAdminViewingStore) {
-            console.log('🛒 CartProvider: Cart blocked - Admin viewing store');
             setError('You are in preview mode. Admins cannot add items to cart.');
             return { success: false, message: 'Admins cannot add items to cart in preview mode' };
         }
-
-        console.log('🛒 CartProvider: Adding to cart:', { product, quantity });
         setIsLoading(true);
         setError(null);
 
@@ -323,15 +287,13 @@ export const CartProvider = ({ children }) => {
 
             if (isAuthenticated && user?.id) {
                 // Logged-in user: add to backend
-                console.log('🛒 CartProvider: Adding to backend for logged-in user');
                 const response = await cartApi.addToCart(
-                    product.id, 
-                    quantity, 
+                    product.id,
+                    quantity,
                     product.selected_size
                 );
-                
+
                 if (response.success) {
-                    console.log('🛒 CartProvider: Backend add successful, reloading cart');
                     // Reload cart from backend to get updated state
                     await loadCart();
                     return { success: true };
@@ -342,7 +304,6 @@ export const CartProvider = ({ children }) => {
                 }
             } else {
                 // Guest user: add to localStorage
-                console.log('🛒 CartProvider: Adding to localStorage for guest user');
                 const newItem = {
                     id: product.id,
                     cartItemId: generateCartItemId(),
@@ -414,12 +375,9 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (cartItemId) => {
         // Block cart operations if admin is viewing store
         if (isAdminViewingStore) {
-            console.log('🛒 CartProvider: Cart blocked - Admin viewing store');
             setError('You are in preview mode. Admins cannot modify cart.');
             return;
         }
-
-        console.log('🛒 CartProvider: Removing from cart:', cartItemId);
         setIsLoading(true);
         setError(null);
 
@@ -462,12 +420,9 @@ export const CartProvider = ({ children }) => {
     const updateQuantity = async (cartItemId, quantity) => {
         // Block cart operations if admin is viewing store
         if (isAdminViewingStore) {
-            console.log('🛒 CartProvider: Cart blocked - Admin viewing store');
             setError('You are in preview mode. Admins cannot modify cart.');
             return;
         }
-
-        console.log('🛒 CartProvider: Updating quantity:', { cartItemId, quantity });
         
         if (quantity <= 0) {
             await removeFromCart(cartItemId);
@@ -480,11 +435,9 @@ export const CartProvider = ({ children }) => {
         try {
             if (isAuthenticated && user?.id) {
                 // Logged-in user: update in backend
-                console.log('🛒 CartProvider: Updating quantity in backend');
                 const response = await cartApi.updateQuantity(cartItemId, quantity);
-                
+
                 if (response.success) {
-                    console.log('🛒 CartProvider: Backend update successful, reloading cart');
                     // Reload cart from backend
                     await loadCart();
                 } else {
@@ -493,15 +446,13 @@ export const CartProvider = ({ children }) => {
                 }
             } else {
                 // Guest user: update in localStorage
-                console.log('🛒 CartProvider: Updating quantity in localStorage');
-                const updatedItems = cartItems.map(item => 
-                    item.cartItemId === cartItemId 
+                const updatedItems = cartItems.map(item =>
+                    item.cartItemId === cartItemId
                         ? { ...item, quantity: quantity }
                         : item
                 );
                 setCartItems(updatedItems);
                 saveCartToStorage(updatedItems);
-                console.log('🛒 CartProvider: localStorage updated');
             }
         } catch (err) {
             console.error('🛒 CartProvider: Error updating quantity:', err);
@@ -521,12 +472,9 @@ export const CartProvider = ({ children }) => {
     const clearCart = async () => {
         // Block cart operations if admin is viewing store
         if (isAdminViewingStore) {
-            console.log('🛒 CartProvider: Cart blocked - Admin viewing store');
             setError('You are in preview mode. Admins cannot modify cart.');
             return;
         }
-
-        console.log('🛒 CartProvider: Clearing cart');
         setIsLoading(true);
         setError(null);
 

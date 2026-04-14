@@ -28,10 +28,6 @@ const getUserCart = async (req, res) => {
 // הוספת פריט לעגלה (רק משתמשים מחוברים)
 const addToCart = async (req, res) => {
     try {
-        console.log('🛒 Controller: ===== ADD TO CART CONTROLLER CALL =====');
-        console.log('🛒 Controller: Request body:', req.body);
-        console.log('🛒 Controller: User:', req.user);
-        
         if (!req.user) {
             return res.status(401).json({
                 success: false,
@@ -69,12 +65,8 @@ const addToCart = async (req, res) => {
             });
         }
 
-        console.log('🛒 Controller: Calling Cart.addToCart with:', { productId, quantity, selected_size });
         const result = await Cart.addToCart(req.user.id, productId, quantity, selected_size);
-        
-        console.log('🛒 Controller: Cart result:', result);
-        console.log('🛒 Controller: ===== ADD TO CART CONTROLLER COMPLETE =====');
-        
+
         res.status(200).json({
             success: true,
             data: result

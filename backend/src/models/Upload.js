@@ -55,19 +55,11 @@ const normalizedTarget = targetUrl.startsWith('/uploads/')
 
 const updatedUrls = currentUrls.filter(url => url !== normalizedTarget);
 
-      console.log('🗑️ Database update:', { 
-        originalUrls: currentUrls, 
-        targetUrl: imageUrl, 
-        normalizedTarget: normalizedTarget,
-        remainingUrls: updatedUrls 
-      });
-
       // Update with remaining URLs
       const query = 'UPDATE products SET image_urls = ? WHERE id = ?';
       const updatedUrlsString = imageUrlsToString(updatedUrls, 'products');
-    
+
       await db.query(query, [updatedUrlsString, productId]);
-      console.log('✅ Database updated successfully');
     } catch (error) {
       console.error('Error in removeProductImage:', error);
       throw error;
@@ -100,7 +92,6 @@ const updatedUrls = currentUrls.filter(url => url !== normalizedTarget);
     try {
       const query = 'UPDATE products SET image_urls = NULL WHERE id = ?';
       await db.query(query, [productId]);
-      console.log('✅ All images removed from database for product:', productId);
     } catch (error) {
       console.error('Error in removeAllProductImages:', error);
       throw error;

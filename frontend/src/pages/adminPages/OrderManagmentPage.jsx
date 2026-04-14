@@ -49,7 +49,6 @@ const OrderManagmentPage = () => {
             const response = await orderApi.getAllOrders();
             if (response.success) {
                 const ordersData = response.data || [];
-                console.log(ordersData);
                 setOrders(ordersData);
                 const itemsData = {};
                 for (const order of ordersData) {

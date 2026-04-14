@@ -54,14 +54,12 @@ const ProductsPage = () => {
             setLoading(true);
             setError(null);
             const response = await productApi.getProducts();
-            console.log("response:", response.data);
             if (response.success) {
                 const processedProducts = (response.data || []).map(product => ({
                     ...product,
                     sizes_display: formatSizesForCustomer(product.sizes)
                 }));
                 setProducts(processedProducts);
-                console.log("processedProducts:", processedProducts);
             } else {
                 setError('Failed to fetch products');
             }

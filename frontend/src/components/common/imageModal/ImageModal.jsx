@@ -4,9 +4,7 @@ import styles from './imageModal.module.css';
 const ImageModal = ({ open, images = [], alt = '', onClose, initialIndex = 0 }) => {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const fallbackImage = images?.[0] || '';
-    
-    console.log("image modal images", images);
-    
+
     useEffect(() => {
         if (open) setCurrentIndex(initialIndex);
     }, [open, initialIndex]);

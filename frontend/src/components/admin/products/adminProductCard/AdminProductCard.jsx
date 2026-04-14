@@ -78,7 +78,6 @@ const AdminProductCard = ({
                             }}
                             style={{ cursor: onImageClick ? 'pointer' : 'default' }}
                             onError={(e) => {
-                                console.log('Image failed to load:', firstImageUrl);
                                 e.target.style.display = 'none';
                                 e.target.nextSibling.style.display = 'flex';
                             }}

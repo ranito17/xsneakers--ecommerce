@@ -561,8 +561,8 @@ const DashboardPage = () => {
                 <ProductImagesModal
                     product={selectedProduct}
                     onClose={() => setShowImagesModal(false)}
-                    onUpload={async () => console.log('Upload in dashboard')}
-                    onDelete={async () => console.log('Delete in dashboard')}
+                    onUpload={async () => {}}
+                    onDelete={async () => {}}
                     viewMode
                 />
             )}

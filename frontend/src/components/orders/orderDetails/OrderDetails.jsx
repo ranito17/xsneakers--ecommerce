@@ -15,20 +15,6 @@ const OrderDetails = ({ order, orderItems, user, onClose, isOpen, onContactSubmi
     // Don't render if modal is not open
     if (!isOpen) return null;
 
-    // Helper functions
-    console.log('OrderDetails component rendered with:', { 
-        order, 
-        orderItems, 
-        user,
-        isOpen,
-        orderItemsLength: orderItems?.length,
-        orderItemsType: typeof orderItems,
-        orderItemsIsArray: Array.isArray(orderItems),
-        orderType: typeof order,
-        orderIsNull: order === null,
-        orderIsUndefined: order === undefined
-    });
-
     // Using formatProductPrice from product.utils.js
     // Using getProductImage from image.utils.js
 

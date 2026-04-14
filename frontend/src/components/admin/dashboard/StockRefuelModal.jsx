@@ -31,11 +31,8 @@ const StockRefuelModal = ({ isOpen, onClose, onSuccess }) => {
     const fetchLowStockProducts = async () => {
         try {
             const sizeThreshold = settings?.low_stock_threshold_per_size || 5;
-            console.log('Size threshold:', sizeThreshold);
             const response = await productApi.getProductsWithLowStockSizes(sizeThreshold);
             if (response.success) {
-                console.log('Low stock products response:', response);
-                console.log('First product sizes:', response.data[0]?.sizes);
                 setProducts(response.data);
             }
         } catch (error) {

@@ -14,16 +14,6 @@ function environment() {
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
     const mode = process.env.PAYPAL_MODE || 'sandbox';
 
-    // Debug logging (only in development)
-    if (process.env.NODE_ENV !== 'production') {
-        console.log('PayPal Config:', {
-            hasClientId: !!clientId,
-            hasClientSecret: !!clientSecret,
-            mode: mode,
-            clientIdLength: clientId?.length || 0
-        });
-    }
-
     // In demo/portfolio mode we allow the app to run without PayPal credentials.
     // createOrder/captureOrder will return a simulated success response in that case.
     if (!clientId || !clientSecret) {

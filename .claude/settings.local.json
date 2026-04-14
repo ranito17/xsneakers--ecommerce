@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -E \"\\\\.js$\")"
+      "Bash(grep -E \"\\\\.js$\")",
+      "Bash(find backend/src -type f -name \"*.js\" -exec grep -l \"return\\\\|throw\" {} \\\\;)"
     ]
   }
 }

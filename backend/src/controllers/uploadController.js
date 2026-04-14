@@ -12,13 +12,9 @@ const uploadProductImages = async (req, res) => {
     const { productId } = req.body;
     const files = req.files; // multer provides this
 
-    console.log('📸 Uploading images:', files.length, 'files');
-
     // Save file paths to database with full URL
     const imageUrls = files.map(file => `/uploads/products/${file.filename}`);
-    
-    console.log('✅ Images uploaded successfully:', imageUrls);
-    
+
     // Update product with new image URLs
     await Upload.updateProductImages(productId, imageUrls);
 
@@ -57,13 +53,10 @@ const deleteProductImage = async (req, res) => {
             }
         }
 
-        console.log('🗑️ Deleting image:', { originalUrl: imageUrl, extractedFilename: filename });
-
         // Delete the file from disk
         const filePath = path.join(UPLOADS_ROOT, 'products', filename);
         try {
             await fs.unlink(filePath);
-            console.log('✅ File deleted from disk:', filePath);
         } catch (fileError) {
             console.warn('⚠️ File not found for deletion:', filePath);
             // Continue with database update even if file doesn't exist
@@ -90,8 +83,6 @@ const deleteAllProductImages = async (req, res) => {
     try {
         const { productId } = req.params;
 
-        console.log('🗑️ Deleting all images for product:', productId);
-
         // Get current product images from database
         const currentImages = await Upload.getProductImages(productId);
         
@@ -112,7 +103,6 @@ const deleteAllProductImages = async (req, res) => {
                 const filePath = path.join(UPLOADS_ROOT, 'products', filename);
                 try {
                     await fs.unlink(filePath);
-                    console.log('✅ File deleted from disk:', filePath);
                 } catch (fileError) {
                     console.warn('⚠️ File not found for deletion:', filePath);
                 }
