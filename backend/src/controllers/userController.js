@@ -100,11 +100,15 @@ const login = async (req, res) => {
             expiresIn: '24h'
         });
         
-        // הגדרת JWT token כ-HTTP-only cookie
+        // הגדרת JWT token כ-HTTP-only cookie (works same-origin / dev)
         res.cookie('token', token, cookieOptions);
+        // Also return the token in the response body so the frontend can store it
+        // in localStorage and send it as an Authorization: Bearer header for
+        // cross-origin production deployments (Vercel → Railway).
         res.json({
             success: true,
             message: 'Login successful',
+            token,
             user: {
                 id: user.id,
                 email: user.email,

@@ -142,9 +142,7 @@ const ShippingPolicyPage = () => {
                             <li>Items must be returned in original condition with price tag attached</li>
                             <li>Return delivery costs are the responsibility of the customer</li>
                         </ul>
-                        <p>
-                            For detailed information about our return policy, please refer to our <a href="/refund-policy" style={{ color: 'var(--primary-color)', textDecoration: 'underline' }}>Refund Policy</a> page.
-                        </p>
+                      
                     </div>
                 </div>
             </div>

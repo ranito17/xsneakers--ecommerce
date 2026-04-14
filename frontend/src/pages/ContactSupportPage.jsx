@@ -164,10 +164,6 @@ const ContactSupportPage = () => {
                             <p>We offer a 30-day return policy for most items. Products must be in original condition with all tags attached. Contact us for return authorization.</p>
                         </div>
                         <div className={styles.contactFaqItem}>
-                            <h3>Do you ship internationally?</h3>
-                            <p>Yes, we ship to most countries worldwide. Shipping costs and delivery times vary by location. Check our shipping page for details.</p>
-                        </div>
-                        <div className={styles.contactFaqItem}>
                             <h3>How can I change my order?</h3>
                             <p>Orders can be modified within 2 hours of placement. Contact our support team immediately if you need to make changes to your order.</p>
                         </div>

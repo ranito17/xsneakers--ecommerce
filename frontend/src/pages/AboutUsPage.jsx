@@ -27,28 +27,14 @@ const AboutUsPage = () => {
                     <div className={styles.aboutStoryContent}>
                         <div className={styles.aboutStoryText}>
                             <p>
-                                Founded with a vision to provide high-quality products at competitive prices, 
-                                we've grown from a small local business to serving customers nationwide. 
-                                Our commitment to excellence and customer satisfaction drives everything we do.
+                                Founded with a vision to provide high-quality sneakers at competitive prices,
+                                XSneakers is a passion project built for sneaker lovers in Israel.
+                                Our commitment to quality and customer satisfaction drives everything we do.
                             </p>
                             <p>
-                                We believe in building lasting relationships with our customers through 
+                                We believe in building lasting relationships with our customers through
                                 transparent communication, reliable service, and products that exceed expectations.
                             </p>
-                        </div>
-                        <div className={styles.aboutStoryStats}>
-                            <div className={styles.aboutStat}>
-                                <span className={styles.aboutStatNumber}>500+</span>
-                                <span className={styles.aboutStatLabel}>Happy Customers</span>
-                            </div>
-                            <div className={styles.aboutStat}>
-                                <span className={styles.aboutStatNumber}>1000+</span>
-                                <span className={styles.aboutStatLabel}>Products Sold</span>
-                            </div>
-                            <div className={styles.aboutStat}>
-                                <span className={styles.aboutStatNumber}>5+</span>
-                                <span className={styles.aboutStatLabel}>Years Experience</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -109,31 +95,23 @@ const AboutUsPage = () => {
                     </div>
                 </div>
 
-                {/* Team Section */}
+                {/* Founder Section */}
                 <div className={styles.aboutSection}>
                     <div className={styles.aboutSectionHeader}>
-                        <h2 className={styles.aboutSectionTitle}>Our Team</h2>
+                        <h2 className={styles.aboutSectionTitle}>The Person Behind XSneakers</h2>
                         <div className={styles.aboutTitleUnderline}></div>
                     </div>
-                    <div className={styles.aboutTeamGrid}>
-                        <div className={styles.aboutTeamMember}>
-                            <div className={styles.aboutMemberAvatar}>
-                                <span className={styles.aboutAvatarInitial}>J</span>
+                    <div className={styles.aboutMissionContent}>
+                        <div className={styles.aboutMissionCard}>
+                            <div className={styles.aboutMemberAvatar} style={{ margin: '0 auto 1rem' }}>
+                                <span className={styles.aboutAvatarInitial}>R</span>
                             </div>
-                            <h3 className={styles.aboutMemberName}>John Smith</h3>
-                            <p className={styles.aboutMemberRole}>Founder & CEO</p>
-                            <p className={styles.aboutMemberBio}>
-                                Passionate about business growth and customer satisfaction.
-                            </p>
-                        </div>
-                        <div className={styles.aboutTeamMember}>
-                            <div className={styles.aboutMemberAvatar}>
-                                <span className={styles.aboutAvatarInitial}>S</span>
-                            </div>
-                            <h3 className={styles.aboutMemberName}>Sarah Johnson</h3>
-                            <p className={styles.aboutMemberRole}>Operations Manager</p>
-                            <p className={styles.aboutMemberBio}>
-                                Ensuring smooth operations and quality control.
+                            <h3 className={styles.aboutMemberName}>Ranit</h3>
+                            <p className={styles.aboutMemberRole}>Founder & Sole Owner</p>
+                            <p className={styles.aboutMissionText}>
+                                Hi, I'm Ranit — a passionate sneaker enthusiast based in Israel and the founder and sole person behind XSneakers.
+                                I built this store out of my love for sneakers and my desire to make it easy for fellow sneaker fans in Israel to find premium kicks they'll love.
+                                Every product, every decision, and every order is handled personally by me.
                             </p>
                         </div>
                     </div>
@@ -143,7 +121,7 @@ const AboutUsPage = () => {
                 <div className={styles.aboutCtaSection}>
                     <h2 className={styles.aboutCtaTitle}>Ready to Get Started?</h2>
                     <p className={styles.aboutCtaText}>
-                        Join thousands of satisfied customers who trust us for their needs.
+                        Join our growing community of sneaker lovers across Israel.
                     </p>
                     <div className={styles.aboutCtaButtons}>
                         <Link to="/products" className={styles.aboutCtaButtonPrimary}>

@@ -4,9 +4,17 @@ const config = require('../config/config');
 
 const isAuthenticated = async (req, res, next) => {
     try {
-        // קבלת טוקן מ-HTTP-only cookie
-        const token = req.cookies?.token;
-        
+        // In cross-origin production (Vercel + Railway) browsers block third-party
+        // cookies, so we accept the token from the Authorization header first.
+        // Cookie fallback keeps same-origin / development working unchanged.
+        let token = null;
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.split(' ')[1];
+        } else {
+            token = req.cookies?.token;
+        }
+
         if (!token) {
             return res.status(401).json({
                 success: false,
@@ -16,7 +24,7 @@ const isAuthenticated = async (req, res, next) => {
 
         // אימות טוקן JWT
         const decoded = jwt.verify(token, config.jwtSecret);
-        
+
         // הגדרת פרטי משתמש מה-JWT payload
         req.user = {
             id: decoded.userId,
@@ -24,7 +32,7 @@ const isAuthenticated = async (req, res, next) => {
             role: decoded.role,
             name: decoded.name
         };
-        
+
         next();
     } catch (err) {
         return res.status(401).json({

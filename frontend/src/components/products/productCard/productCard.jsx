@@ -177,15 +177,6 @@ const ProductCard = ({
                     }}
                 />
                 
-                {/* Stock Badge */}
-                <div className={styles.stockBadge}>
-                    {stock_quantity > 0 ? (
-                        <span className={styles.inStock}>In Stock</span>
-                    ) : (
-                        <span className={styles.outOfStock}>Out of Stock</span>
-                    )}
-                </div>
-
                 {/* Save Button */}
                 <button
                     className={`${styles.saveButton} ${isInWishlist ? styles.saved : ''}`}

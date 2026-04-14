@@ -379,7 +379,7 @@
 
 @media (max-width: 480px) {
     .imageSection {
-        height: 130px;
+        height: 200px;
     }
 
     .productInfo {
@@ -401,7 +401,9 @@
     }
 
     .productDescription {
-        display: none;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        font-size: 0.8rem;
     }
 
     .price {

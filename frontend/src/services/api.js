@@ -15,6 +15,13 @@ const api = axios.create({
 // Request interceptor - runs before every request
 api.interceptors.request.use(
     (config) => {
+        // Attach stored JWT as Bearer token so cross-origin requests work
+        // in production (Vercel → Railway) where third-party cookies are blocked.
+        // The cookie is still sent in same-origin / development scenarios.
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {

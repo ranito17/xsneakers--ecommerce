@@ -24,6 +24,11 @@ const paymentRoutes = require('./routes/paymentRoutes');
 
 const app = express();
 
+// Required for Railway (sits behind a reverse proxy).
+// Without this, Express doesn't trust X-Forwarded-* headers and
+// req.secure / req.ip / cookie Secure flag may behave incorrectly.
+app.set('trust proxy', 1);
+
 const corsOptions = {
     origin: config.corsOrigin,
     credentials: true,

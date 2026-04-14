@@ -87,6 +87,10 @@ export const AuthProvider = ({ children }) => {
             const response = await authApi.login(email, password);
 
             if (response.success && response.user) {
+                // Store token for cross-origin Bearer auth (production: Vercel → Railway)
+                if (response.token) {
+                    localStorage.setItem('auth_token', response.token);
+                }
                 setUser(response.user);
                 setIsAuthenticated(true);
                 return { success: true, user: response.user };
@@ -120,6 +124,7 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
             console.error('Logout error:', err);
         } finally {
+            localStorage.removeItem('auth_token');
             setUser(null);
             setIsAuthenticated(false);
             clearCartFromStorage(); // Clear cart on logout

@@ -13,8 +13,7 @@ build/
 dist/
 */build/
 */dist/
-.claude/
-CLAUDE.md
+
 # Logs
 *.log
 npm-debug.log*

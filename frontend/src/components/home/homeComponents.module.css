@@ -253,8 +253,8 @@
 
 @media (max-width: 480px) {
     .productGrid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.6rem;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
     }
 }
 
@@ -419,44 +419,68 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .heroSection {
+        min-height: auto;
+        padding: 1rem;
+        margin: 0.75rem 0;
+    }
+
     .heroContent {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 1rem;
         text-align: center;
+        padding: 0.75rem 1rem;
     }
-    
+
     .heroTitle {
-        font-size: 2.5rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
     }
-    
+
     .heroSubtitle {
-        font-size: 1.1rem;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
     }
-    
-    .heroImageContainer {
-        height: 300px;
+
+    .heroButtons {
+        justify-content: center;
     }
-    
+
+    .primaryButton {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .heroImage {
+        display: none;
+    }
+
     .quickNavGrid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 1rem;
     }
-    
+
     .trustContent {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .trustStats {
         justify-content: center;
     }
-    
+
     .newsletterForm {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .newsletterInput {
         min-width: 100%;
+    }
+
+    .productGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
 }
