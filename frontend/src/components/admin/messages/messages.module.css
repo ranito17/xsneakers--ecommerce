@@ -941,6 +941,37 @@
     .contentContainer {
         padding: 1rem;
     }
+
+    /* Fix: date overflows card boundary on mobile.
+       Stack header vertically so the date wraps below the badges. */
+    .messageCard {
+        padding: 1rem;
+    }
+
+    .messageHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .messageDate {
+        white-space: normal;
+        align-self: flex-start;
+        font-size: 0.8rem;
+    }
+
+    .messageBadges {
+        width: 100%;
+    }
+
+    .messageSubject {
+        font-size: 1rem;
+    }
+
+    .messageSender {
+        font-size: 0.8rem;
+        gap: 0.5rem;
+    }
 }
 
 @media (max-width: 480px) {

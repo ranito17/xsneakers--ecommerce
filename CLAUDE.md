@@ -99,3 +99,32 @@ Before making any change:
 - About Us: replaced "Our Team" with founder section (Ranit, Israel, sole owner)
 - Removed all international shipping mentions across Contact, About Us pages
 - Dashboard card headers: stack vertically on mobile (768px breakpoint in `dashboard.module.css`)
+
+### Code Cleanup — Debug Statements Removed
+- Removed ~54 `console.log` / `console.warn` debug statements from frontend
+- Removed ~25 `console.log` debug statements from backend
+- Files cleaned: CartProvider, cartUtils, CategoryNav, ImageModal, authPage, HomePage, PaymentPage, ProductsPage, OrderManagment, DashboardPage, AdminProductCard, StockRefuelModal, OrderDetails
+- Backend: cartController, messageController, orderController, uploadController, Product.js, Upload.js, emailService, paypalService
+
+### Loading / Error Component Standardization
+- Standard components: `LoadingContainer` (props: `message`, `size`) and `ErrorContainer` (props: `message`, `onRetry`, `showRetry`)
+- Both exported from `components/contactForm/index.js` barrel
+- Fixed pages to use these instead of inline divs/spinners:
+  - `WishlistPage`: replaced inline spinner+error div with `<LoadingContainer message="Loading your wishlist..." />` and `<ErrorContainer />`
+  - `ProfilePage`: replaced inline spinner+error div with standardized components
+  - `ShippingPolicyPage`: replaced inline `<p>Loading...</p>` with `<LoadingContainer size="small" />`
+  - `AnalyticsPage`: replaced custom error div with `<ErrorContainer />`, added `ErrorContainer` import
+  - `UserManagmentPage`: replaced `<LoadingContainer />` (no message) with `message="Loading users..."`, replaced inline error div with `<ErrorContainer />`
+
+### Mobile Design Fix — Analytics Page
+- `adminPages.module.css`: added `@media (max-width: 768px)` and `@media (max-width: 480px)` rules for:
+  - `.analyticsMainContent`: reduced padding
+  - `.tabNavigation` / `.tabButton`: flex-wrap, smaller padding
+  - `.productTable`: enforced `overflow-x: auto`, `min-width` on table, smaller cell padding
+  - `.metricsGrid` / `.metricCard`: responsive column sizing
+
+### Mobile Design Fix — Admin Messages Page
+- `messages.module.css`: added rules inside existing `@media (max-width: 768px)` block:
+  - `.messageHeader`: `flex-direction: column` — date no longer overflows card boundary
+  - `.messageDate`: `white-space: normal` so long timestamps wrap correctly
+  - `.messageCard`, `.messageBadges`, `.messageSubject`, `.messageSender`: tighter mobile sizing

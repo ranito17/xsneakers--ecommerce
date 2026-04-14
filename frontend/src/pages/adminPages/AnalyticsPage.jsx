@@ -9,7 +9,7 @@ import { formatPrice } from '../../utils/price.utils';
 import { getDefaultStartDate, getDefaultEndDate } from '../../utils/date.utils';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import useAuthorization from '../../hooks/useAuthorization';
-import { LoadingContainer } from '../../components/contactForm';
+import { LoadingContainer, ErrorContainer } from '../../components/contactForm';
 import styles from './adminPages.module.css';
 
 const AnalyticsPage = () => {
@@ -624,20 +624,7 @@ const AnalyticsPage = () => {
     if (error) {
         return (
             <ProtectedRoute requiredRole="admin">
-                <div className={styles.analyticsPage}>
-                    <div className={styles.errorContainer}>
-                        <div className={styles.errorContent}>
-                            <h2>Error Loading Analytics</h2>
-                            <p>{error}</p>
-                            <button 
-                                onClick={fetchAnalyticsData}
-                                className={styles.retryButton}
-                            >
-                                Try Again
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <ErrorContainer message={error} onRetry={fetchAnalyticsData} />
             </ProtectedRoute>
         );
     }

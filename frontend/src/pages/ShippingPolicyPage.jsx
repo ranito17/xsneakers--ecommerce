@@ -3,6 +3,7 @@ import React from 'react';
 import styles from './pages.module.css';
 import { useSettings } from '../context/SettingsProvider';
 import { formatPrice } from '../utils/price.utils';
+import { LoadingContainer } from '../components/contactForm';
 
 const ShippingPolicyPage = () => {
     const { 
@@ -46,7 +47,7 @@ const ShippingPolicyPage = () => {
                     </div>
                     <div className={styles.aboutStoryText}>
                         {loading ? (
-                            <p>Loading delivery information...</p>
+                            <LoadingContainer message="Loading delivery information..." size="small" />
                         ) : (
                             <>
                                                                  <h3 style={{ color: 'var(--primary-color)', fontSize: '1.1rem', marginBottom: '0.75rem' }}>2.1 Standard Delivery</h3>

@@ -5,6 +5,7 @@ import { useToast } from '../components/common/toast';
 import { getWishlist, removeFromWishlist } from '../services/userApi';
 import { productApi } from '../services/productApi';
 import WishlistList from '../components/wishlist/WishlistList';
+import { LoadingContainer, ErrorContainer } from '../components/contactForm';
 import styles from './pages.module.css';
 
 const WishlistPage = () => {
@@ -68,32 +69,10 @@ const WishlistPage = () => {
         }
     }, [isAuthenticated, authLoading, navigate]);
     if (authLoading || isLoading) {
-        return (
-            <div className={styles.wishlistContainer}>
-                <div className={styles.wishlistLoading}>
-                    <div className={styles.wishlistSpinner}></div>
-                    <p>Loading your wishlist...</p>
-                </div>
-            </div>
-        );
+        return <LoadingContainer message="Loading your wishlist..." size="medium" />;
     }
     if (error) {
-        return (
-            <div className={styles.wishlistContainer}>
-                <div className={styles.wishlistError}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="8" x2="12" y2="12"/>
-                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <h2>Oops!</h2>
-                    <p>{error}</p>
-                    <button onClick={loadWishlist} className={styles.wishlistRetryButton}>
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
+        return <ErrorContainer message={error} onRetry={loadWishlist} />;
     }
     if (wishlistProducts.length === 0) {
         return (

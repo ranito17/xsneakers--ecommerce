@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '../../components/common/toast';
 import { getAllUsers, userApi } from '../../services/userApi';
 import { UserList, UserCartModal } from '../../components/admin/users';
-import { LoadingContainer } from '../../components/contactForm';
+import { LoadingContainer, ErrorContainer } from '../../components/contactForm';
 import ContactFormModal from '../../components/contactForm/ContactFormModal';
 import { messageApi } from '../../services/messageApi';
 import SearchBar from '../../components/admin/common/SearchBar';
@@ -196,23 +196,10 @@ const UserManagementPage = () => {
     });
     const sortedUsers = getSortedUsers(filteredUsers);
     if (loading) {
-        return <LoadingContainer />;
+        return <LoadingContainer message="Loading users..." size="large" />;
     }
     if (error) {
-        return (
-            <div className={styles.errorContainer}>
-                <div className={styles.errorContent}>
-                    <h2>Error Loading Users</h2>
-                    <p>{error}</p>
-                    <button 
-                        className={styles.retryButton}
-                        onClick={fetchUsers}
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
+        return <ErrorContainer message={error} onRetry={fetchUsers} />;
     }
     return (
         <div className={styles.userManagement}>

@@ -4,6 +4,7 @@ import { useToast } from '../components/common/toast';
 import { userApi } from '../services/userApi';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useNavigate } from 'react-router-dom';
+import { LoadingContainer, ErrorContainer } from '../components/contactForm';
 import { 
     validateProfileUpdate, 
     validateAddress, 
@@ -186,28 +187,10 @@ const ProfilePage = () => {
         fetchProfile();
     }, [authLoading, isAuthenticated]);
     if (loading) {
-        return (
-            <ProtectedRoute redirectToLogin={true}>
-                <div className={styles.profilePage}>
-                    <div className={styles.loadingContainer}>
-                        <div className={styles.spinner}></div>
-                        <p>Loading profile...</p>
-                    </div>
-                </div>
-            </ProtectedRoute>
-        );
+        return <LoadingContainer message="Loading your profile..." size="medium" />;
     }
     if (!userData) {
-        return (
-            <ProtectedRoute redirectToLogin={true}>
-                <div className={styles.profilePage}>
-                    <div className={styles.errorContainer}>
-                        <p>Failed to load profile data</p>
-                        <button onClick={fetchProfile}>Retry</button>
-                    </div>
-                </div>
-            </ProtectedRoute>
-        );
+        return <ErrorContainer message="Failed to load profile data" onRetry={fetchProfile} />;
     }
     return (
         <ProtectedRoute redirectToLogin={true}>
